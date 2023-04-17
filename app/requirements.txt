@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+motor
+numba
+strawberry-graphql[fastapi]
