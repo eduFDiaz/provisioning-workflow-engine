@@ -20,6 +20,15 @@ def find_nth_prime(n):
         num += 2
     return num - 2
 
+def find_factorial(n):
+    if n == 0:
+        return 1
+    return n * find_factorial(n - 1)
+
 @activity.defn
-async def find_prime(n: int) -> str:
-    return f"the {n}th prime number is {find_nth_prime(n)}!"
+async def find_factorial_activity(n: int) -> int:
+    return find_factorial(n)
+
+@activity.defn
+async def find_prime(n: int) -> int:
+    return find_nth_prime(n)
