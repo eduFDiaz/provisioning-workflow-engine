@@ -37,7 +37,15 @@ Then navigate to the temporal ui to see the flows
 http://localhost:8080/namespaces/default/workflows
 ![alt text](temporal.png "Title")
 
-# TODOS
+## Testing
+To run the tests simply run
+```
+pytest -v app/tests/test_*.py
+```
+![alt text](tests.png "Title")
+
+## TODO
 - Refactor code following MVC pattern
-- Create a new workflow that uses context and multiple activites
-- Update tests for existing workflow
+- <s>Create a new workflow that uses context and multiple activites<s>
+- <s>Update tests for existing workflow<s>
+- Fix test_execute_prime_factorial_workflow
