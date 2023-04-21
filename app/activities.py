@@ -21,9 +21,13 @@ def find_nth_prime(n):
     return num - 2
 
 def find_factorial(n):
+    # iterative approach
     if n == 0:
         return 1
-    return n * find_factorial(n - 1)
+    result = 1
+    for i in range(1, n + 1):
+        result *= i
+    return result
 
 @activity.defn
 async def find_factorial_activity(n: int) -> int:

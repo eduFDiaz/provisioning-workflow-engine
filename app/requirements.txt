@@ -8,3 +8,4 @@ pytest
 pytest-asyncio
 jinja2
 pyyaml
+pytest
