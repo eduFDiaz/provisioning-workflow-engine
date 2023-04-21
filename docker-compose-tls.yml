@@ -1,56 +1,5 @@
-version: "3.9"
+version: "3.5"
 services:
-  fastapi_app:
-    build: ./app
-    image: fastapi_app:latest
-    container_name: fastapi_app
-    ports:
-      - "8000:8000"
-    depends_on:
-      - mongodb
-      - mongo-express
-      - temporal
-    environment:
-      - MONGO_HOST=mongodb
-      - MONGO_PORT=27017
-      - MONGO_DB_NAME=mydb
-      - MONGO_COLLECTION_NAME=mycollection
-      - MONGO_USER=admin
-      - MONGO_PASSWORD=your_password
-    networks:
-      - temporal-network
-
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=your_password
-      - MONGO_INITDB_DATABASE=mydb
-      - MONGO_INITDB_AUTH_SOURCE=authdb
-      - MONGO_INITDB_ADMIN_USERNAME=admin
-      - MONGO_INITDB_ADMIN_PASSWORD=your_password
-    networks:
-      - temporal-network
-
-  mongo-express:
-    image: mongo-express:latest
-    container_name: mongo-express
-    restart: always
-    ports:
-      - "8081:8081"
-    depends_on:
-      - mongodb
-    environment:
-      - ME_CONFIG_MONGODB_URL=mongodb://admin:your_password@mongodb:27017/
-    networks:
-      - temporal-network
-  
   elasticsearch:
     container_name: temporal-elasticsearch
     environment:
@@ -60,16 +9,36 @@ services:
       - cluster.routing.allocation.disk.watermark.flood_stage=128mb
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms256m -Xmx256m
-      - xpack.security.enabled=false
+      - ELASTIC_PASSWORD=elastic
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=certs/elasticsearch-key.pem
+      - xpack.security.http.ssl.certificate=certs/elasticsearch.pem
+      - xpack.security.http.ssl.certificate_authorities=certs/ca.pem
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.key=certs/elasticsearch-key.pem
+      - xpack.security.transport.ssl.certificate=certs/elasticsearch.pem
+      - xpack.security.transport.ssl.certificate_authorities=certs/ca.pem
     image: elasticsearch:${ELASTICSEARCH_VERSION}
     networks:
       - temporal-network
     expose:
       - 9200
     volumes:
+      - temporal_tls_pki:/usr/share/elasticsearch/config/certs
       - /var/lib/elasticsearch/data
+    restart: on-failure
   postgresql:
     container_name: temporal-postgresql
+    command: 
+      - "-c"
+      - "ssl=on" 
+      - "-c"
+      - "ssl_cert_file=/pki/postgresql.pem"
+      - "-c"
+      - "ssl_key_file=/pki/postgresql-key.pem"
+      - "-c"
+      - "ssl_ca_file=/pki/ca.pem"
     environment:
       POSTGRES_PASSWORD: temporal
       POSTGRES_USER: temporal
@@ -79,9 +48,17 @@ services:
     expose:
       - 5432
     volumes:
+      - temporal_tls_pki:/pki
       - /var/lib/postgresql/data
+    restart: on-failure
   temporal:
     container_name: temporal
+    build:
+      context: .
+      dockerfile: tls/Dockerfile.auto-setup-tls
+      args:
+        - BASEIMAGE=auto-setup:${TEMPORAL_VERSION}
+    image: auto-setup-tls:${TEMPORAL_VERSION}
     depends_on:
       - postgresql
       - elasticsearch
@@ -91,26 +68,33 @@ services:
       - POSTGRES_USER=temporal
       - POSTGRES_PWD=temporal
       - POSTGRES_SEEDS=postgresql
+      - SQL_TLS=true
       - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
-    image: temporalio/auto-setup:${TEMPORAL_VERSION}
+      - ES_SCHEME=https
+      - ES_USER=elastic
+      - ES_PWD=elastic
     networks:
       - temporal-network
     ports:
       - 7233:7233
-    labels:
-      kompose.volume.type: configMap
     volumes:
       - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+    restart: on-failure
   temporal-admin-tools:
     container_name: temporal-admin-tools
     depends_on:
       - temporal
     environment:
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/admin-tools:${TEMPORAL_VERSION}
+    build:
+      context: .
+      dockerfile: tls/Dockerfile.admin-tools-tls
+      args:
+        - BASEIMAGE=admin-tools:${TEMPORAL_VERSION}
+    image: temporalio/admin-tools-tls:${TEMPORAL_VERSION}
     networks:
       - temporal-network
     stdin_open: true
@@ -127,10 +111,11 @@ services:
       - temporal-network
     ports:
       - 8080:8080
-
-volumes:
-  mongodb_data:
+    restart: on-failure
 networks:
   temporal-network:
-      driver: bridge
-      name: temporal-network
+    driver: bridge
+    name: temporal-network
+volumes:
+  temporal_tls_pki:
+   external: true

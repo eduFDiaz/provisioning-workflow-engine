@@ -1,5 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from Config import settings
+from config import settings
 
 
 class SingletonMeta(type):
@@ -25,3 +25,6 @@ class Database(metaclass=SingletonMeta):
         return self._database
 
 db = Database()
+
+async def get_db_client() -> AsyncIOMotorClient:
+    return db.client

@@ -3,3 +3,8 @@ uvicorn
 motor
 numba
 strawberry-graphql[fastapi]
+temporalio
+pytest
+pytest-asyncio
+jinja2
+pyyaml
