@@ -29,6 +29,8 @@ async def test_execute_prime_workflow():
 
 @activity.defn(name="find_prime")
 async def find_prime_mocked(n: int) -> int:
+    if (n == 4):
+        return 7
     if (n == 5):
         return 11
     if (n == 10):

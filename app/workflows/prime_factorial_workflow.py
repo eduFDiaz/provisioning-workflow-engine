@@ -1,10 +1,11 @@
-from datetime import timedelta
+
 from temporalio import workflow
-from config import logger as log
 
 # Import activity, passing it through the sandbox without reloading the module
 with workflow.unsafe.imports_passed_through():
     from activities import find_prime, find_factorial_activity
+    from datetime import timedelta
+    from config import logger as log
 
 @workflow.defn
 class PrimeFactorialFlow:

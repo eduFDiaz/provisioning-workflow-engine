@@ -1,5 +1,7 @@
-import time
-from temporalio import activity
+from temporalio import activity, workflow
+
+with workflow.unsafe.imports_passed_through():
+    from config import logger as log
 
 def is_prime(num):
     if num < 2:
@@ -22,6 +24,7 @@ def find_nth_prime(n):
 
 def find_factorial(n):
     # iterative approach
+    log.info(f"Finding factorial of {n}")
     if n == 0:
         return 1
     result = 1

@@ -37,8 +37,14 @@ async def find_factorial_mocked(n: int) -> int:
         return 1
     if (n == 5):
         return 120
+    if (n == 7):
+        return 5040
     if (n == 10):
         return 3628800
+    if (n == 11):
+        return 39916800
+    if (n == 29):
+        return 8841761993739701954543616000000
 
 @pytest.mark.asyncio
 async def test_find_factorial_activity_mocked():
