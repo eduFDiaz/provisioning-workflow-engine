@@ -1,5 +1,5 @@
 # python-microservices-sandbox
-This will create a Mongodb, Temporal IO, GraphQL, FastAPI sandbox POC development
+This will create a Mongodb, Temporal IO, GraphQL, FastAPI, Memgraph sandbox POC development
 
 ## Start the containers
 Start the containers with --build param to reflect frequent changes in the python code
@@ -37,6 +37,12 @@ Then navigate to the temporal ui to see the flows
 http://localhost:8080/namespaces/default/workflows
 ![alt text](temporal.png "Title")
 
+## Memgraph setup and API end endpoint
+Memgraph is graph db that supports Cypher Query Language and is compatible with Neo4j. Memgraph is implented in C++ and runs in memory, making it 120x faster than Neo4j.
+![alt text](memgraph.png "Title")
+Below is an API endpoint which fetches Book nodes from the memgraph db
+![alt text](memgraph-api.png "Title")
+
 ## Testing
 To run the tests simply run
 ```
@@ -45,7 +51,8 @@ pytest -v app/tests/test_*.py
 ![alt text](tests.png "Title")
 
 ## TODO
-- Refactor code following MVC pattern
+- Refactor code following MVC pattern using FastAPI Routers
 - <s>Create a new workflow that uses context and multiple activites<s>
 - <s>Update tests for existing workflow<s>
-- Fix test_execute_prime_factorial_workflow
+- <s>Fix test_execute_prime_factorial_workflow<s>
+- <s>Add Neo4j database and API endpoint<s>
