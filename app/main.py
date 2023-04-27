@@ -20,6 +20,7 @@ from BookGraphqlService import BooksQuery
 import config
 
 import database
+from memgraphDatabase import memgraphdb
 
 from fastapi.responses import HTMLResponse
 from jinja2 import Environment, Template, FileSystemLoader
@@ -31,15 +32,14 @@ from workflows.prime_factorial_workflow import PrimeFactorialFlow
 from workflows.factorial_workflow import FactorialFlow
 from temporal_worker import start_temporal_worker
 
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+
 app = FastAPI()
 
 # Get MongoDB connection details from environment variables
-MONGO_HOST = config.MONGO_HOST
-MONGO_PORT = config.MONGO_PORT
 MONGO_DB_NAME = config.MONGO_DB_NAME
 MONGO_COLLECTION_NAME = config.MONGO_COLLECTION_NAME
-MONGO_USER = config.MONGO_USER
-MONGO_PASSWORD = config.MONGO_PASSWORD
 
 schema = strawberry.Schema(BooksQuery)
 graphql_app = GraphQLRouter(schema)
@@ -76,6 +76,7 @@ async def startup():
                                  PrimeFactorialFlow], 
                                 [find_prime,
                                  find_factorial_activity])
+    app.memgraph_client = memgraphdb
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -166,5 +167,13 @@ async def render_template(template: UploadFile = File(...), params: UploadFile =
     except Exception as e:
         log.error(f"Error: {e}")
         return HTMLResponse(content=f"Error: {e}", status_code=500)
-    
+
+@app.get("/memgraph/books", summary="Get all books from Memgraph", response_model=List[Book])
+async def get_books_from_memgraph():
+    booksQuery = """MATCH (n:Book)
+           RETURN n as result"""
+    results = app.memgraph_client.execute_and_fetch(booksQuery)
+    results = app.memgraph_client.serialize_results_to_json(results)
+    log.debug(f"results {results}")
+    return JSONResponse(content=jsonable_encoder(results))
     

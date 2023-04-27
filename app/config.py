@@ -13,6 +13,8 @@ MONGO_PASSWORD = os.environ.get("MONGO_PASSWORD", "your_password")
 TEMPORAL_URL = os.environ.get("TEMPORAL_URL", "temporal:7233")
 TEMPORAL_NAMESPACE = os.environ.get("TEMPORAL_NAMESPACE", "default")
 TEMPORAL_QUEUE_NAME = os.environ.get("TEMPORAL_QUEUE_NAME", "test-queue")
+MEMGRAPH_HOST = os.environ.get("MEMGRAPH_HOST", "memgraph")
+MEMGRAPH_PORT = int(os.environ.get("MEMGRAPH_PORT", 7687))
 
 class Settings(BaseSettings):
     mongodb_url: str = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}"
@@ -20,6 +22,8 @@ class Settings(BaseSettings):
     temporal_url: str = TEMPORAL_URL
     temporal_namespace: str = TEMPORAL_NAMESPACE
     temporal_queue_name: str = TEMPORAL_QUEUE_NAME
+    memgraph_host: str = MEMGRAPH_HOST
+    memgraph_port: int = MEMGRAPH_PORT
 
 settings = Settings()
 
@@ -28,6 +32,8 @@ database = db_client[settings.mongodb_db_name]
 temporal_url = settings.temporal_url
 temporal_namespace = settings.temporal_namespace
 temporal_queue_name = settings.temporal_queue_name
+memgraph_host = settings.memgraph_host
+memgraph_port = settings.memgraph_port
 
 import logging
 

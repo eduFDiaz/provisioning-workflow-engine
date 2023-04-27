@@ -128,8 +128,28 @@ services:
     ports:
       - 8080:8080
 
+  # graph db (Supports Cypher Query Language and is compatible with Neo4j)
+  memgraph:
+    container_name: memgraph
+    image: "memgraph/memgraph-platform"
+    ports:
+      - "7687:7687"
+      - "3001:3000"
+      - "7444:7444"
+    volumes:
+      - mg_lib:/var/lib/memgraph
+      - mg_log:/var/log/memgraph
+      - mg_etc:/etc/memgraph
+    environment:
+      - MEMGRAPH="--log-level=TRACE --storage-properties-on-edges=true"
+    entrypoint: ["/usr/bin/supervisord"]
+    networks:
+      - temporal-network
 volumes:
   mongodb_data:
+  mg_lib:
+  mg_log:
+  mg_etc:
 networks:
   temporal-network:
       driver: bridge

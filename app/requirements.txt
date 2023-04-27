@@ -9,3 +9,5 @@ pytest-asyncio
 jinja2
 pyyaml
 pytest
+cmake
+gqlalchemy
