@@ -4,7 +4,7 @@ import requests
 import paramiko
 from ncclient import manager
 import grpc
-from config import api_credentials, global_params
+from config import api_credentials, Global_params
 from jinja2 import Environment, Template, FileSystemLoader
 from typing import Optional, Union
 
@@ -17,7 +17,10 @@ logging.basicConfig(level=logging.DEBUG, format=FORMAT) #filename="log.txt"
 # Creating a logger object
 log = logging.getLogger()
 
+global_params = Global_params()
+
 class Process:
+    """Base class for all process types"""
     def __init__(self, config):
         self.name = config['name']
         self.configType = config['configType']
@@ -26,10 +29,14 @@ class Process:
         self.templateParams = read_yaml(api_credentials[self.configType]['paramsFile'])
         global_params.update(self.templateParams)
     def process(self):
+        """This method will be implemented by the child Step classes
+        It will be used to execute the process, REST, CLI, NETCONF, etc"""
         raise NotImplementedError
     def validate_process(self):
+        """This method will be implemented by the child classes"""
         raise NotImplementedError
     def render_jinja_template(self):
+        """This method will be implemented by the child classes"""
         raise NotImplementedError
     def set_credentials(self):
         if self.configType not in api_credentials:
@@ -38,13 +45,13 @@ class Process:
         self.username = api_credentials[self.configType]['username']
         self.password = api_credentials[self.configType]['password']
     def replace_params(self, param: Union[str, dict]) -> Union[str, dict]:
-        # This method will replace all the jinja2 template variables with the values from the params file
-        # it will also replace header placeholders 
+        """ This method will replace all the jinja2 template variables with the values from the params file
+        it will also replace header placeholders with the values from the global_params dictionary"""
         log.debug(f"template params -> global {global_params}")
         log.debug(f"{self.configType} before replace_params\n{param} - type: {type(param)}")
         if isinstance(param, str):
             template = Template(param, trim_blocks=True, lstrip_blocks=True)
-            renderedParam = template.render(**global_params)
+            renderedParam = template.render(**global_params.getMap())
             log.debug(f"{self.configType} after replace_params\n{renderedParam}")
             return renderedParam
         elif isinstance(param, dict):
@@ -56,6 +63,7 @@ class Process:
         raise ValueError(f"Unsupported type: {type(param)}")
 
 class RestStep(Process):
+    """This class will be used to execute REST API calls"""
     def __init__(self, config):
         super().__init__(config)
         self.url = self.config['request']['url']
@@ -66,6 +74,7 @@ class RestStep(Process):
         self.response = self.config['response']
         self.payload = self.render_jinja_template()
     def render_jinja_template(self) -> Optional[str]:
+        """This method will render the jinja2 template for the payload"""
         log.debug("RestStep render_jinja_template")
         payload = self.config['request'].get('payload')
         if self.method == 'POST' and payload is not None:
@@ -74,6 +83,7 @@ class RestStep(Process):
         else:
             return None
     def extract_variables(self, response: requests.Response) -> bool:
+        """This method will extract variables from the response payload/headers and store them in the global_params dictionary"""
         log.debug(f"RestStep extract_variables response\n{response}")
         if self.response is not None and self.response.get('variables') is not None:
             for key, value in self.response['variables'].items():
@@ -85,7 +95,7 @@ class RestStep(Process):
                         result = response.headers.get(value.replace("header.", ""))
                     if result is None:
                         raise ValueError(f"Error extracting variable: {key} - {value}")
-                    global_params[key] = result
+                    global_params.setitem(key, result)
                 except Exception as e:
                         log.error(f"RestStep extract_variables error: {e}")
                         return False
@@ -93,6 +103,12 @@ class RestStep(Process):
             return True
         return True
     def validate_process(self, response: requests.Response):
+        """This method will validate the response from the REST API call
+        1. It will validate the status code
+        2. It will validate attributes of response
+        3. It will extract variables from the response payload/headers and store them in the global_params dictionary
+           throwing an exception if the variable is not found
+        """
         log.debug(f"RestStep validate_process response\n{response}")
         if self.response is not None and self.response.get('status_code') is not None:
             if response.status_code != self.response['status_code']:
@@ -102,12 +118,13 @@ class RestStep(Process):
                 log.debug(f"RestStep validate_process json key: {key} value: {value}")
                 # Define a JSONPath query
                 result = JSONPath(key).parse(response.json())
-                if result != global_params.get(value):
+                if result != global_params.getitem(value):
                     raise ValueError(f"JSON key mismatch: {key} != {global_params.get(value)}")
-                log.debug(f"RestStep validate_process json result: {result} - {value} - {global_params.get(value)}")
+                log.debug(f"RestStep validate_process json result: {result} - {value} - {global_params.getitem(value)}")
         if self.extract_variables(response) == False:
             raise ValueError(f"Error extracting variables")
     def process(self):
+        """This method will execute the REST API call"""
         self.url = self.replace_params(self.url)
         if self.method == 'GET':
             log.debug(f"RestStep process GET {self.url}")
@@ -127,13 +144,10 @@ class RestStep(Process):
                 ]
             }
             """
-            self.validate_process(response)
-            log.debug(f"{self.name} - {self.method} {self.url} - {response.content} - Status code: {response.status_code}")
-            log.debug(f"{response.content} - Status code: {response.status_code}")
         elif self.method == 'POST':
             log.debug(f"RestStep process POST {self.url}")
             log.debug(f"RestStep process POST payload: {self.payload}")
-            # global params token was made available after the 1rst Step
+            # global param token was made available after the 1rst API Step
             self.headers['X-CSRF-Token']='{{token}}'
             self.headers = self.replace_params(self.headers)
             # response = requests.post(self.url, auth=(self.username, self.password), json=self.payload, headers=self.headers)
@@ -141,12 +155,11 @@ class RestStep(Process):
             response = requests.Response()
             response.status_code = 200
             response._content = b'{"status": "success"}'
-            self.validate_process(response)
-            log.debug(f"{self.name} - {self.method} {self.url} - {response.content} - Status code: {response.status_code}")
+        self.validate_process(response)
+        log.debug(f"{self.name} - {self.method} {self.url} - {response.content} - Status code: {response.status_code}")
         
-        # log.debug(f"{self.name} - {self.method} {self.url} - Status code: {response.status_code}")
-
 class CliStep(Process):
+    """This class will execute a list of commands on a remote host through SSH"""
     def __init__(self, config):
         super().__init__(config)
         self.commands = self.config['config']
@@ -172,18 +185,19 @@ class CliStep(Process):
         # ssh.close()
 
 class NetConfStep(Process):
+    """This class will execute a list of commands on a remote host through NETCONF"""
     def __init__(self, config):
         super().__init__(config)
         self.payload = self.render_jinja_template()
     def render_jinja_template(self):
-        # TODO Implement Jinja template rendering logic here
         log.debug("netconfStep render_jinja_template")
-        pass
+        # TODO Implement Jinja template rendering logic here
     def validate_process(self, output: str):
         log.debug(f"NetConfStep validate_process output\n{output}")
-        pass
+        # TODO Implement NETCONF validation logic here
     def process(self):
         log.debug("NetConfStep process")
+        # TODO Implement NETCONF process logic here
         # hostname = self.config['hostname']
         # port = self.config['port']
 
@@ -199,10 +213,12 @@ class NetConfStep(Process):
         #     pass
 
 class GrpcStep(Process):
+    """This class will execute a list of commands on a remote host through gRPC"""
     def __init__(self, config):
         super().__init__(config)
     def process(self):
         log.debug("GrpcStep process")
+        # TODO Implement gRPC process logic here
         # hostname = self.config['hostname']
         # port = self.config['port']
 
@@ -215,11 +231,14 @@ class GrpcStep(Process):
         # # e.g. response = stub.MyMethod(request)
 
 def read_yaml(file_path) -> collections.OrderedDict:
+    """This function will read a YAML file and return an OrderedDict
+    will be used to read configs and steps files"""
     log.debug(f"Reading YAML file: {file_path}")
     with open(file_path, 'r') as f:
         return yaml.safe_load(f)
 
 def create_api_object(config):
+    """This function will create an API object based on the configType"""
     step_type = config.get('configType')
     log.debug(f"Creating API object for configType: {step_type}")
     if step_type == 'REST':
