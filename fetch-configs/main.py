@@ -6,7 +6,7 @@ from ncclient import manager
 import grpc
 from config import api_credentials, global_params
 from jinja2 import Environment, Template, FileSystemLoader
-from typing import Optional
+from typing import Optional, Union
 
 import json
 from jsonpath import JSONPath
@@ -37,13 +37,23 @@ class Process:
             raise ValueError(f"Unsupported configType: {self.configType}")
         self.username = api_credentials[self.configType]['username']
         self.password = api_credentials[self.configType]['password']
-    def replace_params(self, param: str) -> str:
+    def replace_params(self, param: Union[str, dict]) -> Union[str, dict]:
+        # This method will replace all the jinja2 template variables with the values from the params file
+        # it will also replace header placeholders 
         log.debug(f"template params -> global {global_params}")
-        log.debug(f"{self.configType} before replace_params\n{param}")
-        template = Template(param, trim_blocks=True, lstrip_blocks=True)
-        renderedParam = template.render(**global_params)
-        log.debug(f"{self.configType} after replace_params\n{renderedParam}")
-        return renderedParam
+        log.debug(f"{self.configType} before replace_params\n{param} - type: {type(param)}")
+        if isinstance(param, str):
+            template = Template(param, trim_blocks=True, lstrip_blocks=True)
+            renderedParam = template.render(**global_params)
+            log.debug(f"{self.configType} after replace_params\n{renderedParam}")
+            return renderedParam
+        elif isinstance(param, dict):
+            renderedParam = {}
+            for key, value in param.items():
+                renderedParam[key] = self.replace_params(value)
+            log.debug(f"{self.configType} after replace_params\n{renderedParam}")
+            return renderedParam
+        raise ValueError(f"Unsupported type: {type(param)}")
 
 class RestStep(Process):
     def __init__(self, config):
@@ -71,11 +81,11 @@ class RestStep(Process):
                 try:
                     if "json." in value:
                         result = JSONPath(key.replace("json.", "")).parse(response.json())
-                        global_params[key] = result
                     if "header." in value:
                         result = response.headers.get(value.replace("header.", ""))
-                        log.debug(f"RestStep extract_variables headera result: {result}")
-                        global_params[key] = result
+                    if result is None:
+                        raise ValueError(f"Error extracting variable: {key} - {value}")
+                    global_params[key] = result
                 except Exception as e:
                         log.error(f"RestStep extract_variables error: {e}")
                         return False
@@ -123,6 +133,9 @@ class RestStep(Process):
         elif self.method == 'POST':
             log.debug(f"RestStep process POST {self.url}")
             log.debug(f"RestStep process POST payload: {self.payload}")
+            # global params token was made available after the 1rst Step
+            self.headers['X-CSRF-Token']='{{token}}'
+            self.headers = self.replace_params(self.headers)
             # response = requests.post(self.url, auth=(self.username, self.password), json=self.payload, headers=self.headers)
             # mock response for development
             response = requests.Response()
