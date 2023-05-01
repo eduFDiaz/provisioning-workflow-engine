@@ -119,7 +119,7 @@ class RestStep(Process):
                 # Define a JSONPath query
                 result = JSONPath(key).parse(response.json())
                 if result != global_params.getitem(value):
-                    raise ValueError(f"JSON key mismatch: {key} != {global_params.get(value)}")
+                    raise ValueError(f"JSON key mismatch: {key} != {global_params.getitem(value)}")
                 log.debug(f"RestStep validate_process json result: {result} - {value} - {global_params.getitem(value)}")
         if self.extract_variables(response) == False:
             raise ValueError(f"Error extracting variables")
