@@ -1,0 +1,38 @@
+[2023-04-28 13:20:15,421 - DEBUG - main.py:    create_api_object:125] Creating API object for configType: REST
+[2023-04-28 13:20:15,421 - DEBUG - main.py:render_jinja_template:42] RestStep render_jinja_template
+[2023-04-28 13:20:15,421 - DEBUG - main.py:    create_api_object:125] Creating API object for configType: REST
+[2023-04-28 13:20:15,421 - DEBUG - main.py:render_jinja_template:42] RestStep render_jinja_template
+[2023-04-28 13:20:15,421 - DEBUG - main.py:    create_api_object:125] Creating API object for configType: CLI
+[2023-04-28 13:20:15,421 - DEBUG - main.py:             __init__:60] CliStep init payload - interface {{ intf1_name }}
+description PHY|10G|{{ intf1_desc }}
+mtu {{ mtu }}
+service-policy output {{ service-policy }} account {{ acc}} {{ index }}
+negotiation auto
+{% if condition %}
+shutdown
+{% endif %}
+
+[2023-04-28 13:20:15,421 - DEBUG - main.py:render_jinja_template:63] CliStep render_jinja_template payload - {self.commands}
+[2023-04-28 13:20:15,421 - DEBUG - main.py:    create_api_object:125] Creating API object for configType: CLI
+[2023-04-28 13:20:15,421 - DEBUG - main.py:             __init__:60] CliStep init payload - show interface {{ intf1_name }} configuration
+
+[2023-04-28 13:20:15,421 - DEBUG - main.py:render_jinja_template:63] CliStep render_jinja_template payload - {self.commands}
+[2023-04-28 13:20:15,422 - DEBUG - main.py:             <module>:143] Processing API call to IOP for change management - REST - rest_user - rest_pass
+[2023-04-28 13:20:15,422 - DEBUG - main.py:              process:48] RestStep process payload - {}
+[2023-04-28 13:20:15,422 - DEBUG - main.py:             <module>:143] Processing Register interface in DNS with records - REST - rest_user - rest_pass
+[2023-04-28 13:20:15,422 - DEBUG - main.py:              process:48] RestStep process payload - {
+  "id": {uuid},
+  "user": {userId},
+  "interface": {interface_name},
+  "dns_name": {dns_name},
+  "config": [
+    {%- for line in PL_AS_65003_IN %}
+    {{ line }},
+    {% endfor %}
+  ]
+}
+
+[2023-04-28 13:20:15,422 - DEBUG - main.py:             <module>:143] Processing Configure User Interface on CPE - CLI - cli_user - cli_pass
+[2023-04-28 13:20:15,422 - DEBUG - main.py:              process:66] CliStep process payload - {self.payload}
+[2023-04-28 13:20:15,422 - DEBUG - main.py:             <module>:143] Processing Valiate User Interface Configuration on CPE - CLI - cli_user - cli_pass
+[2023-04-28 13:20:15,422 - DEBUG - main.py:              process:66] CliStep process payload - {self.payload}

@@ -1,0 +1,73 @@
+name: phy_interface_activation
+metadata:
+    retry_policy:
+      init_interval: 1
+      backoff_coefficient: 2
+      max_interval: 100
+      max_attempts: 10
+    version: 1.0
+dependencies:
+  - name: cpe_discovery
+    version: 1.2.3
+steps:
+  - name: API call to IOP for change management
+    configType: REST
+    request:
+      url: https://comcast.dev.com/iop/webservice/v2.0?appid={{api_key}}
+      method: GET
+    response:
+      status_code: 200
+      json:
+        $.city_id: city_id
+        $.sites[0].name: site_id
+        $.sites[*]: sites
+      variables:
+          token: header.X-CSRF-Token
+          state_id: json.$.state_id
+    retry_policy:
+        init_interval: 1
+        backoff_coefficient: 2
+        max_interval: 100
+        max_attempts: 10
+
+  - name: Register interface in DNS with records
+    configType: REST
+    request:
+      url: https://VinylDNS.comcast.com/iop/webservice/v2.0?appid={{api_key}}
+      method: POST
+      payload: |
+        {
+          "id": {{uuid | tojson}},
+          "user": {{userId | tojson}},
+          "interface": {{interface_name | tojson}},
+          "dns_name": {{dns_name | tojson}},
+          "config": [
+            {% for line in PL_AS_65003_IN %}
+            {{ line  | tojson }}{{ "," if not loop.last }}
+            {% endfor %}
+          ]
+        }
+    response:
+      status_code: 200
+      
+  - name: Configure User Interface on CPE
+    configType: CLI
+    config: |
+      interface {{ intf1_name }}
+      description PHY|10G|{{ intf1_desc }}
+      mtu {{ mtu }}
+      service-policy output {{ service_policy }} account {{ acc}} {{ index }}
+      negotiation auto
+      {% if condition %}
+      shutdown
+      {% endif %}
+    error_response: 
+      - "Invalid command"
+      - "Invalid port number"
+        
+  - name: Valiate User Interface Configuration on CPE
+    configType: CLI
+    config: |
+      show interface {{ intf1_name }} configuration
+    expect: |
+        regular expression

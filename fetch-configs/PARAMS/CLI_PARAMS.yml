@@ -1,0 +1,7 @@
+intf1_name: 'GigabitEthernet1'
+intf1_desc: 'interface 1 description'
+mtu: '1500'
+service_policy: 'service_policy_value'
+acc: 'acc_value'
+index: 'index_value'
+condition: true
