@@ -22,8 +22,8 @@ steps:
         $.sites[0].name: site_id
         $.sites[*]: sites
       variables:
-          token: header.X-CSRF-Token
-          state_id: json.$.state_id
+        token: header.X-CSRF-Token
+        state_id: json.$.state_id
     retry_policy:
         init_interval: 1
         backoff_coefficient: 2

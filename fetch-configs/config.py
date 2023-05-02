@@ -2,13 +2,13 @@ from typing_extensions import override
 
 api_credentials = {
     'REST': {
-        'username': 'rest_user',
-        'password': 'rest_pass',
+        'username': 'admin',
+        'password': 'C1sco12345',
         'paramsFile': './PARAMS/REST_PARAMS.yml'
     },
     'CLI': {
-        'username': 'cli_user',
-        'password': 'cli_pass',
+        'username': 'admin',
+        'password': 'C1sco12345',
         'paramsFile': './PARAMS/CLI_PARAMS.yml'
     },
     'NETCONF': {
@@ -26,13 +26,16 @@ api_credentials = {
 class Global_params:
     _instance = None
     _singleton_data = {
-    "city_id":["AUSTIN"],
-    "site_id":["site1"],
-    "sites": [ 
-        {"name" : "site1"},
-        {"name" : "site2"}
-    ]
+        "interfaceName":["GigabitEthernet1"],
     }
+    # _singleton_data = {
+    # "city_id":["AUSTIN"],
+    # "site_id":["site1"],
+    # "sites": [ 
+    #     {"name" : "site1"},
+    #     {"name" : "site2"}
+    # ]
+    # }
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls, *args, **kwargs)

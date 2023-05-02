@@ -1,0 +1,50 @@
+name: phy_interface_activation
+metadata:
+    retry_policy:
+      init_interval: 1
+      backoff_coefficient: 2
+      max_interval: 100
+      max_attempts: 10
+    version: 1.0
+dependencies:
+  - name: cpe_discovery
+    version: 1.2.3
+steps:
+  - name: API call to IOP for change management
+    configType: REST
+    request:
+      url: https://sandbox-iosxe-latest-1.cisco.com:443/restconf/data/ietf-interfaces:interfaces
+      method: GET
+      headers:
+        Accept: application/yang-data+json
+        Content-Type: application/yang-data+json
+    response:
+      status_code: 200
+      json:
+        $..interface[?(@.name=="GigabitEthernet1")].name: interfaceName
+      variables:
+        targetInterface: json.$..interface[?(@.name=="GigabitEthernet1")].name
+        interfaceIp: json.$..interface[?(@.name=="GigabitEthernet1")].'ietf-ip:ipv4'.'address'[0].'ip'
+        interfaceStatus: json.$..interface[?(@.name=="GigabitEthernet1")].enabled
+        server: header.Server
+    retry_policy:
+        init_interval: 1
+        backoff_coefficient: 2
+        max_interval: 100
+        max_attempts: 10
+      
+  - name: Configure User Interface on CPE
+    hostname: sandbox-iosxe-latest-1.cisco.com
+    configType: CLI
+    config: |
+      terminal length 0
+      enable
+      configure terminal
+      interface {{ targetInterface[0] }}
+      description Ansible interface
+      end
+      show interfaces description
+    error_response: 
+      - "Invalid command"
+      - "Invalid port number"
+      - "% Invalid input detected at '^' marker."

@@ -1,7 +1,9 @@
 import collections
+
+from SSHClient import SSHClient
 import yaml
 import requests
-import paramiko
+
 from ncclient import manager
 import grpc
 from config import api_credentials, Global_params
@@ -28,7 +30,7 @@ class Process:
         self.set_credentials()
         self.templateParams = read_yaml(api_credentials[self.configType]['paramsFile'])
         global_params.update(self.templateParams)
-    def process(self):
+    def process_step(self):
         """This method will be implemented by the child Step classes
         It will be used to execute the process, REST, CLI, NETCONF, etc"""
         raise NotImplementedError
@@ -67,7 +69,7 @@ class RestStep(Process):
     def __init__(self, config):
         super().__init__(config)
         self.url = self.config['request']['url']
-        self.headers = {'Content-Type': 'application/json'}
+        self.headers = self.config['request'].get('headers')
         self.method = self.config['request']['method']
         if self.method not in ['GET', 'POST']:
             raise ValueError(f"Unsupported HTTP method: {self.method}")
@@ -90,10 +92,12 @@ class RestStep(Process):
                 log.debug(f"RestStep extract_variables key: {key} value: {value}")
                 try:
                     if "json." in value:
-                        result = JSONPath(key.replace("json.", "")).parse(response.json())
+                        path = value.replace("json.", "")
+                        result = JSONPath(value.replace("json.", "")).parse(response.json())
+                        log.debug(f"RestStep extract_variables json result: {result} - path: {path} - key: {key}")
                     if "header." in value:
                         result = response.headers.get(value.replace("header.", ""))
-                    if result is None:
+                    if result is None or len(result) == 0:
                         raise ValueError(f"Error extracting variable: {key} - {value}")
                     global_params.setitem(key, result)
                 except Exception as e:
@@ -118,39 +122,43 @@ class RestStep(Process):
                 log.debug(f"RestStep validate_process json key: {key} value: {value}")
                 # Define a JSONPath query
                 result = JSONPath(key).parse(response.json())
+                log.debug(f"RestStep validate_process json result: {result}")
                 if result != global_params.getitem(value):
                     raise ValueError(f"JSON key mismatch: {key} != {global_params.getitem(value)}")
                 log.debug(f"RestStep validate_process json result: {result} - {value} - {global_params.getitem(value)}")
         if self.extract_variables(response) == False:
             raise ValueError(f"Error extracting variables")
-    def process(self):
-        """This method will execute the REST API call"""
+    def prepare_step(self):
+        """This method will prepare the request, adding headers and replacing url and payload params"""
+        log.debug(f"RestStep prepare_request")
         self.url = self.replace_params(self.url)
+        self.headers = self.replace_params(self.headers)
+        if self.method == 'POST':
+            self.payload = self.replace_params(self.payload)
+    def process_step(self):
+        """This method will execute the REST API call"""
+        self.prepare_step()
         if self.method == 'GET':
             log.debug(f"RestStep process GET {self.url}")
             log.debug(f"RestStep process GET payload: {self.payload}")
-            # response = requests.get(self.url, auth=(self.username, self.password), headers=self.headers)
-            # mock response for development
-            response = requests.Response()
-            response.status_code = 200
-            response.headers['X-CSRF-Token'] = '3a78ddff-415c-4077-971d-63b770f5ec7c'
-            response._content = b"""
-            {
-                "city_id": "AUSTIN",
-                "state_id": "TX",
-                "sites": [ 
-                    {"name" : "site1"},
-                    {"name" : "site2"}
-                ]
-            }
-            """
+            log.debug(f"RestStep process GET headers: {self.headers}")
+            # # mock response for development
+            # response = requests.Response()
+            # response.status_code = 200
+            # response.headers['Server'] = 'nginx/1.13.12'
+            # response._content = b"""
+            # {}
+            # """
+            response = requests.get(self.url, auth=(self.username, self.password), headers=self.headers, verify=False)
+            #log pretty print json response
+            log.debug(f"RestStep process GET response\n{json.dumps(response.json(), indent=4)}")
         elif self.method == 'POST':
             log.debug(f"RestStep process POST {self.url}")
             log.debug(f"RestStep process POST payload: {self.payload}")
             # global param token was made available after the 1rst API Step
             self.headers['X-CSRF-Token']='{{token}}'
             self.headers = self.replace_params(self.headers)
-            # response = requests.post(self.url, auth=(self.username, self.password), json=self.payload, headers=self.headers)
+            # response = requests.post(self.url, auth=(self.username, self.password), json=self.payload, headers=self.headers, verify=False)
             # mock response for development
             response = requests.Response()
             response.status_code = 200
@@ -163,26 +171,25 @@ class CliStep(Process):
     def __init__(self, config):
         super().__init__(config)
         self.commands = self.config['config']
+        self.hostname = self.config['hostname']
         self.payload = self.render_jinja_template()
     def render_jinja_template(self):
         return self.commands
     def validate_process(self, output: str):
         log.debug(f"CliStep validate_process output\n{output}")
-        pass
-    def process(self):
+    def process_step(self):
         log.debug(f"CliStep process payload\n{self.payload}")
-        self.payload = self.replace_params(self.payload)
-        # hostname = self.config['hostname']
-        # ssh = paramiko.SSHClient()
-        # ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        # ssh.connect(hostname, username=self.username, password=self.password)
+        self.payload = self.replace_params(self.payload).splitlines()
+        log.debug(f"CliStep process hostname: {self.hostname} - username: {self.username} - password: {self.password}")
+        
+        client = SSHClient(self.hostname, self.username, self.password)
 
-        # for command in self.commands:
-        #     stdin, stdout, stderr = ssh.exec_command(command)
-        #     log.debug(f"{self.name} - Executed command: {command}")
-        #     log.debug(stdout.read().decode())
+        for command in self.payload:
+            print(f"Command: {command}")
+            output = client.execute_command(command)
+            print(f"Output: {output}")
 
-        # ssh.close()
+        client.close()
 
 class NetConfStep(Process):
     """This class will execute a list of commands on a remote host through NETCONF"""
@@ -195,7 +202,7 @@ class NetConfStep(Process):
     def validate_process(self, output: str):
         log.debug(f"NetConfStep validate_process output\n{output}")
         # TODO Implement NETCONF validation logic here
-    def process(self):
+    def process_step(self):
         log.debug("NetConfStep process")
         # TODO Implement NETCONF process logic here
         # hostname = self.config['hostname']
@@ -216,7 +223,7 @@ class GrpcStep(Process):
     """This class will execute a list of commands on a remote host through gRPC"""
     def __init__(self, config):
         super().__init__(config)
-    def process(self):
+    def process_step(self):
         log.debug("GrpcStep process")
         # TODO Implement gRPC process logic here
         # hostname = self.config['hostname']
@@ -254,9 +261,9 @@ def create_api_object(config):
         raise ValueError(f"Unsupported configType: {step_type}")
     
 if __name__ == "__main__":
-    yaml_data = read_yaml("./phy_interface_activation.yml")
+    yaml_data = read_yaml("./phy_interface_vlan.yml")
     steps = [create_api_object(config) for config in yaml_data['steps']]
 
     for step in steps:
         log.debug(f"Processing {step.name} - {step.configType} - {step.username} - {step.password}")
-        step.process()
+        step.process_step()
