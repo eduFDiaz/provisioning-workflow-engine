@@ -33,18 +33,75 @@ steps:
         max_interval: 100
         max_attempts: 10
       
-  - name: Configure User Interface on CPE
+  # - name: Configure User Interface on CPE
+  #   hostname: sandbox-iosxe-latest-1.cisco.com
+  #   configType: CLI
+  #   config: |
+  #     terminal length 0
+  #     enable
+  #     configure terminal
+  #     interface {{ targetInterface[0] }}
+  #     description Ansible interface
+  #     end
+  #     show interfaces description
+  #   error_response: 
+  #     - "Invalid command"
+  #     - "Invalid port number"
+  #     - "% Invalid input detected at '^' marker."
+
+  - name: Fetch CPE MGMNT interface
     hostname: sandbox-iosxe-latest-1.cisco.com
-    configType: CLI
-    config: |
-      terminal length 0
-      enable
-      configure terminal
-      interface {{ targetInterface[0] }}
-      description Ansible interface
-      end
-      show interfaces description
-    error_response: 
-      - "Invalid command"
-      - "Invalid port number"
-      - "% Invalid input detected at '^' marker."
+    port: 830
+    configType: NETCONF
+    request:
+      type: FETCH
+      payload: |
+        <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+          <interface>
+            <name>{{targetInterface[0]}}</name>
+          </interface>
+        </interfaces>
+      variables:
+        managementInterface: $..data.interfaces.interface
+
+      error_response: 
+        - "Invalid command"
+        - "Invalid port number"
+        - "% Invalid input detected at '^' marker."
+
+  - name: Change Banner message
+    hostname: sandbox-iosxe-latest-1.cisco.com
+    port: 830
+    configType: NETCONF
+    request:
+      type: FETCH
+      payload: |
+        <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+          <banner>
+          </banner>
+        </native>
+      error_response: 
+        - "Invalid command"
+        - "Invalid port number"
+        - "% Invalid input detected at '^' marker."
+
+  # - name: Change Banner message
+  #   hostname: sandbox-iosxe-latest-1.cisco.com
+  #   port: 830
+  #   configType: NETCONF
+  #   request:
+  #     type: EDIT
+  #     payload: |
+  #       <config>
+  #         <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  #           <banner operation="replace">
+  #             <motd>
+  #               <banner>Hello there {{server}}</banner>
+  #             </motd>
+  #           </banner>
+  #         </native>
+  #       </config>
+  #     error_response: 
+  #       - "Invalid command"
+  #       - "Invalid port number"
+  #       - "% Invalid input detected at '^' marker."

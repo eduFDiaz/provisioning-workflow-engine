@@ -11,6 +11,10 @@ class SSHClient:
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.ssh.connect(hostname, username=username, password=password)
         self.channel = self.ssh.invoke_shell()
+    
+    def __del__(self):
+        self.channel.close()
+        self.ssh.close()
 
     def execute_command(self, command, timeout=5):
         self.channel.send(command + '\n')
@@ -19,7 +23,3 @@ class SSHClient:
             time.sleep(timeout)
         output += self.channel.recv(65535).decode()
         return output
-
-    def close(self):
-        self.channel.close()
-        self.ssh.close()

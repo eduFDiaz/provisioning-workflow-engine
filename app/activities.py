@@ -39,3 +39,28 @@ async def find_factorial_activity(n: int) -> int:
 @activity.defn
 async def find_prime(n: int) -> int:
     return find_nth_prime(n)
+
+# @activity.defn
+# async def executeNetConfActivity(c: temporal.ctx, ip: InputParams, t: NetConfTask) -> int:
+#         return NetConfTask.step_process()
+#         log.debug("NetConfStep process")
+#         self.payload = self.render_jinja_template()
+        
+#         config = {
+#             "host": self.hostname,
+#             "auth_username": self.username,
+#             "auth_password": self.password,
+#             "auth_strict_key": False,
+#             "port": self.port,
+#         }
+
+#         client = NetConfClient(config)
+
+#         if self.type == 'FETCH':
+#             result = client.get_filter(self.payload)
+#             self.extract_variables(result)
+#         elif self.type == 'EDIT':
+#             result = client.edit_config(self.payload)
+#             self.validate_process(result)
+
+#         log.debug(f"NetConfStep process result\n{result}")

@@ -12,8 +12,8 @@ api_credentials = {
         'paramsFile': './PARAMS/CLI_PARAMS.yml'
     },
     'NETCONF': {
-        'username': 'netconf_user',
-        'password': 'netconf_pass',
+        'username': 'admin',
+        'password': 'C1sco12345',
         'paramsFile': './PARAMS/NETCONF_PARAMS.yml'
     },
     'GRPC': {

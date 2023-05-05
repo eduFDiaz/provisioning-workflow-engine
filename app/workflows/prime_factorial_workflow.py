@@ -23,3 +23,13 @@ class PrimeFactorialFlow:
         log.info(f"find_factorial_activity: {n}! = {result}")
 
         return result
+
+# @workflow.defn
+# class ExecuteNetConfTask:
+#     @workflow.run
+#     async def run(self, c: temporal.ctx, ip: InputParams, t: NetConfTask) -> int:
+
+#         result1 = await workflow.execute_activity(
+#             executeNetConfActivity, c: temporal.ctx, ip: InputParams, t: NetConfTask, start_to_close_timeout=timedelta(seconds=5)
+#         )
+#         log.info(f"find_prime: {n}! = {result1}")
