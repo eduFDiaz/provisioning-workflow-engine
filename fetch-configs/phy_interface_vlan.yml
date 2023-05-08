@@ -21,11 +21,9 @@ steps:
     response:
       status_code: 200
       json:
-        $..interface[?(@.name=="GigabitEthernet1")].name: interfaceName
+        $..interface[?(@.description =~ ".*MANAGEMENT.*")].name: interfaceName
       variables:
-        targetInterface: json.$..interface[?(@.name=="GigabitEthernet1")].name
-        interfaceIp: json.$..interface[?(@.name=="GigabitEthernet1")].'ietf-ip:ipv4'.'address'[0].'ip'
-        interfaceStatus: json.$..interface[?(@.name=="GigabitEthernet1")].enabled
+        targetInterface: json.$..interface[?(@.description =~ ".*MANAGEMENT.*")].name
         server: header.Server
     retry_policy:
         init_interval: 1

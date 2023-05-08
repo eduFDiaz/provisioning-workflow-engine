@@ -17,14 +17,14 @@ from jinja2 import Environment, Template, FileSystemLoader
 from typing import Optional, Union
 
 import json
-from jsonpath import JSONPath
+from jsonpath_ng.ext import parser
 
 import xml.etree.ElementTree as ET
 import xmltodict
 
 import logging
 FORMAT = "[%(asctime)s - %(levelname)s - %(filename)s:%(funcName)21s:%(lineno)s] %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='CONFIGS.log', filemode='a')
+logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='CONFIGS.log', filemode='w')
 
 log = logging.getLogger()
 
@@ -102,7 +102,8 @@ class RestStep(Process):
                 try:
                     if "json." in value:
                         path = value.replace("json.", "")
-                        result = JSONPath(value.replace("json.", "")).parse(response.json())
+                        expression = parser.parse(path)
+                        result = [match.value for match in expression.find(response.json())]
                         log.debug(f"RestStep extract_variables json result: {result} - path: {path} - key: {key}")
                     if "header." in value:
                         result = response.headers.get(value.replace("header.", ""))
@@ -130,7 +131,9 @@ class RestStep(Process):
             for key, value in self.response['json'].items():
                 log.debug(f"RestStep validate_process json key: {key} value: {value}")
                 # Define a JSONPath query
-                result = JSONPath(key).parse(response.json())
+                path = key
+                expression = parser.parse(path)
+                result = [match.value for match in expression.find(response.json())]
                 log.debug(f"RestStep validate_process json result: {result}")
                 if result != global_params.getitem(value):
                     raise ValueError(f"JSON key mismatch: {key} != {global_params.getitem(value)}")
@@ -244,7 +247,9 @@ class NetConfStep(Process):
                     # Load the JSON data as a Python dictionary
                     data = json.loads(json_data)
 
-                    result = JSONPath(value).parse(data)
+                    path = value
+                    expression = parser.parse(path)
+                    result = [match.value for match in expression.find(data)]
 
                     if len(result) == 0:
                         raise ValueError(f"No matching value for {value}")
