@@ -18,11 +18,12 @@ class ExecuteRestTask:
         self.step: RestStep = None
    
     @workflow.run
-    async def run(self, step: str) -> int:
-        self.step = json.loads(step)
-        workflow.logger.debug(f"Executing step: {self.step}")
+    async def run(self, step: RestStep) -> int:
+        # self.step = step
+
+        workflow.logger.debug(f"Executing step: {step}")
         result1 = await workflow.execute_activity(
-            exec_rest_step, self.step, start_to_close_timeout=timedelta(seconds=15)
+            exec_rest_step, step, start_to_close_timeout=timedelta(seconds=15)
         )
-        workflow.logger.info(f"ExecuteStepsFlow::run: {self.step}! = {result1}")
+        workflow.logger.info(f"ExecuteStepsFlow::run: {step}! = {result1}")
             

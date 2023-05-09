@@ -8,29 +8,42 @@ from config import logger as log
 
 global_params = Global_params()
 
-from temporalio import activity
 import json
 
+from dataclasses import dataclass, field
+from typing import Optional, Dict
+
+@dataclass
 class Process:
     """Base class for all process types"""
-    def __init__(self, config):
-        self.name = config['name']
-        self.configType = config['configType']
+    config: Dict
+    name: str = field(init=False)
+    configType: str = field(init=False)
+    templateParams: Dict = field(init=False)
+    username: str = field(init=False)
+    password: str = field(init=False)
+
+    def __init__(self, config: Dict):
         self.config = config
+        self.name = self.config['name']
+        self.configType = self.config['configType']
         self.set_credentials()
         self.templateParams = read_yaml(api_credentials[self.configType]['paramsFile'])
         global_params.update(self.templateParams)
-    @activity.defn
+
     def process_step(self) -> int:
         """This method will be implemented by the child Step classes
         It will be used to execute the process, REST, CLI, NETCONF, etc"""
         raise NotImplementedError
+
     def validate_process(self):
         """This method will be implemented by the child classes"""
         raise NotImplementedError
+
     def render_jinja_template(self):
         """This method will be implemented by the child classes"""
         raise NotImplementedError
+
     def set_credentials(self):
         if self.configType not in api_credentials:
             log.error(f"Unsupported configType: {self.configType}")
@@ -54,5 +67,3 @@ class Process:
             log.debug(f"{self.configType} after replace_params\n{renderedParam}")
             return renderedParam
         raise ValueError(f"Unsupported type: {type(param)}")
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

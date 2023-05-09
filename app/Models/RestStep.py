@@ -3,7 +3,7 @@ from config import api_credentials, Global_params
 from config import logger as log
 
 import requests
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 from jsonpath_ng.ext import parser
 import json
 
@@ -11,9 +11,19 @@ global_params = Global_params()
 
 from temporalio import activity, workflow
 
+from dataclasses import dataclass, field
+from typing import Optional
+
+@dataclass
 class RestStep(Process):
     """This class will be used to execute REST API calls"""
-    def __init__(self, config):
+    url: str = field(init=False)
+    headers: Optional[Dict[str, str]] = field(init=False)
+    method: str = field(init=False)
+    response: Dict = field(init=False)
+    payload: Optional[str] = field(init=False)
+
+    def __init__(self, config: Dict):
         super().__init__(config)
         self.url = self.config['request']['url']
         self.headers = self.config['request'].get('headers')
@@ -116,9 +126,9 @@ class RestStep(Process):
         self.validate_process(response)
         log.debug(f"{self.name} - {self.method} {self.url} - {response.content} - Status code: {response.status_code}")
         return 1
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, 
-            sort_keys=True, indent=4)
+    # def toJSON(self):
+    #     return json.dumps(self, default=lambda o: o.__dict__, 
+    #         sort_keys=True, indent=4)
     
 
 @activity.defn

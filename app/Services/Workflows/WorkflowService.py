@@ -45,12 +45,12 @@ async def invoke_steps() -> int:
     steps = [create_step_object(config) for config in yaml_data['steps']]
 
     for step in steps:
-        log.debug(f"Processing {step.toJSON()}")
+        log.debug(f"Processing {step}")
 
         if step.configType == 'REST':
             log.debug(f"Invoking REST step")
             result = await client.execute_workflow(
-                ExecuteRestTask.run, step.toJSON(), id=("ExecuteRestTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
+                ExecuteRestTask.run, step, id=("ExecuteRestTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
             )
             log.debug(f"Result: {result}")
             return result
