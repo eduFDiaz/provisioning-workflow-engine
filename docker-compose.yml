@@ -7,50 +7,12 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - mongodb
-      - mongo-express
       - temporal
-    environment:
-      - MONGO_HOST=mongodb
-      - MONGO_PORT=27017
-      - MONGO_DB_NAME=mydb
-      - MONGO_COLLECTION_NAME=mycollection
-      - MONGO_USER=admin
-      - MONGO_PASSWORD=your_password
     networks:
       - temporal-network
-
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
-    restart: always
-    ports:
-      - "27017:27017"
     volumes:
-      - mongodb_data:/data/db
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=your_password
-      - MONGO_INITDB_DATABASE=mydb
-      - MONGO_INITDB_AUTH_SOURCE=authdb
-      - MONGO_INITDB_ADMIN_USERNAME=admin
-      - MONGO_INITDB_ADMIN_PASSWORD=your_password
-    networks:
-      - temporal-network
+      - ./app:/app
 
-  mongo-express:
-    image: mongo-express:latest
-    container_name: mongo-express
-    restart: always
-    ports:
-      - "8081:8081"
-    depends_on:
-      - mongodb
-    environment:
-      - ME_CONFIG_MONGODB_URL=mongodb://admin:your_password@mongodb:27017/
-    networks:
-      - temporal-network
-  
   elasticsearch:
     container_name: temporal-elasticsearch
     environment:
@@ -127,29 +89,6 @@ services:
       - temporal-network
     ports:
       - 8080:8080
-
-  # graph db (Supports Cypher Query Language and is compatible with Neo4j)
-  memgraph:
-    container_name: memgraph
-    image: "memgraph/memgraph-platform"
-    ports:
-      - "7687:7687"
-      - "3001:3000"
-      - "7444:7444"
-    volumes:
-      - mg_lib:/var/lib/memgraph
-      - mg_log:/var/log/memgraph
-      - mg_etc:/etc/memgraph
-    environment:
-      - MEMGRAPH="--log-level=TRACE --storage-properties-on-edges=true"
-    entrypoint: ["/usr/bin/supervisord"]
-    networks:
-      - temporal-network
-volumes:
-  mongodb_data:
-  mg_lib:
-  mg_log:
-  mg_etc:
 networks:
   temporal-network:
       driver: bridge

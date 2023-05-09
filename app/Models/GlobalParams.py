@@ -1,28 +1,5 @@
 from typing_extensions import override
 
-api_credentials = {
-    'REST': {
-        'username': 'admin',
-        'password': 'C1sco12345',
-        'paramsFile': './PARAMS/REST_PARAMS.yml'
-    },
-    'CLI': {
-        'username': 'admin',
-        'password': 'C1sco12345',
-        'paramsFile': './PARAMS/CLI_PARAMS.yml'
-    },
-    'NETCONF': {
-        'username': 'admin',
-        'password': 'C1sco12345',
-        'paramsFile': './PARAMS/NETCONF_PARAMS.yml'
-    },
-    'GRPC': {
-        'username': 'grpc_user',
-        'password': 'grpc_pass',
-        'paramsFile': './PARAMS/GRPC_PARAMS.yml'
-    }
-}
-
 class Global_params:
     _instance = None
     _singleton_data = {
