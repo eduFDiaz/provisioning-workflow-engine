@@ -2,12 +2,15 @@ from Models.Base import Process
 from config import api_credentials, Global_params
 from config import logger as log
 
-import grpc
+import grpc, json
+
+from temporalio import activity
 
 class GrpcStep(Process):
     """This class will execute a list of commands on a remote host through gRPC"""
     def __init__(self, config):
         super().__init__(config)
+    @activity.defn
     def process_step(self):
         log.debug("GrpcStep process")
         # TODO Implement gRPC process logic here
@@ -21,3 +24,9 @@ class GrpcStep(Process):
 
         # # Call your gRPC methods using the stub object and implement your specific gRPC process logic here
         # # e.g. response = stub.MyMethod(request)
+    def toJSON(self):
+        return super().toJSON()
+
+@activity.defn
+async def exec_grpc_step(step: GrpcStep) -> int:
+    log.debug(f"exec_grpc_step: {step.name}")

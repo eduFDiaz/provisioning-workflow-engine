@@ -35,6 +35,8 @@ logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', file
 # Create an instance of the logger
 logger = logging.getLogger()
 
+from contextvars import Context, ContextVar, copy_context
+
 api_credentials = {
     'REST': {
         'username': 'admin',

@@ -3,6 +3,7 @@ import asyncio
 from Services.prime_service import invokePrimeWorkflow
 from Services.factorial_service import invokeFactorialWorkflow
 from Services.prime_factorial_service import invokePrimeFactorialWorkflow
+from Services.Workflows.WorkflowService import invoke_steps
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from typing import List
 import os
@@ -15,12 +16,15 @@ from fastapi.responses import HTMLResponse
 from fastapi import FastAPI, HTTPException, File, UploadFile
 
 from activities import find_factorial_activity, find_prime
+from Models.RestStep import exec_rest_step
+from Models.CliStep import exec_cli_step
+from Models.NetConfStep import exec_netconf_step
+from Models.GrpcStep import exec_grpc_step
 from workflows.prime_workflow import FindPrimeFlow
 from workflows.prime_factorial_workflow import PrimeFactorialFlow
 from workflows.factorial_workflow import FactorialFlow
+from workflows.ExecuteStepsFlow import ExecuteRestTask
 from temporal_worker import start_temporal_worker
-
-from Services.Workflows.WorkflowService import execute_steps
 
 app = FastAPI()
 
@@ -33,9 +37,14 @@ async def startup():
                                 config.temporal_queue_name, 
                                 [FindPrimeFlow,
                                  FactorialFlow,
-                                 PrimeFactorialFlow], 
+                                 PrimeFactorialFlow,
+                                 ExecuteRestTask], 
                                 [find_prime,
-                                 find_factorial_activity])
+                                 find_factorial_activity,
+                                 exec_rest_step,
+                                 exec_cli_step,
+                                 exec_netconf_step,
+                                 exec_grpc_step])
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -85,8 +94,8 @@ async def invokePrimeFactorialFlow(number: int):
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
 async def execute_workflow() -> HTMLResponse:
     try:
-        execute_steps()
-        return HTMLResponse(content=f"Workflow executed successfully", status_code=200)
+        n = await invoke_steps()
+        return HTMLResponse(content=f"Workflow executed successfully {n}", status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")
         return HTMLResponse(content=f"Error: {e}", status_code=500)

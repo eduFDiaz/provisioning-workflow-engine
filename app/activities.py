@@ -1,4 +1,5 @@
 from temporalio import activity, workflow
+from contextvars import Context, ContextVar, copy_context
 
 with workflow.unsafe.imports_passed_through():
     from config import logger as log
@@ -12,6 +13,9 @@ def is_prime(num):
     return True
 
 def find_nth_prime(n):
+    # var1 = ContextVar('var1')
+    # var1.set("Variable 1")
+    # log.info(f"Context items: {list(ctx.items())}")
     if n == 1:
         return 2
     count = 1
@@ -25,6 +29,11 @@ def find_nth_prime(n):
 def find_factorial(n):
     # iterative approach
     log.info(f"Finding factorial of {n}")
+    # Copy the current context
+    # var2 = ContextVar('var2')
+    # var2.set(42)
+    # log.info(f"Context items: {list(ctx.items())}")
+
     if n == 0:
         return 1
     result = 1

@@ -10,6 +10,8 @@ import xml.etree.ElementTree as ET
 
 global_params = Global_params()
 
+from temporalio import activity
+
 class NetConfStep(Process):
     """This class will execute a list of commands on a remote host through NETCONF"""
     def __init__(self, config):
@@ -77,7 +79,8 @@ class NetConfStep(Process):
     def validate_process(self, output: str):
         log.debug(f"NetConfStep validate_process output\n{output}")
         # TODO Implement NETCONF validation logic here
-    def process_step(self):
+    @activity.defn
+    def process_step(self) -> int:
         log.debug("NetConfStep process")
         self.payload = self.render_jinja_template()
         
@@ -99,3 +102,11 @@ class NetConfStep(Process):
             self.validate_process(result)
 
         log.debug(f"NetConfStep process result\n{result}")
+        return 0
+    
+    def toJSON(self):
+        return super().toJSON()
+
+@activity.defn
+async def exec_netconf_step(step: NetConfStep) -> int:
+    log.debug(f"RestStep process_step {step}")

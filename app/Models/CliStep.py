@@ -2,7 +2,11 @@ from Models.Base import Process
 from config import api_credentials, Global_params
 from config import logger as log
 
+import json
+
 from Clients.SSHClient import SSHClient
+
+from temporalio import activity
 
 class CliStep(Process):
     """This class will execute a list of commands on a remote host through SSH"""
@@ -15,6 +19,7 @@ class CliStep(Process):
         return self.commands
     def validate_process(self, output: str):
         log.debug(f"CliStep validate_process output\n{output}")
+    @activity.defn
     def process_step(self):
         log.debug(f"CliStep process payload\n{self.payload}")
         self.payload = self.replace_params(self.payload).splitlines()
@@ -28,3 +33,9 @@ class CliStep(Process):
             print(f"Output: {output}")
 
         client.close()
+    def toJSON(self):
+        return super().toJSON()
+
+@activity.defn
+async def exec_cli_step(step: CliStep) -> int:
+    log.debug(f"RestStep process_step {step}")

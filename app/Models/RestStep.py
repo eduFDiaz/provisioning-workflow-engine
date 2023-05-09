@@ -9,6 +9,8 @@ import json
 
 global_params = Global_params()
 
+from temporalio import activity, workflow
+
 class RestStep(Process):
     """This class will be used to execute REST API calls"""
     def __init__(self, config):
@@ -83,7 +85,7 @@ class RestStep(Process):
         self.headers = self.replace_params(self.headers)
         if self.method == 'POST':
             self.payload = self.replace_params(self.payload)
-    def process_step(self):
+    def process_step(self) -> int:
         """This method will execute the REST API call"""
         self.prepare_step()
         if self.method == 'GET':
@@ -113,3 +115,13 @@ class RestStep(Process):
             response._content = b'{"status": "success"}'
         self.validate_process(response)
         log.debug(f"{self.name} - {self.method} {self.url} - {response.content} - Status code: {response.status_code}")
+        return 1
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=4)
+    
+
+@activity.defn
+async def exec_rest_step(step: RestStep) -> int:
+    workflow.log.debug(f"RestStep exec_rest_step {step}")
+    log.debug(f"RestStep process_step {step}")
