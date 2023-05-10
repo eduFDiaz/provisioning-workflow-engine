@@ -1,4 +1,5 @@
-from config import api_credentials, Global_params
+from Models.GlobalParams import Global_params
+from config import api_credentials
 from Utils.Utils import read_yaml
 
 from typing import Optional, Union

@@ -4,6 +4,7 @@ class Global_params:
     _instance = None
     _singleton_data = {
         "interfaceName":["GigabitEthernet1"],
+        "loopbackInterface": ["Loopback109"]
     }
     # _singleton_data = {
     # "city_id":["AUSTIN"],
@@ -19,7 +20,7 @@ class Global_params:
         return cls._instance
 
     def getitem(self, key):
-        return self._singleton_data[key]
+        return self._singleton_data.get(key)
 
     def setitem(self, key, value):
         self._singleton_data[key] = value

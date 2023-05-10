@@ -1,6 +1,7 @@
 from typing import Dict
 from Models.Base import Process
-from config import api_credentials, Global_params
+from Models.GlobalParams import Global_params
+from config import api_credentials
 from config import logger as log
 
 import json
