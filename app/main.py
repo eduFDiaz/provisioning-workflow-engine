@@ -48,7 +48,8 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
-    app.mongodb_client.close()
+    log.info("Shutting down Temporal Worker...")
+    await config.temporal_worker.stop()
 
 @app.get("/invokePrimeFlow/{number}",
          summary="invoke Prime Flow", 
@@ -94,8 +95,8 @@ async def invokePrimeFactorialFlow(number: int):
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
 async def execute_workflow() -> HTMLResponse:
     try:
-        n = await invoke_steps()
-        return HTMLResponse(content=f"Workflow executed successfully {n}", status_code=200)
+        res = await invoke_steps()
+        return HTMLResponse(content=f"Workflow executed successfully {res}", status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")
         return HTMLResponse(content=f"Error: {e}", status_code=500)

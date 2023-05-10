@@ -3,7 +3,7 @@ from config import api_credentials, Global_params
 from config import logger as log
 
 import requests
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 from jsonpath_ng.ext import parser
 import json
 
@@ -115,13 +115,13 @@ class RestStep(Process):
             response._content = b'{"status": "success"}'
         self.validate_process(response)
         log.debug(f"{self.name} - {self.method} {self.url} - {response.content} - Status code: {response.status_code}")
-        return 1
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, 
-            sort_keys=True, indent=4)
+        return 1000
     
 
 @activity.defn
-async def exec_rest_step(step: RestStep) -> int:
-    workflow.log.debug(f"RestStep exec_rest_step {step}")
-    log.debug(f"RestStep process_step {step}")
+async def exec_rest_step(conf: Dict) -> int:
+    log.debug(f"RestStep exec_rest_step {conf}")
+    step = RestStep(conf)
+    result = step.process_step()
+    log.debug(f"RestStep process_step {step} - {result}")
+    return result

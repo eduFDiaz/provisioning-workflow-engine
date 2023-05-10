@@ -10,19 +10,20 @@ with workflow.unsafe.imports_passed_through():
     from Models.CliStep import CliStep, exec_cli_step
     from Models.NetConfStep import NetConfStep, exec_netconf_step
     from Models.GrpcStep import GrpcStep, exec_grpc_step
+    from typing import Dict
+
 
 @workflow.defn
 class ExecuteRestTask:
     def __init__(self) -> None:
         workflow.logger.debug(f"ExecuteRestTask::__init__")
-        self.step: RestStep = None
    
     @workflow.run
-    async def run(self, step: str) -> int:
-        self.step = json.loads(step)
-        workflow.logger.debug(f"Executing step: {self.step}")
-        result1 = await workflow.execute_activity(
-            exec_rest_step, self.step, start_to_close_timeout=timedelta(seconds=15)
+    async def run(self, conf: Dict) -> int:
+        workflow.logger.debug(f"Executing step: {conf['name']} - {conf['configType']}")
+        result = await workflow.execute_activity(
+            exec_rest_step, conf, start_to_close_timeout=timedelta(seconds=15)
         )
-        workflow.logger.info(f"ExecuteStepsFlow::run: {self.step}! = {result1}")
+        workflow.logger.info(f"ExecuteStepsFlow::run: {conf['name']} - {result}")
+        return result
             

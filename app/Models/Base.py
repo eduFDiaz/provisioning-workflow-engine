@@ -20,7 +20,6 @@ class Process:
         self.set_credentials()
         self.templateParams = read_yaml(api_credentials[self.configType]['paramsFile'])
         global_params.update(self.templateParams)
-    @activity.defn
     def process_step(self) -> int:
         """This method will be implemented by the child Step classes
         It will be used to execute the process, REST, CLI, NETCONF, etc"""
@@ -54,5 +53,3 @@ class Process:
             log.debug(f"{self.configType} after replace_params\n{renderedParam}")
             return renderedParam
         raise ValueError(f"Unsupported type: {type(param)}")
-    def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

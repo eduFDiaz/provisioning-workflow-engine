@@ -15,44 +15,33 @@ from config import logger as log
 from config import settings as config
 import uuid
 
-import json
-
-def create_step_object(config):
+async def run_step(stepConfig):
     """This function will create an API object based on the configType"""
-    step_type = config.get('configType')
+    step_type = stepConfig.get('configType')
     log.debug(f"Creating API object for configType: {step_type}")
+    client = (await TemporalClient.get_instance())
     if step_type == 'REST':
-        return RestStep(config)
-    elif step_type == 'CLI':
-        return CliStep(config)
-    elif step_type == 'NETCONF':
-        return NetConfStep(config)
-    elif step_type == 'GRPC':
-        return GrpcStep(config)
-    else:
-        log.error(f"Unsupported configType: {step_type}")
-        raise ValueError(f"Unsupported configType: {step_type}")
+        result = (await client.execute_workflow(
+            ExecuteRestTask.run, stepConfig, id=("ExecuteRestTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
+        ))
+        log.debug(f"Result: {result}")
+        return (result, stepConfig['name'])
+    # elif step_type == 'CLI':
+    #     return CliStep(stepConfig)
+    # elif step_type == 'NETCONF':
+    #     return NetConfStep(stepConfig)
+    # elif step_type == 'GRPC':
+    #     return GrpcStep(stepConfig)
+    # else:
+    #     log.error(f"Unsupported configType: {step_type}")
+    #     raise ValueError(f"Unsupported configType: {step_type}")
 
 async def invoke_steps() -> int:
-    # for step in steps:
-    #     log.debug(f"Processing {step.name} - {step.configType} - {step.username} - {step.password}")
-    #     step.process_step()
     log.debug(f"Invoking steps")
 
-    client = await TemporalClient.get_instance()
-
     yaml_data = read_yaml("./phy_interface_vlan.yml")
-    steps = [create_step_object(config) for config in yaml_data['steps']]
+    results = [await run_step(config) for config in yaml_data['steps']]
 
-    for step in steps:
-        log.debug(f"Processing {step.toJSON()}")
-
-        if step.configType == 'REST':
-            log.debug(f"Invoking REST step")
-            result = await client.execute_workflow(
-                ExecuteRestTask.run, step.toJSON(), id=("ExecuteRestTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
-            )
-            log.debug(f"Result: {result}")
-            return result
+    return results
 
     
