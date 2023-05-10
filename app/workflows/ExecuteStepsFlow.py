@@ -1,15 +1,13 @@
 
 from temporalio import workflow
-import json
 
 # Import activity, passing it through the sandbox without reloading the module
 with workflow.unsafe.imports_passed_through():
     from datetime import timedelta
-    from config import logger as log
-    from Models.RestStep import RestStep, exec_rest_step
-    from Models.CliStep import CliStep, exec_cli_step
-    from Models.NetConfStep import NetConfStep, exec_netconf_step
-    from Models.GrpcStep import GrpcStep, exec_grpc_step
+    from Models.RestStep import exec_rest_step
+    from Models.CliStep import exec_cli_step
+    from Models.NetConfStep import exec_netconf_step
+    from Models.GrpcStep import exec_grpc_step
     from typing import Dict
 
 
@@ -17,13 +15,47 @@ with workflow.unsafe.imports_passed_through():
 class ExecuteRestTask:
     def __init__(self) -> None:
         workflow.logger.debug(f"ExecuteRestTask::__init__")
-   
     @workflow.run
     async def run(self, conf: Dict) -> int:
         workflow.logger.debug(f"Executing step: {conf['name']} - {conf['configType']}")
         result = await workflow.execute_activity(
             exec_rest_step, conf, start_to_close_timeout=timedelta(seconds=15)
         )
-        workflow.logger.info(f"ExecuteStepsFlow::run: {conf['name']} - {result}")
+        return result
+
+@workflow.defn
+class ExecuteCliTask:
+    def __init__(self) -> None:
+        workflow.logger.debug(f"ExecuteCliTask::__init__")
+    @workflow.run
+    async def run(self, conf: Dict) -> int:
+        workflow.logger.debug(f"Executing step: {conf['name']} - {conf['configType']}")
+        result = await workflow.execute_activity(
+            exec_cli_step, conf, start_to_close_timeout=timedelta(seconds=15)
+        )
+        return result
+
+@workflow.defn
+class ExecuteNetConfTask:
+    def __init__(self) -> None:
+        workflow.logger.debug(f"ExecuteNetConfTask::__init__")
+    @workflow.run
+    async def run(self, conf: Dict) -> int:
+        workflow.logger.debug(f"Executing step: {conf['name']} - {conf['configType']}")
+        result = await workflow.execute_activity(
+            exec_netconf_step, conf, start_to_close_timeout=timedelta(seconds=15)
+        )
+        return result
+
+@workflow.defn
+class ExecuteGrpcTask:
+    def __init__(self) -> None:
+        workflow.logger.debug(f"ExecuteGrpcTask::__init__")
+    @workflow.run
+    async def run(self, conf: Dict) -> int:
+        workflow.logger.debug(f"Executing step: {conf['name']} - {conf['configType']}")
+        result = await workflow.execute_activity(
+            exec_grpc_step, conf, start_to_close_timeout=timedelta(seconds=15)
+        )
         return result
             

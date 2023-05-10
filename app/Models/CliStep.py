@@ -1,3 +1,4 @@
+from typing import Dict
 from Models.Base import Process
 from config import api_credentials, Global_params
 from config import logger as log
@@ -19,7 +20,6 @@ class CliStep(Process):
         return self.commands
     def validate_process(self, output: str):
         log.debug(f"CliStep validate_process output\n{output}")
-    @activity.defn
     def process_step(self):
         log.debug(f"CliStep process payload\n{self.payload}")
         self.payload = self.replace_params(self.payload).splitlines()
@@ -37,5 +37,9 @@ class CliStep(Process):
         return super().toJSON()
 
 @activity.defn
-async def exec_cli_step(step: CliStep) -> int:
-    log.debug(f"RestStep process_step {step}")
+async def exec_cli_step(conf: Dict) -> int:
+    log.debug(f"CliStep exec_rest_step {conf}")
+    step = CliStep(conf)
+    result = step.process_step()
+    log.debug(f"CliStep process_step {step} - {result}")
+    return result

@@ -1,3 +1,4 @@
+from typing import Dict
 from Clients.NetConfClient import NetConfClient
 from Models.Base import Process
 from config import api_credentials, Global_params
@@ -108,5 +109,9 @@ class NetConfStep(Process):
         return super().toJSON()
 
 @activity.defn
-async def exec_netconf_step(step: NetConfStep) -> int:
-    log.debug(f"RestStep process_step {step}")
+async def exec_netconf_step(conf: Dict) -> int:
+    log.debug(f"NetConfStep exec_rest_step {conf}")
+    step = NetConfStep(conf)
+    result = step.process_step()
+    log.debug(f"NetConfStep process_step {step} - {result}")
+    return result

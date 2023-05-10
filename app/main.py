@@ -23,7 +23,7 @@ from Models.GrpcStep import exec_grpc_step
 from workflows.prime_workflow import FindPrimeFlow
 from workflows.prime_factorial_workflow import PrimeFactorialFlow
 from workflows.factorial_workflow import FactorialFlow
-from workflows.ExecuteStepsFlow import ExecuteRestTask
+from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
 from temporal_worker import start_temporal_worker
 
 app = FastAPI()
@@ -38,7 +38,10 @@ async def startup():
                                 [FindPrimeFlow,
                                  FactorialFlow,
                                  PrimeFactorialFlow,
-                                 ExecuteRestTask], 
+                                 ExecuteRestTask,
+                                 ExecuteCliTask,
+                                 ExecuteNetConfTask,
+                                 ExecuteGrpcTask], 
                                 [find_prime,
                                  find_factorial_activity,
                                  exec_rest_step,

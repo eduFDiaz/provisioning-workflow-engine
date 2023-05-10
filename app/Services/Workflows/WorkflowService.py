@@ -9,7 +9,7 @@ from config import logger as log
 
 
 
-from workflows.ExecuteStepsFlow import ExecuteRestTask
+from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
 from temporalClient import TemporalClient
 from config import logger as log
 from config import settings as config
@@ -26,15 +26,27 @@ async def run_step(stepConfig):
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
-    # elif step_type == 'CLI':
-    #     return CliStep(stepConfig)
-    # elif step_type == 'NETCONF':
-    #     return NetConfStep(stepConfig)
-    # elif step_type == 'GRPC':
-    #     return GrpcStep(stepConfig)
-    # else:
-    #     log.error(f"Unsupported configType: {step_type}")
-    #     raise ValueError(f"Unsupported configType: {step_type}")
+    elif step_type == 'CLI':
+        result = (await client.execute_workflow(
+            ExecuteCliTask.run, stepConfig, id=("ExecuteCliTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
+        ))
+        log.debug(f"Result: {result}")
+        return (result, stepConfig['name'])
+    elif step_type == 'NETCONF':
+        result = (await client.execute_workflow(
+            ExecuteNetConfTask.run, stepConfig, id=("ExecuteNetConfTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
+        ))
+        log.debug(f"Result: {result}")
+        return (result, stepConfig['name'])
+    elif step_type == 'GRPC':
+        result = (await client.execute_workflow(
+            ExecuteGrpcTask.run, stepConfig, id=("ExecuteGrpcTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
+        ))
+        log.debug(f"Result: {result}")
+        return (result, stepConfig['name'])
+    else:
+        log.error(f"Unsupported configType: {step_type}")
+        raise ValueError(f"Unsupported configType: {step_type}")
 
 async def invoke_steps() -> int:
     log.debug(f"Invoking steps")

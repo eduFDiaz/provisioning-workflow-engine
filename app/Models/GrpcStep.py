@@ -1,3 +1,4 @@
+from typing import Dict
 from Models.Base import Process
 from config import api_credentials, Global_params
 from config import logger as log
@@ -28,5 +29,9 @@ class GrpcStep(Process):
         return super().toJSON()
 
 @activity.defn
-async def exec_grpc_step(step: GrpcStep) -> int:
-    log.debug(f"exec_grpc_step: {step.name}")
+async def exec_grpc_step(conf: Dict) -> int:
+    log.debug(f"GrpcStep exec_rest_step {conf}")
+    step = GrpcStep(conf)
+    result = step.process_step()
+    log.debug(f"GrpcStep process_step {step} - {result}")
+    return result
