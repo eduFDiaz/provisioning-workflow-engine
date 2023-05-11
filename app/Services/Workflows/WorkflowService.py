@@ -22,25 +22,25 @@ async def run_step(stepConfig):
     client = (await TemporalClient.get_instance())
     if step_type == 'REST':
         result = (await client.execute_workflow(
-            ExecuteRestTask.run, stepConfig, id=("ExecuteRestTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
+            ExecuteRestTask.run, stepConfig, id=("ExecuteRestTask_"+stepConfig['name']), task_queue=config.temporal_queue_name
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
     elif step_type == 'CLI':
         result = (await client.execute_workflow(
-            ExecuteCliTask.run, stepConfig, id=("ExecuteCliTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
+            ExecuteCliTask.run, stepConfig, id=("ExecuteCliTask_"+stepConfig['name']), task_queue=config.temporal_queue_name
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
     elif step_type == 'NETCONF':
         result = (await client.execute_workflow(
-            ExecuteNetConfTask.run, stepConfig, id=("ExecuteNetConfTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
+            ExecuteNetConfTask.run, stepConfig, id=("ExecuteNetConfTask_"+stepConfig['name']), task_queue=config.temporal_queue_name
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
     elif step_type == 'GRPC':
         result = (await client.execute_workflow(
-            ExecuteGrpcTask.run, stepConfig, id=("ExecuteGrpcTask_"+str(uuid.uuid4())), task_queue=config.temporal_queue_name
+            ExecuteGrpcTask.run, stepConfig, id=("ExecuteGrpcTask_"+stepConfig['name']), task_queue=config.temporal_queue_name
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])

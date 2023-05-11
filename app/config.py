@@ -5,8 +5,16 @@ from pydantic import BaseSettings
 
 import logging
 
+def is_running_in_docker():
+    return os.path.exists('/.dockerenv')
+
+TEMPORAL_URL = None
+if is_running_in_docker():
+    TEMPORAL_URL = os.environ.get("TEMPORAL_URL", "temporal:7233")
+else:
+    TEMPORAL_URL = os.environ.get("TEMPORAL_URL", "localhost:7233")
+
 MONGO_HOST = os.environ.get("MONGO_HOST", "mongodb")
-TEMPORAL_URL = os.environ.get("TEMPORAL_URL", "temporal:7233")
 TEMPORAL_NAMESPACE = os.environ.get("TEMPORAL_NAMESPACE", "default")
 TEMPORAL_QUEUE_NAME = os.environ.get("TEMPORAL_QUEUE_NAME", "test-queue")
 MEMGRAPH_HOST = os.environ.get("MEMGRAPH_HOST", "memgraph")

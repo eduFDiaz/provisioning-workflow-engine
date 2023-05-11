@@ -10,7 +10,7 @@ dependencies:
   - name: cpe_discovery
     version: 1.2.3
 steps:
-  - name: API call to IOP for change management
+  - name: Fetch_management_interface
     configType: REST
     request:
       url: https://sandbox-iosxe-latest-1.cisco.com:443/restconf/data/ietf-interfaces:interfaces
@@ -47,7 +47,7 @@ steps:
   #     - "Invalid port number"
   #     - "% Invalid input detected at '^' marker."
 
-  - name: Fetch all enabled interfaces
+  - name: Fetch_all_enabled_interfaces
     hostname: sandbox-iosxe-latest-1.cisco.com
     port: 830
     configType: NETCONF
@@ -89,7 +89,7 @@ steps:
   #         </banner>
   #       </native>
 
-  - name: Change Banner message
+  - name: Change_Banner_message
     hostname: sandbox-iosxe-latest-1.cisco.com
     port: 830
     configType: NETCONF

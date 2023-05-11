@@ -153,7 +153,7 @@ class NetConfStep(Process):
                 <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
                 <interface>
                     <name>GigabitEthernet1</name>
-                    <description>MANAGEMENT INTERFACE - DON'T TOUCH ME</description>
+                    <description>MANAGEMENyttT INTERFACE - DON'T TOUCH ME</description>
                     <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:ethernetCsmacd</type>
                     <enabled>true</enabled>
                     <ipv4 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip">
@@ -212,11 +212,11 @@ class NetConfStep(Process):
             </data>
             </rpc-reply>"""
 
-            # result = """
-            # <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="101">
-            #     <data/>
-            # </rpc-reply>
-            # """
+            result = """
+            <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="101">
+                <data/>
+            </rpc-reply>
+            """
             
             validProcess = self.validate_process(result)
             extractVariables = False if validProcess==False else self.extract_variables(result)

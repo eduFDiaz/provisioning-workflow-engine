@@ -1,8 +1,15 @@
+import asyncio, os
+
 import logging
 from Models.CliStep import CliStep
 from Models.GrpcStep import GrpcStep
 from Models.NetConfStep import NetConfStep
 from Models.RestStep import RestStep
+from Models.RestStep import exec_rest_step
+from Models.CliStep import exec_cli_step
+from Models.NetConfStep import exec_netconf_step
+from Models.GrpcStep import exec_grpc_step
+
 from Utils.Utils import read_yaml
 
 from config import api_credentials
@@ -15,6 +22,28 @@ FORMAT = "[%(asctime)s - %(levelname)s - %(filename)s:%(funcName)21s:%(lineno)s]
 logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='WORKFLOW_MS.log', filemode='a')
 
 log = logging.getLogger()
+
+from temporal_worker import start_temporal_worker
+
+import config
+
+from Services.Workflows.WorkflowService import invoke_steps
+from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
+
+async def startup():
+    log.info("Waiting for Temporal Worker to start up...")
+    await asyncio.sleep(5)
+    await start_temporal_worker(config.temporal_url,
+                                config.temporal_namespace,
+                                config.temporal_queue_name, 
+                                [ExecuteRestTask,
+                                 ExecuteCliTask,
+                                 ExecuteNetConfTask,
+                                 ExecuteGrpcTask], 
+                                [exec_rest_step,
+                                 exec_cli_step,
+                                 exec_netconf_step,
+                                 exec_grpc_step])
 
 def create_api_object(config):
     """This function will create an API object based on the configType"""
@@ -190,9 +219,6 @@ def test_error_edit_response():
 
 if __name__ == "__main__":
     print("Running sandbox.py")
-    yaml_data = read_yaml("./phy_interface_vlan.yml")
-    steps = [create_api_object(config) for config in yaml_data['steps']]
-
-    for step in steps:
-        log.debug(f"Processing {step.name} - {step.configType} - {step.username} - {step.password}")
-        step.process_step()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(startup())
+    loop.run_until_complete(invoke_steps())
