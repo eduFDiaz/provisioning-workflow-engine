@@ -26,3 +26,4 @@ nornir-scrapli
 nornir-utils
 grpcio
 grpcio-tools
+concurrent-log-handler

@@ -49,6 +49,28 @@ steps:
   #     terminal length 0
   #     show running
 
+  - name: Fetch_order_configs
+    configType: REST
+    request:
+      url: http://localhost:8000/config/VNS_2358258
+      method: GET
+      headers:
+        Accept: application/json
+        Content-Type: application/json
+    response:
+      status_code: 200
+      # json:
+      #   $..interface[?(@.description =~ ".*MANAGEMENT.*")].name: interfaceName
+      variables:
+        vrf: json.$.vrf
+        route_map: json.$.route-map
+        ip_prefix_list: json.$.ip-prefix-list
+    retry_policy:
+        init_interval: 1
+        backoff_coefficient: 2
+        max_interval: 100
+        max_attempts: 10
+
   - name: clean_up_vrf_config
     hostname: sandbox-iosxe-latest-1.cisco.com
     configType: CLI
@@ -71,28 +93,29 @@ steps:
           <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
             <vrf operation="merge">
               <definition>
-                <name>VRF_Capgemini</name>
-                <rd>300:1</rd>
+                <name>{{vrf[0][0].name}}</name>
+                <rd>{{vrf[0][0].rd}}</rd>
                 <address-family>
                   <ipv4>
                     <export>
-                      <map>Capgemini-VRF-EXPORT</map>
+                      <map>{{vrf[0][0]['ipv4-export'][0]}}</map>
                     </export>
                     <import>
-                      <map>Capgemini-VRF-IMPORT</map>
+                      <map>{{vrf[0][0]['ipv4-import'][0]}}</map>
                     </import>
                   </ipv4>
                 </address-family>
                 <route-target>
+                {% for rt in vrf[0][0]['rt-export'] %}
                   <export>
-                    <asn-ip>300:4</asn-ip>
+                    <asn-ip>{{rt}}</asn-ip>
                   </export>
+                {% endfor %}
+                {% for rt in vrf[0][0]['rt-import'] %}
                   <import>
-                    <asn-ip>300:3</asn-ip>
+                    <asn-ip>{{rt}}</asn-ip>
                   </import>
-                  <import>
-                    <asn-ip>300:4</asn-ip>
-                  </import>
+                {% endfor %}
                 </route-target>
               </definition>
             </vrf>
@@ -110,22 +133,26 @@ steps:
           <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
             <ip>
               <prefix-lists operation="merge">
+              {% for pl in ip_prefix_list[0] %}
                 <prefixes>
-                  <name>Capgemini-DC1-Management</name>
-                  <no>10</no>
-                  <action>permit</action>
-                  <ip>192.168.187.0/28</ip>
+                  <name>{{pl['name']}}</name>
+                  <no>{{pl['index']}}</no>
+                  <action>{{pl['action']}}</action>
+                  <ip>{{pl['prefix']}}</ip>
                 </prefixes>
+              {% endfor %}
               </prefix-lists>
               <prefix-list operation="merge">
+              {% for pl in ip_prefix_list[0] %}
                 <prefixes>
-                  <name>Capgemini-DC1-Management</name>
+                  <name>{{pl['name']}}</name>
                   <seq>
-                    <no>10</no>
-                    <action>permit</action>
-                    <ip>192.168.187.0/28</ip>
+                    <no>{{pl['index']}}</no>
+                    <action>{{pl['action']}}</action>
+                    <ip>{{pl['prefix']}}</ip>
                   </seq>
                 </prefixes>
+              {% endfor %}
               </prefix-list>
             </ip>
           </native>
@@ -140,40 +167,33 @@ steps:
       payload: |
         <config>
           <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+          {% for rm in route_map[0] %}
             <route-map operation="merge">
-              <name>Capgemini-VRF-IMPORT</name>
+              <name>{{rm['name']}}</name>
+              {% for route in rm['match-list'] %}
               <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
-                <seq_no>10</seq_no>
-                <operation>permit</operation>
+                <seq_no>{{route['index']}}</seq_no>
+                <operation>{{route['operation']}}</operation>
                 <match>
                   <ip>
                     <address>
-                      <prefix-list>Capgemini-DC1-Management</prefix-list>
+                      <prefix-list>{{route['prefix']}}</prefix-list>
                     </address>
                   </ip>
                 </match>
               </route-map-without-order-seq>
-              <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
-                <seq_no>20</seq_no>
-                <operation>permit</operation>
-                <match>
-                  <ip>
-                    <address>
-                      <prefix-list>Capgemini-DC2-Management</prefix-list>
-                    </address>
-                  </ip>
-                </match>
-              </route-map-without-order-seq>
+              {% endfor %}
             </route-map>
+          {% endfor %}
           </native>
         </config>
 
-  # - name: fetch_routing_instances_after_adding
-  #   hostname: sandbox-iosxe-latest-1.cisco.com
-  #   port: 830
-  #   configType: NETCONF
-  #   request:
-  #     type: FETCH
-  #     payload: |
-  #       <routing xmlns="urn:ietf:params:xml:ns:yang:ietf-routing">
-  #       </interfaces>
+  # # - name: fetch_routing_instances_after_adding
+  # #   hostname: sandbox-iosxe-latest-1.cisco.com
+  # #   port: 830
+  # #   configType: NETCONF
+  # #   request:
+  # #     type: FETCH
+  # #     payload: |
+  # #       <routing xmlns="urn:ietf:params:xml:ns:yang:ietf-routing">
+  # #       </interfaces>

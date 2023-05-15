@@ -21,7 +21,7 @@ class NetConfClient:
         return result.result
 
     def edit_config(self, config):
-        result = self.conn.edit_config(config=config, target="candidate")
+        result = self.conn.edit_config(config=config, target="running")
         return result.result
     
     def commit(self):
