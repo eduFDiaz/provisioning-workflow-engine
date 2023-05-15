@@ -52,6 +52,7 @@ class RestStep(Process):
                 except Exception as e:
                         log.error(f"RestStep extract_variables error: {e}")
                         return False
+            log.debug(f"RestStep global_params after extracting variables from the response: {global_params}")
         else:
             return True
         return True
@@ -101,6 +102,7 @@ class RestStep(Process):
             # {}
             # """
             response = requests.get(self.url, auth=(self.username, self.password), headers=self.headers, verify=False)
+            # response = requests.get(self.url, headers=self.headers, verify=False)
             #log pretty print json response
             log.debug(f"RestStep process GET response\n{json.dumps(response.json(), indent=4)}")
         elif self.method == 'POST':

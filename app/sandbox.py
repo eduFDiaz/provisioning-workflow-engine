@@ -9,6 +9,9 @@ from Models.RestStep import exec_rest_step
 from Models.CliStep import exec_cli_step
 from Models.NetConfStep import exec_netconf_step
 from Models.GrpcStep import exec_grpc_step
+from Models.GlobalParams import Global_params
+
+global_params = Global_params()
 
 from Utils.Utils import read_yaml
 
@@ -17,6 +20,8 @@ from config import api_credentials
 import xmltodict, json
 
 from jsonpath_ng.ext import parser
+
+from jinja2 import Environment, Template, FileSystemLoader
 
 FORMAT = "[%(asctime)s - %(levelname)s - %(filename)s:%(funcName)21s:%(lineno)s] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='WORKFLOW_MS.log', filemode='a')
@@ -162,6 +167,185 @@ edit_error_response = """
 edit_error_response_dict = xmltodict.parse(edit_error_response)
 edit_error_response_json = json.dumps(edit_error_response_dict)
 
+add_vrf_definition_exp_rendered_template = """
+    <config>
+          <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+            <vrf operation="merge">
+              <definition>
+                <name>VRF_Capgemini</name>
+                <rd>100:110</rd>
+                <address-family>
+                  <ipv4>
+                    <export>
+                      <map>Capgemini-VRF-EXPORT</map>
+                    </export>
+                    <import>
+                      <map>Capgemini-VRF-IMPORT</map>
+                    </import>
+                  </ipv4>
+                </address-family>
+                <route-target>
+                  <export>
+                    <asn-ip>100:1000</asn-ip>
+                  </export>
+                  <import>
+                    <asn-ip>100:1000</asn-ip>
+                  </import>
+                </route-target>
+              </definition>
+            </vrf>
+          </native>
+        </config>"""
+
+add_vrf_definition_template = """
+    <config>
+          <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+            <vrf operation="merge">
+              <definition>
+                <name>{{vrf[0][0].name}}</name>
+                <rd>{{vrf[0][0].rd}}</rd>
+                <address-family>
+                  <ipv4>
+                    <export>
+                      <map>{{vrf[0][0]['ipv4-export'][0]}}</map>
+                    </export>
+                    <import>
+                      <map>{{vrf[0][0]['ipv4-import'][0]}}</map>
+                    </import>
+                  </ipv4>
+                </address-family>
+                <route-target>
+                {% for rt in vrf[0][0]['rt-export'] %}
+                  <export>
+                    <asn-ip>{{rt}}</asn-ip>
+                  </export>
+                {% endfor %}
+                {% for rt in vrf[0][0]['rt-import'] %}
+                  <import>
+                    <asn-ip>{{rt}}</asn-ip>
+                  </import>
+                {% endfor %}
+                </route-target>
+              </definition>
+            </vrf>
+          </native>
+        </config>"""
+
+add_prefix_lists_exp_rendered_template = """
+        <config>
+          <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+            <ip>
+              <prefix-lists operation="merge">
+                <prefixes>
+                  <name>Capgemini-DC1-Management</name>
+                  <no>10</no>
+                  <action>permit</action>
+                  <ip>192.168.187.0/28</ip>
+                </prefixes>
+              </prefix-lists>
+              <prefix-list operation="merge">
+                <prefixes>
+                  <name>Capgemini-DC1-Management</name>
+                  <seq>
+                    <no>10</no>
+                    <action>permit</action>
+                    <ip>192.168.187.0/28</ip>
+                  </seq>
+                </prefixes>
+              </prefix-list>
+            </ip>
+          </native>
+        </config>
+        """
+
+add_prefix_lists_template = """
+        <config>
+          <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+            <ip>
+              <prefix-lists operation="merge">
+              {% for pl in ip_prefix_list[0] %}
+                <prefixes>
+                  <name>{{pl['name']}}</name>
+                  <no>{{pl['index']}}</no>
+                  <action>{{pl['action']}}</action>
+                  <ip>{{pl['prefix']}}</ip>
+                </prefixes>
+              {% endfor %}
+              </prefix-lists>
+              <prefix-list operation="merge">
+              {% for pl in ip_prefix_list[0] %}
+                <prefixes>
+                  <name>{{pl['name']}}</name>
+                  <seq>
+                    <no>{{pl['index']}}</no>
+                    <action>{{pl['action']}}</action>
+                    <ip>{{pl['prefix']}}</ip>
+                  </seq>
+                </prefixes>
+              {% endfor %}
+              </prefix-list>
+            </ip>
+          </native>
+        </config>
+        """
+
+add_route_map_exp_rendered_template = """
+        <config>
+          <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+            <route-map operation="merge">
+              <name>Capgemini-VRF-IMPORT</name>
+              <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
+                <seq_no>10</seq_no>
+                <operation>permit</operation>
+                <match>
+                  <ip>
+                    <address>
+                      <prefix-list>Capgemini-DC1-Management</prefix-list>
+                    </address>
+                  </ip>
+                </match>
+              </route-map-without-order-seq>
+              <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
+                <seq_no>20</seq_no>
+                <operation>permit</operation>
+                <match>
+                  <ip>
+                    <address>
+                      <prefix-list>Capgemini-DC2-Management</prefix-list>
+                    </address>
+                  </ip>
+                </match>
+              </route-map-without-order-seq>
+            </route-map>
+          </native>
+        </config>
+        """
+
+add_route_maps_template = """
+        <config>
+          <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+          {% for rm in route_map[0] %}
+            <route-map operation="merge">
+              <name>{{rm['name']}}</name>
+              {% for route in rm['match-list'] %}
+              <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
+                <seq_no>{{route['index']}}</seq_no>
+                <operation>{{route['operation']}}</operation>
+                <match>
+                  <ip>
+                    <address>
+                      <prefix-list>{{route['prefix']}}</prefix-list>
+                    </address>
+                  </ip>
+                </match>
+              </route-map-without-order-seq>
+              {% endfor %}
+            </route-map>
+          {% endfor %}
+          </native>
+        </config>
+        """
+
 def test_expected_response():
     #test jsonpath response for data not empty
     print(exp_response_dict)
@@ -215,7 +399,30 @@ def test_ok_edit_response():
 def test_error_edit_response():
     #test jsonpath response for data not empty
     print(edit_error_response_dict)
-    assert edit_error_response_dict.get('rpc-error') != None, "result contains error"
+    assert edit_error_response_dict.get('rpc-error') == None, "result contains error"
+
+def test_add_vrf_definition_rendered_template():
+    print(f"params - {global_params.getMap()}")
+    print(f"vrf name - {global_params.getMap().get('vrf')[0][0]['name']}")
+    template = Template(add_vrf_definition_template, trim_blocks=True, lstrip_blocks=True)
+    renderedTemplate = template.render(**global_params.getMap())
+    assert renderedTemplate == add_vrf_definition_exp_rendered_template, "rendered template is not as expected" 
+
+def test_add_prefix_lists_rendered_template():
+    print(f"params - {global_params.getMap()}")
+    print(f"vrf name - {global_params.getMap().get('ip_prefix_list')[0][0]['name']}")
+    template = Template(add_prefix_lists_template, trim_blocks=True, lstrip_blocks=True)
+    renderedTemplate = template.render(**global_params.getMap())
+    print(renderedTemplate)
+    assert renderedTemplate == add_prefix_lists_exp_rendered_template, "rendered template is not as expected"
+
+def test_add_route_maps_rendered_template():
+    print(f"params - {global_params.getMap()}")
+    print(f"vrf name - {global_params.getMap().get('route_map')[0][0]['name']}")
+    template = Template(add_route_maps_template, trim_blocks=True, lstrip_blocks=True)
+    renderedTemplate = template.render(**global_params.getMap())
+    print(renderedTemplate)
+    assert renderedTemplate == add_route_map_exp_rendered_template, "rendered template is not as expected"
 
 if __name__ == "__main__":
     print("Running sandbox.py")
