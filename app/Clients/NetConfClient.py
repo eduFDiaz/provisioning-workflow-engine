@@ -27,3 +27,30 @@ class NetConfClient:
     def commit(self):
         result = self.conn.commit()
         return result.result
+
+# config = {
+#     "host": "sandbox-iosxe-latest-1.cisco.com",
+#     "auth_username": "admin",
+#     "auth_password": "C1sco12345",
+#     "auth_strict_key": False,
+#     "port": 830,
+# }
+# # /data/routing/routing-instance[1]
+# payload = """
+# <config>
+#     <routing xmlns="urn:ietf:params:xml:ns:yang:ietf-routing">
+#         <routing-instance operation="delete">
+#             <name>VRF_Capgemini</name>
+#             <routing-protocols>
+#                 <routing-protocol>
+#                     <type>static</type>
+#                     <name>1</name>
+#                 </routing-protocol>
+#             </routing-protocols>
+#         </routing-instance>
+#     </routing>
+# </config>
+# """
+
+# client = NetConfClient(config)
+# result = client.edit_config(payload)

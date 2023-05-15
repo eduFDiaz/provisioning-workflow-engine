@@ -29,13 +29,9 @@ class CliStep(Process):
         client = SSHClient(self.hostname, self.username, self.password)
 
         for command in self.payload:
-            print(f"Command: {command}")
+            log.info(f"Command: {command}")
             output = client.execute_command(command)
-            print(f"Output: {output}")
-
-        client.close()
-    def toJSON(self):
-        return super().toJSON()
+            log.debug(f"Output: {output}")
 
 @activity.defn
 async def exec_cli_step(conf: Dict) -> int:

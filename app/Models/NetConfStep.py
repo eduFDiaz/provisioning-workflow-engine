@@ -143,80 +143,10 @@ class NetConfStep(Process):
             "port": self.port,
         }
 
-        # client = NetConfClient(config)
+        client = NetConfClient(config)
 
         if self.type == 'FETCH':
-            # result = client.get_filter(self.payload)
-            result = """
-            <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="101">
-            <data>
-                <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
-                <interface>
-                    <name>GigabitEthernet1</name>
-                    <description>MANAGEMENyttT INTERFACE - DON'T TOUCH ME</description>
-                    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:ethernetCsmacd</type>
-                    <enabled>true</enabled>
-                    <ipv4 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip">
-                    <address>
-                        <ip>10.10.20.148</ip>
-                        <netmask>255.255.255.0</netmask>
-                    </address>
-                    </ipv4>
-                    <ipv6 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip"/>
-                </interface>
-                <interface>
-                    <name>Loopback0</name>
-                    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:softwareLoopback</type>
-                    <enabled>true</enabled>
-                    <ipv4 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip">
-                    <address>
-                        <ip>10.0.0.1</ip>
-                        <netmask>255.255.255.0</netmask>
-                    </address>
-                    </ipv4>
-                    <ipv6 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip"/>
-                </interface>
-                <interface>
-                    <name>Loopback10</name>
-                    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:softwareLoopback</type>
-                    <enabled>true</enabled>
-                    <ipv4 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip"/>
-                    <ipv6 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip"/>
-                </interface>
-                <interface>
-                    <name>Loopback109</name>
-                    <description>Configured by RESTCONF ga jadi</description>
-                    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:softwareLoopback</type>
-                    <enabled>true</enabled>
-                    <ipv4 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip">
-                    <address>
-                        <ip>10.255.255.9</ip>
-                        <netmask>255.255.255.0</netmask>
-                    </address>
-                    </ipv4>
-                    <ipv6 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip"/>
-                </interface>
-                <interface>
-                    <name>VirtualPortGroup0</name>
-                    <type xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">ianaift:propVirtual</type>
-                    <enabled>true</enabled>
-                    <ipv4 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip">
-                    <address>
-                        <ip>192.168.1.1</ip>
-                        <netmask>255.255.255.0</netmask>
-                    </address>
-                    </ipv4>
-                    <ipv6 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip"/>
-                </interface>
-                </interfaces>
-            </data>
-            </rpc-reply>"""
-
-            result = """
-            <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="101">
-                <data/>
-            </rpc-reply>
-            """
+            result = client.get_filter(self.payload)            
             
             validProcess = self.validate_process(result)
             extractVariables = False if validProcess==False else self.extract_variables(result)
@@ -229,27 +159,8 @@ class NetConfStep(Process):
                 log.debug(f"NetConfStep process_step FETCH extractVariables = {extractVariables}")
                 return 1
         elif self.type == 'EDIT':
-            # result = client.edit_config(self.payload)
-            result = """
-            <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="101">
-                <ok/>
-            </rpc-reply>
-            """
-            # result = """
-            # <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="101">
-            #     <rpc-error xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
-            #         <error-type>application</error-type>
-            #         <error-tag>operation-failed</error-tag>
-            #         <error-severity>error</error-severity>
-            #         <error-path xmlns:if="urn:ietf:params:xml:ns:yang:ietf-interfaces">/rpc/edit-config/config/if:interfaces/if:interface[if:name='GigabitEthernet1/0/16']/if:type</error-path>
-            #         <error-message lang="en"
-            #             xmlns="https://www.w3.org/XML/1998/namespace">/interfaces/interface[name='GigabitEthernet1/0/16']/type: "Unsupported - value must be ethernetCsmacd or softwareLoopback"</error-message>
-            #         <error-info>
-            #             <bad-element>type</bad-element>
-            #         </error-info>
-            #     </rpc-error>
-            # </rpc-reply>
-            # """
+            result = client.edit_config(self.payload)
+            
             validProcess = self.validate_process(result)
             if validProcess == True:
                 log.debug(f"NetConfStep process_step EDIT validProcess = {validProcess}")
