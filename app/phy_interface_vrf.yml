@@ -1,0 +1,179 @@
+name: phy_interface_activation
+metadata:
+    retry_policy:
+      init_interval: 1
+      backoff_coefficient: 2
+      max_interval: 100
+      max_attempts: 10
+    version: 1.0
+dependencies:
+  - name: cpe_discovery
+    version: 1.2.3
+steps:     
+  # - name: show_config
+  #   hostname: sandbox-iosxe-latest-1.cisco.com
+  #   configType: CLI
+  #   config: |
+  #     terminal length 0
+  #     show running
+
+  # - name: add_vrf
+  #   hostname: sandbox-iosxe-latest-1.cisco.com
+  #   configType: CLI
+  #   config: |
+  #     terminal length 0
+  #     enable
+  #     config t
+  #     ip prefix-list Capgemini-DC1-Management seq 10 permit 192.168.187.0/28
+  #     route-map Capgemini-VRF-IMPORT permit 10
+  #     match ip address prefix-list Capgemini-DC1-Management
+  #     exit
+  #     route-map Capgemini-VRF-IMPORT permit 20
+  #     match ip address prefix-list Capgemini-DC2-Management
+  #     exit
+  #     vrf definition VRF_Capgemini
+  #     rd 300:1
+  #     route-target export 300:4
+  #     route-target import 300:4
+  #     route-target import 300:3
+  #     address-family ipv4
+  #     import map Capgemini-VRF-IMPORT
+  #     export map Capgemini-VRF-EXPORT
+  #     exit-address-family
+  #     end
+
+  # - name: show_config_after
+  #   hostname: sandbox-iosxe-latest-1.cisco.com
+  #   configType: CLI
+  #   config: |
+  #     terminal length 0
+  #     show running
+
+  - name: clean_up_vrf_config
+    hostname: sandbox-iosxe-latest-1.cisco.com
+    configType: CLI
+    config: |
+      terminal length 0
+      enable
+      config t
+      no vrf definition VRF_Capgemini
+      no route-map Capgemini-VRF-IMPORT
+      exit
+
+  - name: add_vrf_definition
+    hostname: sandbox-iosxe-latest-1.cisco.com
+    port: 830
+    configType: NETCONF
+    request:
+      type: EDIT
+      payload: |
+        <config>
+          <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+            <vrf operation="merge">
+              <definition>
+                <name>VRF_Capgemini</name>
+                <rd>300:1</rd>
+                <address-family>
+                  <ipv4>
+                    <export>
+                      <map>Capgemini-VRF-EXPORT</map>
+                    </export>
+                    <import>
+                      <map>Capgemini-VRF-IMPORT</map>
+                    </import>
+                  </ipv4>
+                </address-family>
+                <route-target>
+                  <export>
+                    <asn-ip>300:4</asn-ip>
+                  </export>
+                  <import>
+                    <asn-ip>300:3</asn-ip>
+                  </import>
+                  <import>
+                    <asn-ip>300:4</asn-ip>
+                  </import>
+                </route-target>
+              </definition>
+            </vrf>
+          </native>
+        </config>
+
+  - name: add_prefix_lists
+    hostname: sandbox-iosxe-latest-1.cisco.com
+    port: 830
+    configType: NETCONF
+    request:
+      type: EDIT
+      payload: |
+        <config>
+          <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+            <ip>
+              <prefix-lists operation="merge">
+                <prefixes>
+                  <name>Capgemini-DC1-Management</name>
+                  <no>10</no>
+                  <action>permit</action>
+                  <ip>192.168.187.0/28</ip>
+                </prefixes>
+              </prefix-lists>
+              <prefix-list operation="merge">
+                <prefixes>
+                  <name>Capgemini-DC1-Management</name>
+                  <seq>
+                    <no>10</no>
+                    <action>permit</action>
+                    <ip>192.168.187.0/28</ip>
+                  </seq>
+                </prefixes>
+              </prefix-list>
+            </ip>
+          </native>
+        </config>
+
+  - name: add_route_maps
+    hostname: sandbox-iosxe-latest-1.cisco.com
+    port: 830
+    configType: NETCONF
+    request:
+      type: EDIT
+      payload: |
+        <config>
+          <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+            <route-map operation="merge">
+              <name>Capgemini-VRF-IMPORT</name>
+              <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
+                <seq_no>10</seq_no>
+                <operation>permit</operation>
+                <match>
+                  <ip>
+                    <address>
+                      <prefix-list>Capgemini-DC1-Management</prefix-list>
+                    </address>
+                  </ip>
+                </match>
+              </route-map-without-order-seq>
+              <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
+                <seq_no>20</seq_no>
+                <operation>permit</operation>
+                <match>
+                  <ip>
+                    <address>
+                      <prefix-list>Capgemini-DC2-Management</prefix-list>
+                    </address>
+                  </ip>
+                </match>
+              </route-map-without-order-seq>
+            </route-map>
+          </native>
+        </config>
+
+  # - name: fetch_routing_instances_after_adding
+  #   hostname: sandbox-iosxe-latest-1.cisco.com
+  #   port: 830
+  #   configType: NETCONF
+  #   request:
+  #     type: FETCH
+  #     payload: |
+  #       <routing xmlns="urn:ietf:params:xml:ns:yang:ietf-routing">
+  #       </interfaces>

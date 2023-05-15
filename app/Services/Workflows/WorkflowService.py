@@ -48,10 +48,10 @@ async def run_step(stepConfig):
         log.error(f"Unsupported configType: {step_type}")
         raise ValueError(f"Unsupported configType: {step_type}")
 
-async def invoke_steps() -> int:
+async def invoke_steps(file: str) -> int:
     log.debug(f"Invoking steps")
 
-    yaml_data = read_yaml("./phy_interface_vlan.yml")
+    yaml_data = read_yaml(f"./{file}")
     results = [await run_step(config) for config in yaml_data['steps']]
 
     return results

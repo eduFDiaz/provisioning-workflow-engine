@@ -31,7 +31,7 @@ class ExecuteCliTask:
     async def run(self, conf: Dict) -> int:
         workflow.logger.debug(f"Executing step: {conf['name']} - {conf['configType']}")
         result = await workflow.execute_activity(
-            exec_cli_step, conf, start_to_close_timeout=timedelta(seconds=15)
+            exec_cli_step, conf, start_to_close_timeout=timedelta(seconds=120)
         )
         return result
 

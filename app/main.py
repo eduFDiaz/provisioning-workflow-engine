@@ -98,7 +98,7 @@ async def invokePrimeFactorialFlow(number: int):
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
 async def execute_workflow() -> HTMLResponse:
     try:
-        res = await invoke_steps()
+        res = await invoke_steps("phy_interface_vrf.yml")
         return HTMLResponse(content=f"Workflow executed successfully {res}", status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")

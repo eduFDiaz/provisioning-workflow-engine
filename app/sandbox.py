@@ -221,4 +221,4 @@ if __name__ == "__main__":
     print("Running sandbox.py")
     loop = asyncio.get_event_loop()
     loop.run_until_complete(startup())
-    loop.run_until_complete(invoke_steps())
+    loop.run_until_complete(invoke_steps("phy_interface_vrf.yml"))
