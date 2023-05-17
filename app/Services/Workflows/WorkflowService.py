@@ -50,9 +50,9 @@ async def run_step(stepConfig):
 
 async def invoke_steps(file: str) -> int:
     log.debug(f"Invoking steps")
-    
-    flow_data = read_flow_yaml(f"./Worflows_Definition_Files/{file}")
-    results = [await run_step(read_step_yaml(f"./Worflows_Definition_Files/{config['file']}")) for config in flow_data['steps']]
+    path = f"./Workflows_Definition_Files"    
+    flow_data = read_flow_yaml(f"{path}/{file}")
+    results = [await run_step(read_step_yaml(f"{path}/{config['file']}")) for config in flow_data['steps']]
     return results
 
     
