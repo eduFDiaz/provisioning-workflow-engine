@@ -1,0 +1,6 @@
+name: phy_interface_vrf
+log_forwarder_present: false
+interfaces:
+  - 'GigabitEthernet1'
+  - 'GigabitEthernet2'
+  - 'GigabitEthernet3'

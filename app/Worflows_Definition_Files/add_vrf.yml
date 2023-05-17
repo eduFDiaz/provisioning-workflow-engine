@@ -1,0 +1,24 @@
+name: add_vrf
+hostname: sandbox-iosxe-latest-1.cisco.com
+configType: CLI
+config: |
+  terminal length 0
+  enable
+  config t
+  ip prefix-list Capgemini-DC1-Management seq 10 permit 192.168.187.0/28
+  route-map Capgemini-VRF-IMPORT permit 10
+  match ip address prefix-list Capgemini-DC1-Management
+  exit
+  route-map Capgemini-VRF-IMPORT permit 20
+  match ip address prefix-list Capgemini-DC2-Management
+  exit
+  vrf definition VRF_Capgemini
+  rd 300:1
+  route-target export 300:4
+  route-target import 300:4
+  route-target import 300:3
+  address-family ipv4
+  import map Capgemini-VRF-IMPORT
+  export map Capgemini-VRF-EXPORT
+  exit-address-family
+  end

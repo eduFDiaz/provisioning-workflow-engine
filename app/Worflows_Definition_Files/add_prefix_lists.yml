@@ -1,0 +1,35 @@
+name: add_prefix_lists
+hostname: sandbox-iosxe-latest-1.cisco.com
+port: 830
+configType: NETCONF
+request:
+  type: EDIT
+  payload: |
+    <config>
+      <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+        <ip>
+          <prefix-lists operation="merge">
+          {% for pl in ip_prefix_list[0] %}
+            <prefixes>
+              <name>{{pl['name']}}</name>
+              <no>{{pl['index']}}</no>
+              <action>{{pl['action']}}</action>
+              <ip>{{pl['prefix']}}</ip>
+            </prefixes>
+          {% endfor %}
+          </prefix-lists>
+          <prefix-list operation="merge">
+          {% for pl in ip_prefix_list[0] %}
+            <prefixes>
+              <name>{{pl['name']}}</name>
+              <seq>
+                <no>{{pl['index']}}</no>
+                <action>{{pl['action']}}</action>
+                <ip>{{pl['prefix']}}</ip>
+              </seq>
+            </prefixes>
+          {% endfor %}
+          </prefix-list>
+        </ip>
+      </native>
+    </config>

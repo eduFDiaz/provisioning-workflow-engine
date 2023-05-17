@@ -1,6 +1,6 @@
 from Models.GlobalParams import Global_params
 from config import api_credentials
-from Utils.Utils import read_yaml
+from Utils.Utils import read_step_yaml
 
 from typing import Optional, Union
 from jinja2 import Environment, Template, FileSystemLoader
@@ -19,7 +19,7 @@ class Process:
         self.configType = config['configType']
         self.config = config
         self.set_credentials()
-        self.templateParams = read_yaml(api_credentials[self.configType]['paramsFile'])
+        self.templateParams = read_step_yaml(api_credentials[self.configType]['paramsFile'])
         global_params.update(self.templateParams)
     def process_step(self) -> int:
         """This method will be implemented by the child Step classes
