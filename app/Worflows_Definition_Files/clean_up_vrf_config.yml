@@ -1,0 +1,10 @@
+name: clean_up_vrf_config
+hostname: sandbox-iosxe-latest-1.cisco.com
+configType: CLI
+config: |
+  terminal length 0
+  enable
+  config t
+  no vrf definition VRF_Capgemini
+  no route-map Capgemini-VRF-IMPORT
+  exit

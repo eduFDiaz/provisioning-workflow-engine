@@ -3,7 +3,7 @@ from Models.RestStep import RestStep
 from Models.CliStep import CliStep
 from Models.GrpcStep import GrpcStep
 from Models.NetConfStep import NetConfStep
-from Utils.Utils import read_yaml
+from Utils.Utils import read_step_yaml, read_flow_yaml
 
 from config import logger as log
 
@@ -50,10 +50,9 @@ async def run_step(stepConfig):
 
 async def invoke_steps(file: str) -> int:
     log.debug(f"Invoking steps")
-
-    yaml_data = read_yaml(f"./{file}")
-    results = [await run_step(config) for config in yaml_data['steps']]
-
+    
+    flow_data = read_flow_yaml(f"./Worflows_Definition_Files/{file}")
+    results = [await run_step(read_step_yaml(f"./Worflows_Definition_Files/{config['file']}")) for config in flow_data['steps']]
     return results
 
     

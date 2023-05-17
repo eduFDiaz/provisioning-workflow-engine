@@ -13,7 +13,7 @@ from Models.GlobalParams import Global_params
 
 global_params = Global_params()
 
-from Utils.Utils import read_yaml
+from Utils.Utils import read_step_yaml
 
 from config import api_credentials
 

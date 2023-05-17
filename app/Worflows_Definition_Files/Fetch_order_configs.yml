@@ -1,0 +1,21 @@
+name: Fetch_order_configs
+configType: REST
+request:
+  url: http://localhost:8000/config/VNS_2358258
+  method: GET
+  headers:
+    Accept: application/json
+    Content-Type: application/json
+response:
+  status_code: 200
+  # json:
+  #   $..interface[?(@.description =~ ".*MANAGEMENT.*")].name: interfaceName
+  variables:
+    vrf: json.$.vrf
+    route_map: json.$.route-map
+    ip_prefix_list: json.$.ip-prefix-list
+retry_policy:
+    init_interval: 1
+    backoff_coefficient: 2
+    max_interval: 100
+    max_attempts: 10
