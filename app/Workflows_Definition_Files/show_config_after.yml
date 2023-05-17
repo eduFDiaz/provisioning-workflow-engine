@@ -1,0 +1,6 @@
+name: show_config_after
+hostname: sandbox-iosxe-latest-1.cisco.com
+configType: CLI
+config: |
+  terminal length 0
+  show running
