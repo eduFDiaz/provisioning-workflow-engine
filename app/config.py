@@ -38,7 +38,7 @@ memgraph_port = settings.memgraph_port
 import logging
 FORMAT = "[%(asctime)s - %(levelname)s - %(filename)s:%(funcName)21s:%(lineno)s] %(message)s"
 # Set up basic configuration for logging
-logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='./WORKFLOW_MS.log', filemode='w')
+logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='./WORKFLOW_MS.log', filemode='a')
 
 # Create an instance of the logger
 logger = logging.getLogger()
