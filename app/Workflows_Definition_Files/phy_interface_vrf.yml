@@ -26,14 +26,9 @@ steps:
   - name: clean_up_vrf_config
     file: clean_up_vrf_config.yml
 
-  - name: add_vrf_definition
-    file: add_vrf_definition.yml
-
-  - name: add_prefix_lists
-    file: add_prefix_lists.yml
-
-  - name: add_route_maps
-    file: add_route_maps.yml
+  - name: netconf_vrf_steps
+    file: netconf_vrf_steps.yml
+    type: workflow
 {% if log_forwarder_present %}
   - name: fetch_routing_instances_after_adding
     file: fetch_routing_instances_after_adding.yml

@@ -35,6 +35,8 @@ temporal_queue_name = settings.temporal_queue_name
 memgraph_host = settings.memgraph_host
 memgraph_port = settings.memgraph_port
 
+workflow_definition_files_path = "./Workflows_Definition_Files" 
+
 import logging
 FORMAT = "[%(asctime)s - %(levelname)s - %(filename)s:%(funcName)21s:%(lineno)s] %(message)s"
 # Set up basic configuration for logging

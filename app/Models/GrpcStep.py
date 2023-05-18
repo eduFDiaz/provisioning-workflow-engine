@@ -28,11 +28,3 @@ class GrpcStep(Process):
         # # e.g. response = stub.MyMethod(request)
     def toJSON(self):
         return super().toJSON()
-
-@activity.defn
-async def exec_grpc_step(conf: Dict) -> int:
-    log.debug(f"GrpcStep exec_rest_step {conf}")
-    step = GrpcStep(conf)
-    result = step.process_step()
-    log.debug(f"GrpcStep process_step {step} - {result}")
-    return result

@@ -3,12 +3,10 @@ from temporalio import workflow
 
 # Import activity, passing it through the sandbox without reloading the module
 with workflow.unsafe.imports_passed_through():
-    from datetime import timedelta
-    from Models.RestStep import exec_rest_step
-    from Models.CliStep import exec_cli_step
-    from Models.NetConfStep import exec_netconf_step
-    from Models.GrpcStep import exec_grpc_step
+    from datetime import timedelta    
     from typing import Dict
+    from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
+    
 
 
 @workflow.defn
@@ -58,4 +56,4 @@ class ExecuteGrpcTask:
             exec_grpc_step, conf, start_to_close_timeout=timedelta(seconds=15)
         )
         return result
-            
+

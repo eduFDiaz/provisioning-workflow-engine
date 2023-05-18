@@ -119,12 +119,4 @@ class RestStep(Process):
         self.validate_process(response)
         log.debug(f"{self.name} - {self.method} {self.url} - {response.content} - Status code: {response.status_code}")
         return 1000
-    
 
-@activity.defn
-async def exec_rest_step(conf: Dict) -> int:
-    log.debug(f"RestStep exec_rest_step {conf}")
-    step = RestStep(conf)
-    result = step.process_step()
-    log.debug(f"RestStep process_step {step} - {result}")
-    return result
