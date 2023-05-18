@@ -168,11 +168,3 @@ class NetConfStep(Process):
             else:
                 log.debug(f"NetConfStep process_step EDIT validProcess = {validProcess}")
                 return 1
-
-@activity.defn
-async def exec_netconf_step(conf: Dict) -> int:
-    log.debug(f"NetConfStep exec_rest_step {conf}")
-    step = NetConfStep(conf)
-    result = step.process_step()
-    log.debug(f"NetConfStep process_step {step} - {result}")
-    return result

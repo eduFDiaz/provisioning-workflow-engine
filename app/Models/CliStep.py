@@ -32,11 +32,3 @@ class CliStep(Process):
             log.info(f"Command: {command}")
             output = client.execute_command(command)
             log.debug(f"Output: {output}")
-
-@activity.defn
-async def exec_cli_step(conf: Dict) -> int:
-    log.debug(f"CliStep exec_rest_step {conf}")
-    step = CliStep(conf)
-    result = step.process_step()
-    log.debug(f"CliStep process_step {step} - {result}")
-    return result

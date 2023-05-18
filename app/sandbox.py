@@ -1,19 +1,10 @@
 import asyncio, os
 
 import logging
-from Models.CliStep import CliStep
-from Models.GrpcStep import GrpcStep
-from Models.NetConfStep import NetConfStep
-from Models.RestStep import RestStep
-from Models.RestStep import exec_rest_step
-from Models.CliStep import exec_cli_step
-from Models.NetConfStep import exec_netconf_step
-from Models.GrpcStep import exec_grpc_step
+
 from Models.GlobalParams import Global_params
 
 global_params = Global_params()
-
-from Utils.Utils import read_step_yaml
 
 from config import api_credentials
 
@@ -34,6 +25,7 @@ import config
 
 from Services.Workflows.WorkflowService import invoke_steps
 from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
+from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
 
 async def startup():
     log.info("Waiting for Temporal Worker to start up...")
@@ -49,22 +41,6 @@ async def startup():
                                  exec_cli_step,
                                  exec_netconf_step,
                                  exec_grpc_step])
-
-def create_api_object(config):
-    """This function will create an API object based on the configType"""
-    step_type = config.get('configType')
-    log.debug(f"Creating API object for configType: {step_type}")
-    if step_type == 'REST':
-        return RestStep(config)
-    elif step_type == 'CLI':
-        return CliStep(config)
-    elif step_type == 'NETCONF':
-        return NetConfStep(config)
-    elif step_type == 'GRPC':
-        return GrpcStep(config)
-    else:
-        log.error(f"Unsupported configType: {step_type}")
-        raise ValueError(f"Unsupported configType: {step_type}")
 
 response_expected = """
 <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="101">
