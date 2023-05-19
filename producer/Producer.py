@@ -1,3 +1,5 @@
+from datetime import datetime
+import json
 from aiokafka import AIOKafkaProducer
 import asyncio
 
@@ -7,7 +9,7 @@ print("bootstrap_servers: ", bootstrap_servers)
 
 async def send_one():
     print("Starting producer")
-    await asyncio.sleep(110)
+    await asyncio.sleep(80)
     producer = AIOKafkaProducer(
         bootstrap_servers=bootstrap_servers)
     # Get cluster layout and initial topic/partition leadership information
@@ -17,8 +19,15 @@ async def send_one():
     
         # Produce message
         await asyncio.sleep(5)
-        await producer.send_and_wait("test", b"Hello World")
-        print("Message sent")
+        message = {
+            "message": "Hello World",
+            "timestamp": datetime.now().isoformat()
+        }
+
+        message_bytes = json.dumps(message).encode('utf-8')
+        
+        await producer.send_and_wait("test", message_bytes)
+        print(f"Message sent: {message}")
     except Exception as e:
         print("Exception: ", e)
     finally:

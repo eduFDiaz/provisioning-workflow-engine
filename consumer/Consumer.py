@@ -9,7 +9,7 @@ async def consume():
     try:
         print("Starting consumer")
         
-        await asyncio.sleep(120)
+        await asyncio.sleep(60)
         consumer = AIOKafkaConsumer(
             'test',
             bootstrap_servers=bootstrap_servers,
@@ -30,5 +30,4 @@ async def consume():
         # Will leave consumer group; perform autocommit if enabled.
         await consumer.stop()
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(consume())
+asyncio.run(consume())

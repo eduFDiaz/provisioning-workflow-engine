@@ -57,6 +57,9 @@ def read_workflow_steps(file_path: str, steps: List[Any]) -> Tuple[Optional[List
                 # if err:
                 #     return None, err
             else:
+                step['workflow_name'] = renderedDict.get('name')
+                step['workflow_metadata'] = renderedDict.get('metadata')
+                step['workflow_dependencies'] = renderedDict.get('dependencies')
                 log.debug(f"Adding step: {step}")
                 steps.append(step)
         return steps, None
@@ -73,7 +76,15 @@ async def get_list_of_steps(file: str) -> Tuple[Optional[Any], Optional[Exceptio
     if error:
         log.error(f"Error reading workflow file: {file}")
         return None, error
+
+    stepConfigs = []
+    for step in steps:
+        config = read_step_yaml(f"{path}/{step['file']}")
+        config['workflow_name'] = step['workflow_name']
+        config['workflow_metadata'] = step['workflow_metadata']
+        config['workflow_dependencies'] = step['workflow_dependencies']
+        stepConfigs.append(config)
+
+    _ = [log.debug(stepConfig) for stepConfig in list(stepConfigs)]
     
-    _ = [log.debug(step) for step in list(steps)]
-    
-    return steps, None
+    return stepConfigs, None

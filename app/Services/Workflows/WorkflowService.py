@@ -52,5 +52,5 @@ async def invoke_steps(file: str) -> Tuple[Optional[Any], Optional[Exception]]:
         log.error(f"Error getting list of steps")
         return None, error
     
-    results = [await run_step(read_step_yaml(f"{path}/{step['file']}")) for step in steps]
+    results = [await run_step(stepConfig) for stepConfig in steps]
     return results
