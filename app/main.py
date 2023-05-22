@@ -2,16 +2,17 @@
 import asyncio
 
 from Services.Workflows.WorkflowService import invoke_steps
-from fastapi import FastAPI
+from Models.NotificationModel import NotificationModel
 
 from config import logger as log
 
 import config
 
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
+from Clients.KafkaProducer import get_kafka_producer
 
 from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
 from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
@@ -27,10 +28,12 @@ users_db = {
 app = FastAPI()
 security = HTTPBasic()
 
+
+
 @app.on_event("startup")
 async def startup():
     log.info("Waiting for Temporal Worker to start up...")
-    await asyncio.sleep(20)
+    await asyncio.sleep(30)
     await start_temporal_worker(config.temporal_url,
                                 config.temporal_namespace,
                                 config.temporal_queue_name, 
@@ -42,6 +45,7 @@ async def startup():
                                  exec_cli_step,
                                  exec_netconf_step,
                                  exec_grpc_step])
+    app.kafka_producer = (await get_kafka_producer())
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -131,3 +135,13 @@ async def get_config(orderId: str) -> JSONResponse:
     except Exception as e:
         log.error(f"Error: {e}")
         return JSONResponse(content=f"Error: {e}", status_code=500)
+
+@app.post("/kafka/",
+         summary="this API will send a message to Kafka", 
+         description="The payload will be sent to Kafka")
+async def kafka_endpoint(payload: NotificationModel) -> JSONResponse:
+    # Send payload to kafka using test topic
+    log.info(f"Sending payload to Kafka: {payload.toJSON()}")
+    app.kafka_producer.produce('test', payload.toJSON())
+    app.kafka_producer.flush()
+    return {"message": f"Message sent to Kafka {payload.toJSON()}"}

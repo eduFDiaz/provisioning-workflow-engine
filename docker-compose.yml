@@ -9,6 +9,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - 2181:2181
+    networks:
+      - temporal-network
 
   kafka:
     image: 'confluentinc/cp-kafka:latest'
@@ -28,6 +30,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    networks:
+      - temporal-network
   
   kafka-setup:
     container_name: kafka-setup
@@ -38,27 +42,8 @@ services:
       bash -c "cub kafka-ready -b kafka:9092 1 20 && 
                 kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 --topic test
                 sleep infinity"
-  
-  consumer:
-    container_name: consumer
-    build:
-      context: ./consumer
-      dockerfile: Dockerfile
-    depends_on:
-      - kafka
-      - kafka-setup
-    environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-
-  producer:
-    container_name: producer
-    build:
-      context: ./producer
-      dockerfile: Dockerfile
-    environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-    depends_on:
-      - consumer
+    networks:
+      - temporal-network
 
   fastapi_app:
     build: ./app
@@ -68,10 +53,24 @@ services:
       - "8000:8000"
     depends_on:
       - temporal
+      - kafka
     networks:
       - temporal-network
     volumes:
       - ./app:/app
+
+  consumer_app:
+    build: ./consumer/app
+    image: consumer_app:latest
+    container_name: consumer_app
+    ports:
+      - "4040:4040"
+    depends_on:
+      - kafka
+    networks:
+      - temporal-network
+    volumes:
+      - ./consumer/app:/app
 
   elasticsearch:
     container_name: temporal-elasticsearch

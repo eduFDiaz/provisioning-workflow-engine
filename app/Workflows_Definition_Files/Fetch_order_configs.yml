@@ -8,8 +8,6 @@ request:
     Content-Type: application/json
 response:
   status_code: 200
-  # json:
-  #   $..interface[?(@.description =~ ".*MANAGEMENT.*")].name: interfaceName
   variables:
     vrf: json.$.vrf
     route_map: json.$.route-map

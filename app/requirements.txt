@@ -27,3 +27,5 @@ nornir-utils
 grpcio
 grpcio-tools
 concurrent-log-handler
+aiokafka
+confluent_kafka

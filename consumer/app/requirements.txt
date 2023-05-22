@@ -1,0 +1,6 @@
+kafka-python
+aiokafka
+fastapi
+uvicorn
+confluent_kafka
+asyncio
