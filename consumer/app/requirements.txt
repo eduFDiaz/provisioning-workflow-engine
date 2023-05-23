@@ -4,3 +4,4 @@ fastapi
 uvicorn
 confluent_kafka
 asyncio
+cassandra-driver

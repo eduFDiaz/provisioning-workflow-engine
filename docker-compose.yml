@@ -72,6 +72,30 @@ services:
     volumes:
       - ./consumer/app:/app
 
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra
+    environment:
+      - CASSANDRA_CLUSTER_NAME=MyCassandraCluster
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    ports:
+      - 7000:7000
+      - 9042:9042
+    networks:
+      - temporal-network
+
+  datastax_studio:
+    image: datastax/dse-studio:latest
+    container_name: datastax_studio
+    depends_on:
+      - cassandra
+    ports:
+      - 9091:9091
+    environment:
+      - DS_LICENSE=accept
+    networks:
+      - temporal-network
+
   elasticsearch:
     container_name: temporal-elasticsearch
     environment:
