@@ -84,17 +84,17 @@ services:
     networks:
       - temporal-network
 
-  datastax_studio:
-    image: datastax/dse-studio:latest
-    container_name: datastax_studio
-    depends_on:
-      - cassandra
-    ports:
-      - 9091:9091
-    environment:
-      - DS_LICENSE=accept
-    networks:
-      - temporal-network
+  # datastax_studio:
+  #   image: datastax/dse-studio:latest
+  #   container_name: datastax_studio
+  #   depends_on:
+  #     - cassandra
+  #   ports:
+  #     - 9091:9091
+  #   environment:
+  #     - DS_LICENSE=accept
+  #   networks:
+  #     - temporal-network
 
   elasticsearch:
     container_name: temporal-elasticsearch

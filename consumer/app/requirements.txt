@@ -5,3 +5,5 @@ uvicorn
 confluent_kafka
 asyncio
 cassandra-driver
+pyyaml
+uuid

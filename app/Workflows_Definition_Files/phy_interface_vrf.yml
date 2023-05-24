@@ -23,12 +23,12 @@ steps:
   - name: Fetch_order_configs
     file: Fetch_order_configs.yml
 
-  - name: clean_up_vrf_config
-    file: clean_up_vrf_config.yml
+  # - name: clean_up_vrf_config
+  #   file: clean_up_vrf_config.yml
 
-  - name: netconf_vrf_steps
-    file: netconf_vrf_steps.yml
-    type: workflow
+  # - name: netconf_vrf_steps
+  #   file: netconf_vrf_steps.yml
+  #   type: workflow
 {% if log_forwarder_present %}
   - name: fetch_routing_instances_after_adding
     file: fetch_routing_instances_after_adding.yml

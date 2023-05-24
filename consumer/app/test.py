@@ -1,45 +1,35 @@
-# from cassandra.cluster import Cluster
-
-# cluster = Cluster(['0.0.0.0'], port=9042)
-# session = cluster.connect()
-# # session.execute("CREATE KEYSPACE IF NOT EXISTS test WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };")  
-# # session.execute("""CREATE TABLE IF NOT EXISTS test.test (id int PRIMARY KEY, name text);""")
-
-# # prepared_statement = session.prepare("INSERT INTO test.test (id, name) VALUES (?,?);")
-# # for i in range(11,20):
-# #     session.execute(prepared_statement, (i, 'test' + str(i)))
-
-# rows = session.execute("SELECT * FROM test.test;")
-# # for row in rows:
-# print(len(rows.current_rows))
-
-
+from asyncio import sleep
 from CassandraConnection import CassandraConnection
 from NotificationDao import NotificationDao
 from NotificationModel import NotificationModel
+import uuid
+from datetime import datetime
 
-def main():
-    cassandra_nodes = ['0.0.0.0']
-    connection = CassandraConnection(cassandra_nodes)
+notificationId = uuid.UUID("510c6551-aea5-4763-9ff0-1730d9fd6713")
+
+async def main():
+    connection = CassandraConnection()
     session = connection.get_session()
-
     notification_dao = NotificationDao(session)
 
     # Use the DAO
     # Adding a notification
     new_notification = NotificationModel(
+        correlationId=notificationId,
         workflow="workflow1", 
-        status="status1", 
+        status="in-progress", 
         step="step1", 
         milestoneName="milestoneName1", 
         milestoneStepName="milestoneStepName1", 
-        startTime="startTime1", 
-        endTime="endTime1"
+        startTime=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
+        endTime=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     )
-    notification_dao.add_notification(new_notification)
+    notification_dao.add_or_update_notification(new_notification)    
+    
+    await sleep(2)
 
     # Getting a notification
-    notification = notification_dao.get_notification("workflow1", "step1", "milestoneName1")
+    notification = notification_dao.get_notification(new_notification)
     print(notification.toJSON())
 
     # Getting all notifications
@@ -49,21 +39,32 @@ def main():
 
     # Updating a notification
     updated_notification = NotificationModel(
+        correlationId=notificationId,
         workflow="workflow1", 
-        status="updated_status", 
+        status="completed", 
         step="step1", 
         milestoneName="milestoneName1", 
         milestoneStepName="updated_milestoneStepName", 
-        startTime="updated_startTime", 
-        endTime="updated_endTime"
+        startTime=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
+        endTime=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     )
     notification_dao.update_notification(updated_notification)
 
+    # Getting all notifications
+    notifications = notification_dao.get_all_notifications()
+    for notification in notifications:
+        print(notification.toJSON())
+
     # Deleting a notification
-    notification_dao.delete_notification("workflow1", "step1", "milestoneName1")
+    # notification_dao.delete_notification(updated_notification)
 
     # Closing connection
     connection.close()
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+
+    async def run_main():
+        await main()
+
+    asyncio.run(run_main())

@@ -1,7 +1,7 @@
 name: Fetch_order_configs
 configType: REST
 request:
-  url: http://localhost:8000/config/VNS_2358258
+  url: http://localhost:8000/config/{{correlationId}}
   method: GET
   headers:
     Accept: application/json

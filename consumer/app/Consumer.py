@@ -1,8 +1,13 @@
 from confluent_kafka import Consumer, KafkaException
 import threading
 import os
+from NotificationModel import NotificationModel
 from config import logger as log
 from config import is_running_in_docker
+import json
+from CassandraConnection import CassandraConnection
+from NotificationDao import NotificationDao
+from typing import Dict
 
 # docker exec -it kafka bash
 # kafka-console-consumer --bootstrap-server kafka:9092 --topic test --from-beginning
@@ -43,6 +48,16 @@ class KafkaConsumerSingleton(object):
                 self._instance = Consumer(kafka_config)
         except Exception as e:
             log.error(f"KafkaConsumerSingleton.__init__(): {e}")
+    
+    def add_or_update_notification(self, message: Dict):
+        log.info(f"notification_dict: {message}")
+        notification = NotificationModel(**message)
+        log.info(f"notification: {notification}")
+        log.info(f"KafkaConsumerSingleton.add_or_update_notification({notification})")
+        connection = CassandraConnection()
+        session = connection.get_session()
+        notification_dao = NotificationDao(session)
+        notification_dao.add_or_update_notification(notification)
 
     def start_consuming(self, topic):
         log.info(f"KafkaConsumerSingleton.start_consuming({topic})")
@@ -58,10 +73,10 @@ class KafkaConsumerSingleton(object):
                     raise KafkaException(msg.error())
                 else:
                     # Here you can do whatever you want with the messages.
-                    log.debug(f"Received message with key {msg.key()} and value {msg.value()}")
+                    log.debug(f"Received message with key {msg.key()} and value {msg.value().decode('utf-8')}")
+                    notification_dict = json.loads(msg.value().decode('utf-8'))
+                    self.add_or_update_notification(notification_dict)
+                    
 
         self.thread = threading.Thread(target=_consume)
         self.thread.start()
-
-# kafka_consumer = KafkaConsumerSingleton.getInstance()
-# kafka_consumer.start_consuming('test')

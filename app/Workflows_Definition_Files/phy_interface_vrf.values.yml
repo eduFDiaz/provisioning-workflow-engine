@@ -1,6 +1,3 @@
 name: phy_interface_vrf
 log_forwarder_present: false
-interfaces:
-  - 'GigabitEthernet1'
-  - 'GigabitEthernet2'
-  - 'GigabitEthernet3'
+correlationId: 0c32b683-683a-4de4-a7f3-44318a14acbc

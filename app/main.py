@@ -64,11 +64,11 @@ async def execute_workflow() -> HTMLResponse:
         return HTMLResponse(content=f"Error: {e}", status_code=500)
     
 
-def getConfig(orderId: str):
-    log.info(f"getConfig {orderId}")
+def getConfig(correlationId: str):
+    log.info(f"getConfig {correlationId}")
     try:
         configs = {}
-        configs["VNS_2358258"] ={
+        configs["0c32b683-683a-4de4-a7f3-44318a14acbc"] ={
             "vrf": [
                 {
                     "name": "VRF_Capgemini",
@@ -113,7 +113,7 @@ def getConfig(orderId: str):
                 }
             ],
         }
-        return configs[orderId]
+        return configs[correlationId]
     except Exception as e:
         log.error(f"Error: {e}")
         return f"Error: {e}"
@@ -124,13 +124,13 @@ def authorize(security: HTTPBasicCredentials = Depends(security)):
             return True
     return False
 
-@app.get("/config/{orderId}",
-        summary="this API will return the config for the given orderId",
-        description="this API will return the config for the given orderId"
+@app.get("/config/{correlationId}",
+        summary="this API will return the config for the given correlationId",
+        description="this API will return the config for the given correlationId"
         ,dependencies=[Depends(authorize)])
-async def get_config(orderId: str) -> JSONResponse:
+async def get_config(correlationId: str) -> JSONResponse:
     try:
-        config = getConfig(orderId)
+        config = getConfig(correlationId)
         return JSONResponse(content=config, status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")
