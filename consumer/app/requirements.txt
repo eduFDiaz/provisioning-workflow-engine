@@ -7,3 +7,4 @@ asyncio
 cassandra-driver
 pyyaml
 uuid
+requests

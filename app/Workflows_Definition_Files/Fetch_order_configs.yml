@@ -1,4 +1,6 @@
 name: Fetch_order_configs
+milestoneStepName: Fetch the order configs milestoneStepName
+milestoneName: phy interface vrf activation milestoneName
 configType: REST
 request:
   url: http://localhost:8000/config/{{correlationId}}

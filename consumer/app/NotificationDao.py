@@ -1,5 +1,7 @@
 from cassandra.query import SimpleStatement
-from NotificationModel import NotificationModel
+from Models.NotificationModel import NotificationModel
+from config import logger as log
+import uuid
 
 class NotificationDao:
     def __init__(self, session):
@@ -7,20 +9,35 @@ class NotificationDao:
 
     def get_notification(self, notification):
         """ This method returns a notification for a given workflow, step, milestoneName and correlationId. """
+        log.info(f"NotificationDao.get_notification({notification})")
         stmt = SimpleStatement("""
             SELECT * 
             FROM workflows.Notifications 
             WHERE "workflow"=%s AND "step"=%s AND "milestoneName"=%s AND "correlationId"=%s
         """, fetch_size=10)
-        notification = self.session.execute(stmt, 
+        notificationRes = self.session.execute(stmt, 
         [
         notification.workflow, 
         notification.step, 
         notification.milestoneName,
         notification.correlationId
         ])
-        notification = notification[0]._asdict()
-        print(notification)
+        # if the notification does not exist, return a notification with uuid 00000000-0000-0000-0000-000000000000
+        # and status NOT_FOUND so calling methods can handle the case where the notification does not exist
+        if len(notificationRes.current_rows) == 0:
+            return NotificationModel(
+                correlationId=uuid.UUID("00000000-0000-0000-0000-000000000000"),
+                workflow=notification.workflow,
+                step=notification.step,
+                milestoneName=notification.milestoneName,
+                status="NOT_FOUND",
+                milestoneStepName="",
+                startTime="",
+                endTime=""
+            )
+        log.info(f"notification result {notificationRes.current_rows}")
+        notification = notificationRes[0]._asdict()
+        log.info(f"notification from get_notification - {notification}")
         return NotificationModel(**notification)
     
     def get_notifications_by_correlationId(self, correlationId):

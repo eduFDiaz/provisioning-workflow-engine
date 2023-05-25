@@ -1,7 +1,7 @@
 from confluent_kafka import Consumer, KafkaException
 import threading
 import os
-from NotificationModel import NotificationModel
+from Models.NotificationModel import NotificationModel
 from config import logger as log
 from config import is_running_in_docker
 import json

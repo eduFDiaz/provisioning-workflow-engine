@@ -7,7 +7,6 @@ temporalio
 pytest
 pytest-asyncio
 jinja2
-pyyaml
 cmake
 gqlalchemy
 paramiko
@@ -28,3 +27,7 @@ grpcio-tools
 concurrent-log-handler
 aiokafka
 confluent_kafka
+asyncio
+cassandra-driver
+pyyaml
+uuid

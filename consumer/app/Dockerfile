@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 4040
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "4040", "--workers", "1"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "4040", "--workers", "2"]

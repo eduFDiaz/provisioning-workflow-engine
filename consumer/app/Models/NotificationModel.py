@@ -4,7 +4,7 @@ import json
 import uuid
 from typing import Literal
 
-with open('models_metadata.yaml', 'r') as f:
+with open('Models/models_metadata.yaml', 'r') as f:
     models_metadata = yaml.safe_load(f)
     print(models_metadata)
     status_enum_values = tuple(models_metadata['NotificationModel']['properties']['status'])
