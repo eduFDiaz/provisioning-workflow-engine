@@ -8,3 +8,4 @@ cassandra-driver
 pyyaml
 uuid
 requests
+websockets

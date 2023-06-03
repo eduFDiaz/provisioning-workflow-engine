@@ -4,4 +4,4 @@ NotificationModel:
       - completed
       - failed
       - in-progress
-      - NOT_FOUND
+      - not-started

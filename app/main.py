@@ -1,7 +1,7 @@
 # main.py
 import asyncio
 
-from Services.Workflows.WorkflowService import invoke_steps
+from Services.Workflows.WorkflowService import invoke_steps, get_steps_configs
 from Models.NotificationModel import NotificationModel
 
 from config import logger as log
@@ -10,6 +10,7 @@ import config
 
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from Clients.KafkaProducer import get_kafka_producer
@@ -26,6 +27,13 @@ users_db = {
 }
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 security = HTTPBasic()
 
 
@@ -55,10 +63,25 @@ async def shutdown():
 @app.post("/execute_workflow/",
          summary="this API will execute a temporal workflow from a YAML file", 
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
-async def execute_workflow() -> HTMLResponse:
+async def execute_workflow(flowFileName: str) -> HTMLResponse:
     try:
-        res = (await invoke_steps("phy_interface_vrf.yml"))
+        res = (await invoke_steps(flowFileName))
         return HTMLResponse(content=f"Workflow executed successfully {res}", status_code=200)
+    except Exception as e:
+        log.error(f"Error: {e}")
+        return HTMLResponse(content=f"Error: {e}", status_code=500)
+
+@app.get("/fetch_flow_steps/",
+         summary="this API will fetch workflow steps including child workflows from a YAML file", 
+         description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
+async def fetch_steps(workflowFileName: str, correlationId: str):   
+    try:
+        # workflowFileName = "phy_interface_vrf.yml"
+        res, err = (await get_steps_configs(workflowFileName, correlationId))
+        if err:
+            return JSONResponse(content=err, status_code=500)
+        else:
+            return JSONResponse(content=res, status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")
         return HTMLResponse(content=f"Error: {e}", status_code=500)

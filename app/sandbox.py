@@ -23,7 +23,7 @@ from temporal_worker import start_temporal_worker
 
 import config
 
-from Services.Workflows.WorkflowService import invoke_steps
+from Services.Workflows.WorkflowService import invoke_steps, get_steps_configs
 from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
 from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
 
@@ -407,4 +407,6 @@ if __name__ == "__main__":
     print("Running sandbox.py")
     loop = asyncio.get_event_loop()
     loop.run_until_complete(startup())
-    loop.run_until_complete(invoke_steps("phy_interface_vrf.yml"))
+    # loop.run_until_complete(invoke_steps("phy_interface_vrf.yml"))
+    # loop.run_until_complete(invoke_steps("master_flow.yml"))
+    loop.run_until_complete(get_steps_configs("master_flow.yml","0c32b683-683a-4de4-a7f3-44318a14acbc"))

@@ -1,0 +1,19 @@
+name: master_flow
+metadata:
+    retry_policy:
+      init_interval: 1
+      backoff_coefficient: 2
+      max_interval: 100
+      max_attempts: 10
+    version: 1.0
+dependencies:
+  - name: cpe_discovery
+    version: 1.2.3
+steps:
+  - name: phy_interface_vrf
+    file: phy_interface_vrf.yml
+    type: workflow
+
+  - name: netconf_vrf_steps
+    file: netconf_vrf_steps.yml
+    type: workflow

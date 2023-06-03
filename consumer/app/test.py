@@ -15,31 +15,31 @@ async def main():
     session = connection.get_session()
     notification_dao = NotificationDao(session)
 
-    jsonRes = {
-    "correlationId": "00000000-0000-0000-0000-000000000000",
-    "workflow": "phy_interface_vrf",
-    "status": "NOT_FOUND",
-    "step": "Fetch_order_configs",
-    "milestoneName": "phy_interface_vrf",
-    "milestoneStepName": "",
-    "startTime": "",
-    "endTime": ""
-    }
+    # jsonRes = {
+    # "correlationId": "00000000-0000-0000-0000-000000000000",
+    # "workflow": "phy_interface_vrf",
+    # "status": "not-started",
+    # "step": "Fetch_order_configs",
+    # "milestoneName": "phy_interface_vrf",
+    # "milestoneStepName": "",
+    # "startTime": "",
+    # "endTime": ""
+    # }
 
-    # Use the DAO
-    # Adding a notification
-    new_notification = NotificationModel(**json.loads(json.dumps(jsonRes)))
-    # notification_dao.add_or_update_notification(new_notification)    
-    print(f"test get_notification {new_notification.toJSON()}")
-    # await sleep(2)
+    # # Use the DAO
+    # # Adding a notification
+    # new_notification = NotificationModel(**json.loads(json.dumps(jsonRes)))
+    # # notification_dao.add_or_update_notification(new_notification)    
+    # print(f"test get_notification {new_notification.toJSON()}")
+    # # await sleep(2)
 
-    assert(jsonRes == json.loads(new_notification.toJSON()))
+    # assert(jsonRes == json.loads(new_notification.toJSON()))
 
-    # get this notification from the Consumer (Notification service)
-    response = requests.post('http://localhost:4040/notification/', json=json.loads(new_notification.toJSON()), verify=False)
+    # # get this notification from the Consumer (Notification service)
+    # response = requests.post('http://localhost:4040/notification/', json=json.loads(new_notification.toJSON()), verify=False)
         
-    log.debug(f"sendNotifications response {response.status_code}")
-    log.debug(f"sendNotifications response {response.content}")
+    # log.debug(f"sendNotifications response {response.status_code}")
+    # log.debug(f"sendNotifications response {response.content}")
     # log.debug(f"sendNotifications response unpacked {json.loads(json.dumps(response.json()))}")
     # notification = NotificationModel(**json.loads(json.dumps(response.json())))
 
@@ -69,6 +69,10 @@ async def main():
     # notifications = notification_dao.get_all_notifications()
     # for notification in notifications:
     #     print(notification.toJSON())
+
+    notificationsbyCorrelationId = notification_dao.get_notifications_by_correlationId(notificationId)
+    for notification in notificationsbyCorrelationId:
+        print(notification.toJSON())
 
     # Deleting a notification
     # notification_dao.delete_notification(updated_notification)

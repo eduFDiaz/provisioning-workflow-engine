@@ -23,14 +23,14 @@ class NotificationDao:
         notification.correlationId
         ])
         # if the notification does not exist, return a notification with uuid 00000000-0000-0000-0000-000000000000
-        # and status NOT_FOUND so calling methods can handle the case where the notification does not exist
+        # and status not-started so calling methods can handle the case where the notification does not exist
         if len(notificationRes.current_rows) == 0:
             return NotificationModel(
                 correlationId=uuid.UUID("00000000-0000-0000-0000-000000000000"),
                 workflow=notification.workflow,
                 step=notification.step,
                 milestoneName=notification.milestoneName,
-                status="NOT_FOUND",
+                status="not-started",
                 milestoneStepName="",
                 startTime="",
                 endTime=""
@@ -48,6 +48,8 @@ class NotificationDao:
             WHERE "correlationId"=%s
         """, fetch_size=10)
         notifications = self.session.execute(stmt, [correlationId])
+        #sort notifications by startTime
+        notifications = sorted(notifications, key=lambda notification: notification.startTime)
         return [NotificationModel(**notification._asdict()) for notification in notifications]
 
     def get_all_notifications(self):

@@ -9,6 +9,7 @@ else:
 
 class CassandraConnection:
     def __init__(self):
+        log.info("CASSANDRA_URL: " + str(CASSANDRA_URL))
         self.cluster = Cluster(CASSANDRA_URL, port=9042)
         self.session = self.cluster.connect()
         self.session.execute("CREATE KEYSPACE IF NOT EXISTS workflows WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };")
