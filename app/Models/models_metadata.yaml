@@ -1,0 +1,7 @@
+NotificationModel:
+  properties:
+    status:
+      - completed
+      - failed
+      - in-progress
+      - not-started

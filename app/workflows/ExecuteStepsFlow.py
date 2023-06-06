@@ -6,8 +6,7 @@ with workflow.unsafe.imports_passed_through():
     from datetime import timedelta    
     from typing import Dict
     from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
-    
-
+        
 
 @workflow.defn
 class ExecuteRestTask:

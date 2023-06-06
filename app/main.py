@@ -1,17 +1,19 @@
 # main.py
 import asyncio
 
-from Services.Workflows.WorkflowService import invoke_steps
-from fastapi import FastAPI
+from Services.Workflows.WorkflowService import invoke_steps, get_steps_configs
+from Models.NotificationModel import NotificationModel
 
 from config import logger as log
 
 import config
 
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
+from Clients.KafkaProducer import get_kafka_producer
 
 from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
 from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
@@ -25,12 +27,21 @@ users_db = {
 }
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 security = HTTPBasic()
+
+
 
 @app.on_event("startup")
 async def startup():
     log.info("Waiting for Temporal Worker to start up...")
-    await asyncio.sleep(20)
+    await asyncio.sleep(30)
     await start_temporal_worker(config.temporal_url,
                                 config.temporal_namespace,
                                 config.temporal_queue_name, 
@@ -42,6 +53,7 @@ async def startup():
                                  exec_cli_step,
                                  exec_netconf_step,
                                  exec_grpc_step])
+    app.kafka_producer = (await get_kafka_producer())
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -51,20 +63,35 @@ async def shutdown():
 @app.post("/execute_workflow/",
          summary="this API will execute a temporal workflow from a YAML file", 
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
-async def execute_workflow() -> HTMLResponse:
+async def execute_workflow(flowFileName: str) -> HTMLResponse:
     try:
-        res = (await invoke_steps("phy_interface_vrf.yml"))
+        res = (await invoke_steps(flowFileName))
         return HTMLResponse(content=f"Workflow executed successfully {res}", status_code=200)
+    except Exception as e:
+        log.error(f"Error: {e}")
+        return HTMLResponse(content=f"Error: {e}", status_code=500)
+
+@app.get("/fetch_flow_steps/",
+         summary="this API will fetch workflow steps including child workflows from a YAML file", 
+         description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
+async def fetch_steps(workflowFileName: str, correlationId: str):   
+    try:
+        # workflowFileName = "phy_interface_vrf.yml"
+        res, err = (await get_steps_configs(workflowFileName, correlationId))
+        if err:
+            return JSONResponse(content=err, status_code=500)
+        else:
+            return JSONResponse(content=res, status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")
         return HTMLResponse(content=f"Error: {e}", status_code=500)
     
 
-def getConfig(orderId: str):
-    log.info(f"getConfig {orderId}")
+def getConfig(correlationId: str):
+    log.info(f"getConfig {correlationId}")
     try:
         configs = {}
-        configs["VNS_2358258"] ={
+        configs["0c32b683-683a-4de4-a7f3-44318a14acbc"] ={
             "vrf": [
                 {
                     "name": "VRF_Capgemini",
@@ -109,7 +136,7 @@ def getConfig(orderId: str):
                 }
             ],
         }
-        return configs[orderId]
+        return configs[correlationId]
     except Exception as e:
         log.error(f"Error: {e}")
         return f"Error: {e}"
@@ -120,14 +147,24 @@ def authorize(security: HTTPBasicCredentials = Depends(security)):
             return True
     return False
 
-@app.get("/config/{orderId}",
-        summary="this API will return the config for the given orderId",
-        description="this API will return the config for the given orderId"
+@app.get("/config/{correlationId}",
+        summary="this API will return the config for the given correlationId",
+        description="this API will return the config for the given correlationId"
         ,dependencies=[Depends(authorize)])
-async def get_config(orderId: str) -> JSONResponse:
+async def get_config(correlationId: str) -> JSONResponse:
     try:
-        config = getConfig(orderId)
+        config = getConfig(correlationId)
         return JSONResponse(content=config, status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")
         return JSONResponse(content=f"Error: {e}", status_code=500)
+
+@app.post("/kafka/",
+         summary="this API will send a message to Kafka", 
+         description="The payload will be sent to Kafka")
+async def kafka_endpoint(payload: NotificationModel) -> JSONResponse:
+    # Send payload to kafka using test topic
+    log.info(f"Sending payload to Kafka: {payload.toJSON()}")
+    app.kafka_producer.produce('test', payload.toJSON())
+    app.kafka_producer.flush()
+    return {"message": f"Message sent to Kafka {payload.toJSON()}"}

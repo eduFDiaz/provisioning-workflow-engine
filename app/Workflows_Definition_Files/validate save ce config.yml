@@ -1,6 +1,7 @@
-name: show_config
+name: Validate and Save CE Config
 hostname: sandbox-iosxe-latest-1.cisco.com
 configType: CLI
+description: validate device configuration and save
 config: |
   terminal length 0
   show running

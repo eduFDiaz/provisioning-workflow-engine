@@ -1,11 +1,12 @@
-name: add_vrf
+name: Config Customer VRF
 hostname: sandbox-iosxe-latest-1.cisco.com
+description: apply customer vrf config to the device
 configType: CLI
 config: |
   terminal length 0
   enable
   config t
-  ip prefix-list Capgemini-DC1-Management seq 10 permit 192.168.187.0/28
+  ip prefix-list Capgemini-DC1-Management seq 10 permit {{cust_subnet}}
   route-map Capgemini-VRF-IMPORT permit 10
   match ip address prefix-list Capgemini-DC1-Management
   exit

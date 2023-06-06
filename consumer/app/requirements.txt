@@ -1,0 +1,11 @@
+kafka-python
+aiokafka
+fastapi
+uvicorn
+confluent_kafka
+asyncio
+cassandra-driver
+pyyaml
+uuid
+requests
+websockets

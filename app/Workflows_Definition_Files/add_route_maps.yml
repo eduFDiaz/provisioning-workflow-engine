@@ -1,5 +1,6 @@
 name: add_route_maps
 hostname: sandbox-iosxe-latest-1.cisco.com
+description: adding route maps configs to the device
 port: 830
 configType: NETCONF
 request:

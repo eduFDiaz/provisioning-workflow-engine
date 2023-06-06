@@ -1,15 +1,14 @@
-name: Fetch_order_configs
+name: Fetch PE Config
+description: fetch configuration for PE device
 configType: REST
 request:
-  url: http://localhost:8000/config/VNS_2358258
+  url: http://localhost:8000/config/{{correlationId}}
   method: GET
   headers:
     Accept: application/json
     Content-Type: application/json
 response:
   status_code: 200
-  # json:
-  #   $..interface[?(@.description =~ ".*MANAGEMENT.*")].name: interfaceName
   variables:
     vrf: json.$.vrf
     route_map: json.$.route-map

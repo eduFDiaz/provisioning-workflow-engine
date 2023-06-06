@@ -1,0 +1,175 @@
+<div *ngIf="workflowsArray.length > 0; else loadingTemplate" class="container">
+  <div class="header">
+    <h3 class="title">Workflow: {{workflowFileName}}</h3>
+    <button (click)="startWorkflow()" class="btn btn-sm">Start flow</button>
+  </div>
+  <div class="flex-container">
+    <ul class="clr-timeline clr-timeline-vertical">
+      <li class="clr-timeline-step clr-first">
+        <cds-icon *ngIf="startTowerStatus ==='not-started'" role="img" shape="circle" aria-label="Not started"></cds-icon>
+        <clr-spinner *ngIf="startTowerStatus === 'in-progress'" clrMedium aria-label="In progress">Fetching data</clr-spinner>
+        <cds-icon *ngIf="startTowerStatus === 'completed'" role="img" shape="success-standard" aria-label="Completed"></cds-icon>
+        <cds-icon *ngIf="startTowerStatus === 'failed'" role="img" shape="error-standard" aria-label="Error"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title" #stepTitle>Start</span>
+        </div>
+      </li>
+    </ul>
+    <ul class="clr-timeline clr-timeline-vertical" *ngFor="let flow of workflowsArray" style="width: 1rem;">
+        <app-milestone [workflow]="flow" (retryFlowEvent)="retryFlow($event)"></app-milestone>
+    </ul>
+    <ul class="clr-timeline clr-timeline-vertical">
+      <li class="clr-timeline-step">
+        <cds-icon *ngIf="CompleteTowerStatus ==='not-started'" role="img" shape="circle" aria-label="Not started"></cds-icon>
+        <cds-icon *ngIf="CompleteTowerStatus === 'completed'" role="img" shape="success-standard" aria-label="Completed"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title" #stepTitle>Complete</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- uncomment to debug -->
+  <!-- <ul class="clr-timeline-step" *ngFor="let flow of workflowsArray">
+    flow: {{ flow.workflowName }}, milestones: {{ flow.milestones}}, status: {{flow. status}}<br>
+  </ul> -->
+
+  <!-- sample
+  <h4>Vertical timeline</h4>
+
+  <div class="flex-container">
+    <ul class="clr-timeline clr-timeline-vertical" style="width: 1rem;">
+      <li class="clr-timeline-step">
+        <cds-icon role="img" shape="circle" aria-label="Not started"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title" #stepTitle>Start</span>
+        </div>
+      </li>
+    </ul>
+    <ul class="clr-timeline clr-timeline-vertical" style="width: 10vh;">
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header"></div>
+        <cds-icon role="img" shape="circle" aria-label="Not started"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title" #stepTitle>Add KMS</span>
+        </div>
+      </li>
+      <li class="clr-timeline-step">
+        <span class="clr-timeline-step-header">11:59 am</span>
+        <clr-spinner clrMedium aria-label="In progress">Fetching data</clr-spinner>
+          <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title">Make vCenter trust KMS</span>
+          <span class="clr-timeline-step-description">
+            Root CA certificate requested. Upload it to the KMS to complete the connection. Third sentence is very long
+            and very long.
+          </span>
+        </div>
+      </li>
+    </ul>
+    <ul class="clr-timeline clr-timeline-vertical" style="width: 10vh;">
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header"></div>
+        <cds-icon role="img" shape="circle" aria-label="Not started"></cds-icon>
+        <div class="clr-timeline-step-body" >
+          <span class="clr-timeline-step-title" #stepTitle>Add KMS Add KMS dsdfsdf</span>
+        </div>
+      </li>
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header"></div>
+        <cds-icon role="img" shape="error-standard" aria-label="Error"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title">Connected</span>
+          <span class="clr-timeline-step-description">No. It's not connected.</span>
+        </div>
+      </li>
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header">11:59 am</div>
+        <cds-icon role="img" shape="success-standard" aria-label="Completed"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title">Make KMS trust vCenter</span>
+          <span class="clr-timeline-step-description">Upload it to the KMS to complete the connection. Third
+            sentence.
+            <button class="btn btn-sm">Refresh</button>
+          </span>
+        </div>
+      </li>
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header"></div>
+        <cds-icon role="img" shape="error-standard" aria-label="Error"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title">Connected</span>
+          <span class="clr-timeline-step-description">No. It's not connected.</span>
+        </div>
+      </li>
+    </ul>
+    <ul class="clr-timeline clr-timeline-vertical" style="width: 10vh;">
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header"></div>
+        <cds-icon role="img" shape="circle" aria-label="Not started"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title" #stepTitle>Add KMS Add KMSAdd KMSAdd KMS</span>
+        </div>
+      </li>
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header">11:59 am</div>
+        <cds-icon role="img" shape="success-standard" aria-label="Completed"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title">Make KMS trust vCenter</span>
+          <span class="clr-timeline-step-description">Upload it to the KMS to complete the connection. Third
+            sentence.
+            <button class="btn btn-sm">Refresh</button>
+          </span>
+        </div>
+      </li>
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header"></div>
+        <cds-icon role="img" shape="error-standard" aria-label="Error"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title">Connected</span>
+          <span class="clr-timeline-step-description">No. It's not connected.</span>
+        </div>
+      </li>
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header">11:59 am</div>
+        <cds-icon role="img" shape="success-standard" aria-label="Completed"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title">Make KMS trust vCenter</span>
+          <span class="clr-timeline-step-description">Upload it to the KMS to complete the connection. Third
+            sentence.
+            <button class="btn btn-sm">Refresh</button>
+          </span>
+        </div>
+      </li>
+      <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header"></div>
+        <cds-icon role="img" shape="error-standard" aria-label="Error"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title">Connected</span>
+          <span class="clr-timeline-step-description">No. It's not connected.</span>
+        </div>
+      </li>
+    </ul>
+    <ul class="clr-timeline clr-timeline-vertical" style="width: 10vh;">
+      <li class="clr-timeline-step">
+        <cds-icon role="img" shape="circle" aria-label="Not started"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title"  #stepTitle>Complete</span>
+        </div>
+      </li>
+    </ul>
+  </div> -->
+
+
+
+</div>
+
+<ng-template #loadingTemplate>
+  <div class="container">
+    <div class="header">
+      <h3 class="title">Workflow: <clr-spinner clrMedium aria-label="In progress">Fetching data</clr-spinner></h3>
+    </div>
+  </div>
+</ng-template>
+
+
+ 

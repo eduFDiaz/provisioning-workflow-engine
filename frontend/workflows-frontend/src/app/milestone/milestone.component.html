@@ -1,0 +1,41 @@
+<!-- <div *ngIf="workflow?.milestones?.length !== 0; else loading"> -->
+  <li class="clr-timeline-step">
+        <!-- <div class="clr-timeline-step-header"></div>
+        <div class="clr-timeline-step-header"></div> -->
+        <cds-icon *ngIf="workflow?.status=='not-started' || workflow?.status==''" role="img" shape="circle" aria-label="Not started"></cds-icon>
+        <clr-spinner *ngIf="workflow?.status=='in-progress'" clrMedium aria-label="In progress">Fetching data</clr-spinner>
+        <cds-icon *ngIf="workflow?.status=='completed'" role="img" shape="success-standard" aria-label="Completed"></cds-icon>
+        <cds-icon *ngIf="workflow?.status === 'failed'" role="img" shape="error-standard" aria-label="Error"></cds-icon>
+        <div class="clr-timeline-step-body">
+          <span class="clr-timeline-step-title" #stepTitle>{{workflow?.workflowName}}</span>
+        </div>
+  </li>
+  <li *ngFor="let ms of workflow?.milestones" class="clr-timeline-step"> 
+      <!-- <div class="clr-timeline-step-header"></div>
+      <div class="clr-timeline-step-header"></div> -->
+      <cds-icon *ngIf="ms.status ==='not-started'" role="img" shape="circle" aria-label="Not started"></cds-icon>
+      <clr-spinner *ngIf="ms.status === 'in-progress'" clrMedium aria-label="In progress">Fetching data</clr-spinner>
+      <cds-icon *ngIf="ms.status === 'completed'" role="img" shape="success-standard" aria-label="Completed"></cds-icon>
+      <cds-icon *ngIf="ms.status === 'failed'" role="img" shape="error-standard" aria-label="Error"></cds-icon>
+      <div class="clr-timeline-step-body">
+        <span class="clr-timeline-step-title">{{ ms.step }}</span>
+        <span class="clr-timeline-step-description">{{ ms.startTime }}</span>
+        <span class="clr-timeline-step-description">{{ ms.endTime }}</span>
+        <span class="clr-timeline-step-description">
+          {{ ms.description }}
+          <button *ngIf="ms.status === 'failed'" class="btn btn-sm" (click)="retryFlow()">Retry</button>
+        </span>
+      </div>
+  </li>
+<!-- </div> -->
+
+<ng-template #loading>
+  <div class="container">
+    <div class="header">
+      <h3 class="title">Workflow: <clr-spinner clrMedium aria-label="In progress">Fetching data</clr-spinner></h3>
+    </div>
+  </div>
+</ng-template>
+
+<!-- uncomment to debug -->
+<!-- {{workflow?.status}} -->

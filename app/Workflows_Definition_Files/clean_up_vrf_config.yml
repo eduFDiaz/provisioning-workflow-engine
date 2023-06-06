@@ -1,5 +1,6 @@
-name: clean_up_vrf_config
+name: Clean up vrf configs
 hostname: sandbox-iosxe-latest-1.cisco.com
+description: deleting vrf configs from the device
 configType: CLI
 config: |
   terminal length 0

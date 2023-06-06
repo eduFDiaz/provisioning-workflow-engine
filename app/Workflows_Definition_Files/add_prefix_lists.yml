@@ -1,5 +1,6 @@
 name: add_prefix_lists
 hostname: sandbox-iosxe-latest-1.cisco.com
+description: adding prefix lists configs to the device
 port: 830
 configType: NETCONF
 request:

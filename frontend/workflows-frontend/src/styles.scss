@@ -1,0 +1,38 @@
+/* You can add global styles to this file, and also import other style files */
+.clr-timeline {
+    flex-basis: 1;
+}
+
+.clr-timeline.clr-timeline-vertical:last-child {
+    flex-direction: column;
+    min-width: auto !important;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    // gap: 1rem;
+    margin-top: 1rem;
+    // width: 100%;
+}
+
+.flex-container ul:last-of-type {
+    width: 8.75rem !important;
+}
+
+.clr-timeline-step:nth-child(1):before {
+    position: absolute;
+    top: 0.85rem;
+    left: calc(1.7rem);
+    content: "";
+    background: #b3b3b3;
+    background: var(--clr-timeline-line-color, hsl(198, 0%, 70%));
+    height: .1rem;
+    width: calc(100% - 1.0rem);
+    background-color: #b3b3b3;
+  }
+
+  .flex-container ul:last-of-type li:before {
+    width: 0px !important;
+  }
