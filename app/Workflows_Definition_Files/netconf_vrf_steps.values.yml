@@ -1,6 +1,0 @@
-name: netconf_vrf_values
-log_forwarder_present: false
-interfaces:
-  - 'GigabitEthernet1'
-  - 'GigabitEthernet2'
-  - 'GigabitEthernet3'

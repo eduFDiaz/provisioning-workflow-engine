@@ -22,37 +22,4 @@
       padding-bottom: 15px;
     }
   }
-
-  .flex-container {
-    display: flex;
-    flex-direction: row;
-    // justify-content: space-between; 
-    gap: 1rem;
-  }
-
-  .horizontal-line {
-      position: absolute;
-      border-top: 2px solid gainsboro; /* Modify color and width as needed */
-      width: 82%; /* This will span the full width of the flex container */
-      top: 61%; /* Adjust this based on the exact position of the line you want */
-      z-index: 2000;
-  }
-
-  .clr-timeline-step:nth-child(1):not(:last-of-type):before {
-    position: absolute;
-    top: 0.85rem;
-    left: calc(3rem + 1.8rem + .55rem);
-    content: "";
-    background: #b3b3b3;
-    background: var(--clr-timeline-line-color, hsl(198, 0%, 70%));
-    height: .1rem;
-    width: calc(100% - .9rem - .1rem);
-  }
-
-  .clr-timeline-step:nth-child(1) .clr-extra {
-    position: absolute;
-    top: -0.85rem;
-    left: calc(3rem + .55rem);
-    overflow: visible;
-  }
 }

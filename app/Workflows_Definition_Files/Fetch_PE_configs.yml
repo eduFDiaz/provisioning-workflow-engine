@@ -1,7 +1,5 @@
-name: Fetch_order_configs
-description: Fetching order configs for wokflow subsequent steps steps
-# milestoneStepName: Fetch the order configs milestoneStepName
-# milestoneName: phy interface vrf activation milestoneName
+name: Fetch PE Config
+description: fetch configuration for PE device
 configType: REST
 request:
   url: http://localhost:8000/config/{{correlationId}}

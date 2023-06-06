@@ -19,7 +19,7 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   milestonesArray: [string, Milestone[]][] = [];
   workflowsArray: Workflow[] = [];
   correlationId = "0c32b683-683a-4de4-a7f3-44318a14acbc";
-  workflowFileName = "master_flow.yml";
+  workflowFileName = "vpn_provisioning.yml";
   messagesSubscription!: Subscription;
   startTowerStatus = "not-started";
   CompleteTowerStatus = "not-started";

@@ -408,5 +408,5 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(startup())
     # loop.run_until_complete(invoke_steps("phy_interface_vrf.yml"))
-    # loop.run_until_complete(invoke_steps("master_flow.yml"))
-    loop.run_until_complete(get_steps_configs("master_flow.yml","0c32b683-683a-4de4-a7f3-44318a14acbc"))
+    # loop.run_until_complete(invoke_steps("vpn_provisioning.yml"))
+    loop.run_until_complete(get_steps_configs("vpn_provisioning.yml","0c32b683-683a-4de4-a7f3-44318a14acbc"))

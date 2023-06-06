@@ -2,9 +2,10 @@
   <li class="clr-timeline-step">
         <!-- <div class="clr-timeline-step-header"></div>
         <div class="clr-timeline-step-header"></div> -->
-        <cds-icon *ngIf="workflow?.status=='not-started'" role="img" shape="circle" aria-label="Not started"></cds-icon>
+        <cds-icon *ngIf="workflow?.status=='not-started' || workflow?.status==''" role="img" shape="circle" aria-label="Not started"></cds-icon>
         <clr-spinner *ngIf="workflow?.status=='in-progress'" clrMedium aria-label="In progress">Fetching data</clr-spinner>
         <cds-icon *ngIf="workflow?.status=='completed'" role="img" shape="success-standard" aria-label="Completed"></cds-icon>
+        <cds-icon *ngIf="workflow?.status === 'failed'" role="img" shape="error-standard" aria-label="Error"></cds-icon>
         <div class="clr-timeline-step-body">
           <span class="clr-timeline-step-title" #stepTitle>{{workflow?.workflowName}}</span>
         </div>
@@ -36,5 +37,5 @@
   </div>
 </ng-template>
 
-
- 
+<!-- uncomment to debug -->
+<!-- {{workflow?.status}} -->

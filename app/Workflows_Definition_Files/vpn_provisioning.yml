@@ -1,4 +1,4 @@
-name: master_flow
+name: VPN Provisioning
 metadata:
     retry_policy:
       init_interval: 1
@@ -7,13 +7,11 @@ metadata:
       max_attempts: 10
     version: 1.0
 dependencies:
-  - name: cpe_discovery
-    version: 1.2.3
 steps:
-  - name: phy_interface_vrf
-    file: phy_interface_vrf.yml
+  - name: PE Configuration
+    file: pe_configuration.yml
     type: workflow
 
-  - name: netconf_vrf_steps
-    file: netconf_vrf_steps.yml
+  - name: CE Configuration
+    file: ce_configuration.yml 
     type: workflow
