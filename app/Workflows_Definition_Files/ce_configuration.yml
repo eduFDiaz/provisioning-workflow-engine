@@ -29,6 +29,5 @@ steps:
   - name: add_route_maps
     file: add_route_maps.yml
 
-  # switch to netconf and add validation
-  # - name: validate save ce config 
-  #   file: validate save ce config.yml
+  - name: validate save ce config 
+    file: validate save ce config.yml

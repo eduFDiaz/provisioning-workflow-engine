@@ -17,3 +17,46 @@ ce:
   netconf_port: 830
   config_server_ip: config_ms
   config_server_port: 8002
+
+vrf-validate:
+  definition:
+    name: VRF_Capgemini
+    rd: 100:110
+    address-family:
+      ipv4:
+        export:
+          map: Capgemini-VRF-EXPORT
+        import:
+          map: Capgemini-VRF-IMPORT
+    route-target:
+      export:
+        asn-ip: 100:1000
+      import:
+        asn-ip: 100:1000
+prefix-lists-validate:
+  prefixes:
+    - name: Capgemini-DC1-Management
+      "no": "10"
+      action: permit
+      ip: 192.168.187.0/28
+    - name: Capgemini-DC2-Management
+      "no": "20"
+      action: permit
+      ip: 192.168.187.0/28
+route-map-validate:
+  name: Capgemini-VRF-IMPORT
+  route-map-without-order-seq:
+    - "@xmlns": http://cisco.com/ns/yang/Cisco-IOS-XE-route-map
+      seq_no: "10"
+      operation: permit
+      match:
+        ip:
+          address:
+            prefix-list: Capgemini-DC1-Management
+    - "@xmlns": http://cisco.com/ns/yang/Cisco-IOS-XE-route-map
+  seq_no: "20"
+  operation: permit
+  match:
+    ip:
+      address:
+        prefix-list: Capgemini-DC2-Management

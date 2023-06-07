@@ -58,11 +58,11 @@ class NetConfStep(Process):
                     if result is None or len(result) == 0:
                         log.error(f"NetConfStep validate_fetch_response error: {path} not found in response")
                         return False
-                    if (param != result):
-                        log.error(f"NetConfStep validate_fetch_response error: {param} != {result}") 
+                    if (param != result[0]):
+                        log.error(f"NetConfStep validate_fetch_response error: {param} != {result[0]}") 
                         return False
                 except Exception as e:
-                        log.error(f"NetConfStep validate_fetch_response error: {e}")
+                        log.error(f"NetConfStep validate_fetch_response Exception: {e}")
                         return False
         
         log.info("Code reached end of validate_fetch_response, no params to validate")
@@ -71,7 +71,7 @@ class NetConfStep(Process):
         """This method will validate the netconf edit response"""
         log.debug(f"NetConfStep validate_edit_response output_dic\n{output_dic}")
         try:
-            if output_dic.get('rpc-reply').get('ok') != None:
+            if output_dic.get('rpc-reply').get('rpc-error') == None:
                 log.info("NetConfStep response is </ok>")
                 return True
         except KeyError as e:

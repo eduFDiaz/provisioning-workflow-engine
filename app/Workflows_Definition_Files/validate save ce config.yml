@@ -1,16 +1,12 @@
 name: Validate and Save CE Config
-hostname: sandbox-iosxe-latest-1.cisco.com
+hostname: "{{ce.management_ip}}"
+port: "{{ce.netconf_port}}"
 description: validate device configuration and save
 configType: NETCONF
 request:
   type: FETCH
-  payload: |
-    <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
-      <interface>
-        <enabled>true</enabled>
-      </interface>
-    </interfaces>
+  payload: ""
   validate:
-    $..interface[?(@.description =~ ".*RESTCONF.*")].name: loopbackInterface
-  variables:
-    managementInterface: $..interface[?(@.description =~ ".*MANAGEMENT.*")]
+    $..data.native.vrf: vrf-validate
+    $..data.native.ip['prefix-lists']: prefix-lists-validate
+    $..data['route-map']: route-map-validate

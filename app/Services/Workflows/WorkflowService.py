@@ -13,6 +13,8 @@ from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteN
 from config import workflow_definition_files_path as path
 from Models.GlobalParams import Global_params
 
+global_params = Global_params()
+
 async def run_step(stepConfig):
     """This function will create an API object based on the configType"""
     step_type = stepConfig.get('configType')

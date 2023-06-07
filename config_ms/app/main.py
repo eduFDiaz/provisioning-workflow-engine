@@ -84,6 +84,12 @@ def getConfig(correlationId: str):
                     "index": 10,
                     "action": "permit",
                     "prefix": "192.168.187.0/28"
+                },
+                {
+                    "name": "Capgemini-DC2-Management",
+                    "index": 20,
+                    "action": "permit",
+                    "prefix": "192.168.187.0/28"
                 }
             ],
         }
