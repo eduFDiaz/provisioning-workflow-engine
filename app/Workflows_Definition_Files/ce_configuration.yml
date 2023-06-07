@@ -20,8 +20,15 @@ steps:
   - name: show_save_ce_config
     file: show_save_ce_config.yml
 
-  - name: config ce subnet
-    file: config ce subnet.yml
+  - name: add_vrf_definition
+    file: add_vrf_definition.yml
 
-  - name: validate save ce config
-    file: validate save ce config.yml
+  - name: add_prefix_lists
+    file: add_prefix_lists.yml
+
+  - name: add_route_maps
+    file: add_route_maps.yml
+
+  # switch to netconf and add validation
+  # - name: validate save ce config 
+  #   file: validate save ce config.yml

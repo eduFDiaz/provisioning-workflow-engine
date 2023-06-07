@@ -44,6 +44,19 @@ services:
                 sleep infinity"
     networks:
       - temporal-network
+  
+  config_ms:
+    build: ./config_ms/app
+    image: config_ms:latest
+    container_name: config_ms
+    ports:
+      - "8002:8002"
+    depends_on:
+      - kafka
+    networks:
+      - temporal-network
+    volumes:
+      - ./config_ms/app:/app
 
   fastapi_app:
     build: ./app

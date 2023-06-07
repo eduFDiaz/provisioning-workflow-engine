@@ -19,8 +19,6 @@ class Process:
         self.configType = config['configType']
         self.config = config
         self.set_credentials()
-        self.templateParams = read_step_yaml(api_credentials[self.configType]['paramsFile'])
-        global_params.update(self.templateParams)
     def process_step(self) -> int:
         """This method will be implemented by the child Step classes
         It will be used to execute the process, REST, CLI, NETCONF, etc"""

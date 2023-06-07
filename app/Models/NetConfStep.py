@@ -71,7 +71,7 @@ class NetConfStep(Process):
         """This method will validate the netconf edit response"""
         log.debug(f"NetConfStep validate_edit_response output_dic\n{output_dic}")
         try:
-            if output_dic['rpc-reply']['ok'] == None:
+            if output_dic.get('rpc-reply').get('ok') != None:
                 log.info("NetConfStep response is </ok>")
                 return True
         except KeyError as e:
@@ -134,13 +134,15 @@ class NetConfStep(Process):
     def process_step(self) -> int:
         log.debug("NetConfStep process")
         self.payload = self.render_jinja_template()
+        self.hostname = self.replace_params(self.hostname)
+        self.port = self.replace_params(self.port)
         
         config = {
             "host": self.hostname,
             "auth_username": self.username,
             "auth_password": self.password,
             "auth_strict_key": False,
-            "port": self.port,
+            "port": int(self.port),
         }
 
         client = NetConfClient(config)
@@ -157,7 +159,7 @@ class NetConfStep(Process):
             else:
                 log.debug(f"NetConfStep process_step FETCH validProcess = {validProcess}")
                 log.debug(f"NetConfStep process_step FETCH extractVariables = {extractVariables}")
-                return 1
+                raise ValueError(f"NetConfStep process_step FETCH error: validProcess = {validProcess} extractVariables = {extractVariables}")
         elif self.type == 'EDIT':
             result = client.edit_config(self.payload)
             
@@ -167,4 +169,4 @@ class NetConfStep(Process):
                 return 0
             else:
                 log.debug(f"NetConfStep process_step EDIT validProcess = {validProcess}")
-                return 1
+                raise ValueError(f"NetConfStep process_step EDIT error: validProcess = {validProcess}")

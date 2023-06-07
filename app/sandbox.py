@@ -321,9 +321,63 @@ add_route_maps_template = """
           </native>
         </config>
         """
-params_init = {'interfaceName': ['GigabitEthernet1'], 'loopbackInterface': ['Loopback109'], 'name': 'phy_interface_vrf', 'log_forwarder_present': False, 'interfaces': ['GigabitEthernet1', 'GigabitEthernet2', 'GigabitEthernet3'], 'api_key': 'api_key_value', 'uuid': '7c277d3a-a11c-433a-a4a8-c9e6bc39a7a6', 'userId': 'palsa', 'interface_name': 'GigabitEthernet1', 'dns_name': '8.8.8.8', 'PL_AS_65003_IN': ['ip address 10.0.1.19', 'ip address 10.0.1.20', 'ip address 10.0.1.21'], 'ip_prefix_list': [[{'name': 'Capgemini-DC1-Management', 'index': 10, 'action': 'permit', 'prefix': '192.168.187.0/28'}]], 'route_map': [[{'name': 'Capgemini-VRF-IMPORT', 'match-list': [{'index': 10, 'operation': 'permit', 'prefix': 'Capgemini-DC1-Management'}, {'index': 20, 'operation': 'permit', 'prefix': 'Capgemini-DC2-Management'}]}]], 'vrf': [[{'name': 'VRF_Capgemini', 'rd': '100:110', 'rt-import': ['100:1000'], 'rt-export': ['100:1000'], 'ipv4-import': ['Capgemini-VRF-IMPORT'], 'ipv4-export': ['Capgemini-VRF-EXPORT']}]]}
-for key, value in params_init.items():
-  global_params.setitem(key, value)
+
+config_customer_vrf_template = """
+  terminal length 0
+  enable
+  config t
+  {% for rm in route_map[0] %}
+  {% for pl in ip_prefix_list[0] %}
+  ip prefix-list {{pl['name']}} seq {{pl['index']}} {{pl['action']}} {{pl['prefix']}}
+  {% endfor %}
+  {% for route in rm['match-list'] %}
+  route-map {{rm['name']}} {{route['operation']}} {{route['index']}}
+  match ip address prefix-list {{route['prefix']}}
+  exit
+  {% endfor %}
+  {% endfor %}
+  vrf definition {{vrf[0][0].name}}
+  rd {{vrf[0][0].rd}}
+  {% for rt in vrf[0][0]['rt-export'] %}
+  route-target export {{rt}}
+  {% endfor %}
+  {% for rt in vrf[0][0]['rt-export'] %}
+  route-target import {{rt}}
+  {% endfor %}
+  address-family ipv4
+  import map {{vrf[0][0]['ipv4-import'][0]}}
+  export map {{vrf[0][0]['ipv4-export'][0]}}
+  exit-address-family
+  end
+  """
+
+config_customer_vrf_rendered_template = """
+  terminal length 0
+  enable
+  config t
+  ip prefix-list Capgemini-DC1-Management seq 10 permit 192.168.187.0/28
+  route-map Capgemini-VRF-IMPORT permit 10
+  match ip address prefix-list Capgemini-DC1-Management
+  exit
+  route-map Capgemini-VRF-IMPORT permit 20
+  match ip address prefix-list Capgemini-DC2-Management
+  exit
+  vrf definition VRF_Capgemini
+  rd 100:110
+  route-target export 100:1000
+  route-target import 100:1000
+  address-family ipv4
+  import map Capgemini-VRF-IMPORT
+  export map Capgemini-VRF-EXPORT
+  exit-address-family
+  end
+  """
+
+# uncomment ONLY to run the jinja rendenring tests, when running workflows
+# the global params dict will be updated by the workflow activities
+# params_init = {'interfaceName': ['GigabitEthernet1'], 'loopbackInterface': ['Loopback109'], 'name': 'phy_interface_vrf', 'log_forwarder_present': False, 'interfaces': ['GigabitEthernet1', 'GigabitEthernet2', 'GigabitEthernet3'], 'api_key': 'api_key_value', 'uuid': '7c277d3a-a11c-433a-a4a8-c9e6bc39a7a6', 'userId': 'palsa', 'interface_name': 'GigabitEthernet1', 'dns_name': '8.8.8.8', 'PL_AS_65003_IN': ['ip address 10.0.1.19', 'ip address 10.0.1.20', 'ip address 10.0.1.21'], 'ip_prefix_list': [[{'name': 'Capgemini-DC1-Management', 'index': 10, 'action': 'permit', 'prefix': '192.168.187.0/28'}]], 'route_map': [[{'name': 'Capgemini-VRF-IMPORT', 'match-list': [{'index': 10, 'operation': 'permit', 'prefix': 'Capgemini-DC1-Management'}, {'index': 20, 'operation': 'permit', 'prefix': 'Capgemini-DC2-Management'}]}]], 'vrf': [[{'name': 'VRF_Capgemini', 'rd': '100:110', 'rt-import': ['100:1000'], 'rt-export': ['100:1000'], 'ipv4-import': ['Capgemini-VRF-IMPORT'], 'ipv4-export': ['Capgemini-VRF-EXPORT']}]]}
+# for key, value in params_init.items():
+#   global_params.setitem(key, value)
 
 def test_expected_response():
     #test jsonpath response for data not empty
@@ -403,10 +457,18 @@ def test_add_route_maps_rendered_template():
     print(renderedTemplate)
     assert renderedTemplate == add_route_map_exp_rendered_template, "rendered template is not as expected"
 
+def test_config_vrf_rendered_template():
+    print(f"params - {global_params.getMap()}")
+    print(f"vrf name - {global_params.getMap().get('vrf')[0][0]['name']}")
+    template = Template(config_customer_vrf_template, trim_blocks=True, lstrip_blocks=True)
+    renderedTemplate = template.render(**global_params.getMap())
+    print(renderedTemplate)
+    assert renderedTemplate == config_customer_vrf_rendered_template, "rendered template is not as expected"
+
 if __name__ == "__main__":
     print("Running sandbox.py")
     loop = asyncio.get_event_loop()
     loop.run_until_complete(startup())
     # loop.run_until_complete(invoke_steps("phy_interface_vrf.yml"))
-    # loop.run_until_complete(invoke_steps("vpn_provisioning.yml"))
-    loop.run_until_complete(get_steps_configs("vpn_provisioning.yml","0c32b683-683a-4de4-a7f3-44318a14acbc"))
+    loop.run_until_complete(invoke_steps("vpn_provisioning.yml"))
+    # loop.run_until_complete(get_steps_configs("vpn_provisioning.yml","0c32b683-683a-4de4-a7f3-44318a14acbc"))

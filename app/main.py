@@ -76,7 +76,6 @@ async def execute_workflow(flowFileName: str) -> HTMLResponse:
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
 async def fetch_steps(workflowFileName: str, correlationId: str):   
     try:
-        # workflowFileName = "phy_interface_vrf.yml"
         res, err = (await get_steps_configs(workflowFileName, correlationId))
         if err:
             return JSONResponse(content=err, status_code=500)
