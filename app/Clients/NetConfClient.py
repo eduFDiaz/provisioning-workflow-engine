@@ -17,7 +17,12 @@ class NetConfClient:
         self.conn.close()
 
     def get_filter(self, payload):
-        result = self.conn.get_config(filter_ = payload, filter_type="subtree", source="running")
+        if payload == None or payload == "":
+            # if no payload is provided, get the entire config
+            result = self.conn.get_config(source="running")
+        else:
+            # if a payload is provided, get the config based on a subtree filter
+            result = self.conn.get_config(filter_ = payload, filter_type="subtree", source="running")
         return result.result
 
     def edit_config(self, config):
@@ -35,22 +40,17 @@ class NetConfClient:
 #     "auth_strict_key": False,
 #     "port": 830,
 # }
-# # /data/routing/routing-instance[1]
-# payload = """
-# <config>
-#     <routing xmlns="urn:ietf:params:xml:ns:yang:ietf-routing">
-#         <routing-instance operation="delete">
-#             <name>VRF_Capgemini</name>
-#             <routing-protocols>
-#                 <routing-protocol>
-#                     <type>static</type>
-#                     <name>1</name>
-#                 </routing-protocol>
-#             </routing-protocols>
-#         </routing-instance>
-#     </routing>
-# </config>
-# """
+
+# payload = ""
+# # # /data/routing/routing-instance[1]
+# # payload = """
+# #         <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces">
+# #       <interface>
+# #         <enabled>true</enabled>
+# #       </interface>
+# #     </interfaces>
+# # """
 
 # client = NetConfClient(config)
-# result = client.edit_config(payload)
+# result = client.get_filter(payload)
+# print(result)

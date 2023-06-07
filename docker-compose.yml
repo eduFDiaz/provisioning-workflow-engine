@@ -44,6 +44,19 @@ services:
                 sleep infinity"
     networks:
       - temporal-network
+  
+  config_ms:
+    build: ./config_ms/app
+    image: config_ms:latest
+    container_name: config_ms
+    ports:
+      - "8002:8002"
+    depends_on:
+      - kafka
+    networks:
+      - temporal-network
+    volumes:
+      - ./config_ms/app:/app
 
   fastapi_app:
     build: ./app
@@ -71,6 +84,21 @@ services:
       - temporal-network
     volumes:
       - ./consumer/app:/app
+    
+  frontend:
+    build: ./frontend
+    image: frontend:latest
+    container_name: frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - temporal
+      - kafka
+      - fastapi_app
+      - config_ms
+      - consumer_app
+    networks:
+      - temporal-network
 
   cassandra:
     image: cassandra:latest
@@ -83,18 +111,6 @@ services:
       - 9042:9042
     networks:
       - temporal-network
-
-  # datastax_studio:
-  #   image: datastax/dse-studio:latest
-  #   container_name: datastax_studio
-  #   depends_on:
-  #     - cassandra
-  #   ports:
-  #     - 9091:9091
-  #   environment:
-  #     - DS_LICENSE=accept
-  #   networks:
-  #     - temporal-network
 
   elasticsearch:
     container_name: temporal-elasticsearch

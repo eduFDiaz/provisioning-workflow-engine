@@ -11,6 +11,9 @@ from temporalClient import TemporalClient
 from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
 
 from config import workflow_definition_files_path as path
+from Models.GlobalParams import Global_params
+
+global_params = Global_params()
 
 async def run_step(stepConfig):
     """This function will create an API object based on the configType"""
@@ -62,7 +65,14 @@ async def get_steps_configs(file: str, correlationId: str) -> Tuple[Optional[Any
 
     # milestonesResult will be a map of milestone names to a list of steps
     milestonesResult = OrderedDict()
-    dict = read_step_yaml(f"{path}/{file}")
+    root_flow_path = f"{path}/{file}"
+    dict = read_step_yaml(root_flow_path)
+
+    values_data = read_step_yaml(root_flow_path.replace('.yml','.values.yml'))
+    for key, value in values_data.items():
+        global_params.setitem(key, value)
+
+    log.debug(f"Global params:\n{global_params.getMap()}")
     
     for milestone in dict['steps']:
         steps, error = await get_list_of_steps(milestone['file'])

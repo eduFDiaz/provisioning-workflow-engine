@@ -24,6 +24,7 @@ class CliStep(Process):
     def process_step(self):
         log.debug(f"CliStep process payload\n{self.payload}")
         self.payload = self.replace_params(self.payload).splitlines()
+        self.hostname = self.replace_params(self.hostname)
         log.debug(f"CliStep process hostname: {self.hostname} - username: {self.username} - password: {self.password}")
         
         client = SSHClient(self.hostname, self.username, self.password)

@@ -1,4 +1,2 @@
 log_forwarder_present: false
 correlationId: 0c32b683-683a-4de4-a7f3-44318a14acbc
-demo: false
-cust_subnet: 192.168.187.0/28
