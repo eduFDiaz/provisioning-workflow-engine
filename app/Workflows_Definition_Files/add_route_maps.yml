@@ -1,7 +1,7 @@
-name: add_route_maps
-hostname: sandbox-iosxe-latest-1.cisco.com
-description: adding route maps configs to the device
-port: 830
+name: Apply route maps
+description: apply route maps config to the device
+hostname: "{{ce.management_ip}}"
+port: "{{ce.netconf_port}}"
 configType: NETCONF
 request:
   type: EDIT

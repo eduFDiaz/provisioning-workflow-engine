@@ -1,5 +1,5 @@
 name: Save Current PE Config
-hostname: sandbox-iosxe-latest-1.cisco.com
+hostname: "{{pe.management_ip}}"
 description: fetch and save current PE config
 configType: CLI
 config: |

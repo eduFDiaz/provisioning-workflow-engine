@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+asyncio
+pyyaml
+uuid
+requests

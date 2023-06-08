@@ -1,5 +1,5 @@
 name: Validate and Save PE Config
-hostname: sandbox-iosxe-latest-1.cisco.com
+hostname: "{{pe.management_ip}}"
 configType: CLI
 description: validate device configuration and save
 config: |

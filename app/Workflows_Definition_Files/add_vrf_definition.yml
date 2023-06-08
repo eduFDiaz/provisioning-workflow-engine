@@ -1,7 +1,7 @@
-name: add_vrf_definition
-hostname: sandbox-iosxe-latest-1.cisco.com
-description: adding vrf configs to the device
-port: 830
+name: Apply VRF Definition
+description: aply vrf config to the device
+hostname: "{{ce.management_ip}}"
+port: "{{ce.netconf_port}}"
 configType: NETCONF
 request:
   type: EDIT

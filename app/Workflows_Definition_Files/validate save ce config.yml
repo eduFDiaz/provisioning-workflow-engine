@@ -1,7 +1,12 @@
 name: Validate and Save CE Config
-hostname: sandbox-iosxe-latest-1.cisco.com
-configType: CLI
+hostname: "{{ce.management_ip}}"
+port: "{{ce.netconf_port}}"
 description: validate device configuration and save
-config: |
-  terminal length 0
-  show running
+configType: NETCONF
+request:
+  type: FETCH
+  payload: ""
+  validate:
+    $..data.native.vrf: vrf-validate
+    $..data.native.ip['prefix-lists']: prefix-lists-validate
+    $..data['route-map']: route-map-validate
