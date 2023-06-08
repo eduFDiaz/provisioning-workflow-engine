@@ -1,20 +1,14 @@
 from typing import Dict
 from Clients.NetConfClient import NetConfClient
 from Models.Base import Process
-from Models.GlobalParams import Global_params
 from config import logger as log
 from config import api_credentials
 
 import json
 from jsonpath_ng.ext import parser
 import xmltodict
-import xml.etree.ElementTree as ET
 
-global_params = Global_params()
-
-from temporalio import activity
-
-from typing import Optional, Union, Dict
+from typing import Dict
 
 class NetConfStep(Process):
     """This class will execute a list of commands on a remote host through NETCONF"""
@@ -35,13 +29,16 @@ class NetConfStep(Process):
     def validate_fetch_response(self, output_json) -> bool:
         """This method will validate attributes of the FETCH response against global_params"""
         log.debug(f"NetConfStep validate_fetch_response output_json\n{output_json}")
+
+        data = json.loads(output_json)
+        log.debug(f"NetConfStep validate_fetch_response data: {json.dumps(data, indent=4, sort_keys=True)}")  
         
         if self.request is not None and self.request.get('validate') is not None:
             for key, value in self.request['validate'].items():
                 log.debug(f"NetConfStep validate_fetch_response key: {key} value: {value}")
                 
                 try:
-                    param = global_params.getitem(value)
+                    param = self.global_params[value]
                     log.debug(f"NetConfStep validate_fetch_response param: {param}")
                     
                     if param is None:
@@ -50,8 +47,7 @@ class NetConfStep(Process):
                     
                     path = key
                     expression = parser.parse(path)
-                    data = json.loads(output_json)
-                    log.debug(f"NetConfStep validate_fetch_response data: {json.dumps(data, indent=4, sort_keys=True)}")  
+                    
                     log.debug(f"expression: {expression}")
                     result = [match.value for match in expression.find(data)]
                     
@@ -123,8 +119,8 @@ class NetConfStep(Process):
 
                     log.debug(f"RestStep extract_variables result: {result}")
                     
-                    global_params.setitem(key, result)
-                    log.debug(f"RestStep extract_variables global_params: {global_params}")
+                    self.global_params[key] = result
+                    log.debug(f"RestStep extract_variables global_params: {self.global_params}")
                 except Exception as e:
                         log.error(f"RestStep extract_variables error: {e}")
                         return False

@@ -1,6 +1,5 @@
 from confluent_kafka import Consumer, KafkaException
 import threading
-import os
 from Models.NotificationModel import NotificationModel
 from config import logger as log
 from config import is_running_in_docker
@@ -83,7 +82,7 @@ class KafkaConsumerSingleton(object):
                     log.debug(f"Received message with key {msg.key()} and value {msg.value().decode('utf-8')}")
                     notification_dict = json.loads(msg.value().decode('utf-8'))
                     notification = self.add_or_update_notification(notification_dict)
-                    client_id = str(notification.correlationId)
+                    client_id = str(notification.correlationID)
                     log.info(f"client_id: {client_id}")
                     log.info(f"manager.active_connections: {manager.active_connections}")
                     if manager.active_connections[client_id] is not None:

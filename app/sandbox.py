@@ -6,8 +6,6 @@ import yaml
 
 from Models.GlobalParams import Global_params
 
-global_params = Global_params()
-
 from config import api_credentials
 
 import xmltodict, json
@@ -149,6 +147,11 @@ response_after_netconf_vrf_steps = """
       <boot-start-marker/>
       <boot-end-marker/>
       <banner>
+        <login>
+          <banner>
+Welcome !!!!
+</banner>
+        </login>
         <motd>
           <banner>
 Welcome to the DevNet Sandbox for Cat8000V and IOS XE
@@ -159,7 +162,7 @@ The following programmability features are already enabled:
 -RESTCONF
 
 Thanks for stopping by.
-          </banner>
+</banner>
         </motd>
       </banner>
       <memory>
@@ -221,6 +224,13 @@ Thanks for stopping by.
           <encryption>9</encryption>
           <secret>$9$lgJxy7Ga.Th5FU$gocFhcHC/8pvixGr.s2wB7X59FiGVvwYawfCPrmaJuY</secret>
         </secret>
+      </username>
+      <username>
+        <name>tester</name>
+        <password>
+          <encryption>0</encryption>
+          <password>@@Today@@</password>
+        </password>
       </username>
       <vrf>
         <definition>
@@ -297,25 +307,47 @@ Thanks for stopping by.
             <mask>0.0.0.0</mask>
             <fwd-list>
               <fwd>GigabitEthernet1</fwd>
-              <interface-next-hop>
-                <ip-address>10.10.20.254</ip-address>
-              </interface-next-hop>
+              <interface-next-hop/>
+              <ip-address>10.10.20.254</ip-address>
             </fwd-list>
           </ip-route-interface-forwarding-list>
         </route>
-        <scp>
-          <server>
-            <enable/>
-          </server>
-        </scp>
-        <ssh/>
+      </ip>
+      <scp>
+        <server>
+          <enable/>
+        </server>
+      </scp>
+      <ssh>
         <rsa>
           <keypair-name>ssh-key</keypair-name>
         </rsa>
         <ssh-version>2</ssh-version>
         <version>2</version>
-      </ip>
+      </ssh>
       <access-list>
+        <extended xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl">
+          <name>IPv4-ACL</name>
+          <access-list-seq-rule>
+            <sequence>10</sequence>
+            <ace-rule>
+              <action>deny</action>
+              <protocol>tcp</protocol>
+              <any/>
+              <dest-ipv4-address>198.51.100.0</dest-ipv4-address>
+              <dest-mask>0.0.0.255</dest-mask>
+            </ace-rule>
+          </access-list-seq-rule>
+          <access-list-seq-rule>
+            <sequence>20</sequence>
+            <ace-rule>
+              <action>permit</action>
+              <protocol>tcp</protocol>
+              <any/>
+              <dst-any/>
+            </ace-rule>
+          </access-list-seq-rule>
+        </extended>
         <extended xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl">
           <name>NAT-ACL</name>
           <access-list-seq-rule>
@@ -470,6 +502,7 @@ Thanks for stopping by.
       </GigabitEthernet>
       <Loopback>
         <name>0</name>
+        <description>smruti</description>
         <ip>
           <address>
             <primary>
@@ -504,45 +537,196 @@ Thanks for stopping by.
           </address>
         </ip>
         <logging>
-          <event>
-            <link-status/>
-          </event>
+          <event/>
+          <link-status/>
         </logging>
       </Loopback>
-      <VirtualPortGroup>
-        <name>0</name>
+    </interface>
+    <Loopback>
+      <name>5689</name>
+      <description>Configured_using_Python_netmiko_by_Munia</description>
+      <ip>
+        <address>
+          <primary>
+            <address>10.56.89.1</address>
+            <mask>255.255.255.255</mask>
+          </primary>
+        </address>
+      </ip>
+      <logging>
+        <event>
+          <link-status/>
+        </event>
+      </logging>
+    </Loopback>
+    <Loopback>
+      <name>8585</name>
+      <description>This Is Dog</description>
+      <ip>
+        <address>
+          <primary>
+            <address>10.146.185.1</address>
+            <mask>255.255.255.255</mask>
+          </primary>
+        </address>
+      </ip>
+      <logging>
+        <event>
+          <link-status/>
+        </event>
+      </logging>
+    </Loopback>
+    <Loopback>
+      <name>8686</name>
+      <description>Task7</description>
+      <shutdown/>
+      <ip>
+        <address>
+          <primary>
+            <address>10.146.186.2</address>
+            <mask>255.255.255.255</mask>
+          </primary>
+        </address>
+      </ip>
+      <logging>
+        <event>
+          <link-status/>
+        </event>
+      </logging>
+    </Loopback>
+    <Loopback>
+      <name>14670</name>
+      <description>Task7-pod3</description>
+      <shutdown/>
+      <ip>
+        <address>
+          <secondary>
+            <address>10.146.1.1</address>
+            <mask>255.255.255.255</mask>
+            <secondary/>
+          </secondary>
+          <secondary>
+            <address>10.146.4.1</address>
+            <mask>255.255.255.255</mask>
+            <secondary/>
+          </secondary>
+          <secondary>
+            <address>10.146.9.1</address>
+            <mask>255.255.255.255</mask>
+            <secondary/>
+          </secondary>
+          <secondary>
+            <address>10.146.10.1</address>
+            <mask>255.255.255.255</mask>
+            <secondary/>
+          </secondary>
+          <secondary>
+            <address>14.146.12.1</address>
+            <mask>255.255.255.255</mask>
+            <secondary/>
+          </secondary>
+          <primary>
+            <address>10.146.3.1</address>
+            <mask>255.255.255.255</mask>
+          </primary>
+        </address>
+      </ip>
+      <logging>
+        <event>
+          <link-status/>
+        </event>
+      </logging>
+    </Loopback>
+    <Loopback>
+      <name>14671</name>
+      <description>This is a TEST2 Loopback</description>
+      <ip>
+        <address>
+          <secondary>
+            <address>10.147.9.1</address>
+            <mask>255.255.255.255</mask>
+            <secondary/>
+          </secondary>
+          <primary>
+            <address>10.147.4.1</address>
+            <mask>255.255.255.255</mask>
+          </primary>
+        </address>
+      </ip>
+      <logging>
+        <event>
+          <link-status/>
+        </event>
+      </logging>
+    </Loopback>
+    <Loopback>
+      <name>146711</name>
+      <description>T11</description>
+      <ip>
+        <address>
+          <primary>
+            <address>10.146.11.1</address>
+            <mask>255.255.255.255</mask>
+          </primary>
+        </address>
+      </ip>
+      <logging>
+        <event>
+          <link-status/>
+        </event>
+      </logging>
+    </Loopback>
+    <Loopback>
+      <name>146799</name>
+      <description>This is kitty meow</description>
+      <ip>
+        <address>
+          <primary>
+            <address>10.146.99.1</address>
+            <mask>255.255.255.255</mask>
+          </primary>
+        </address>
+      </ip>
+      <logging>
+        <event>
+          <link-status/>
+        </event>
+      </logging>
+    </Loopback>
+    <VirtualPortGroup>
+      <name>0</name>
+      <ip>
+        <address>
+          <primary>
+            <address>192.168.1.1</address>
+            <mask>255.255.255.0</mask>
+          </primary>
+        </address>
+        <nat xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-nat">
+          <inside/>
+        </nat>
+      </ip>
+      <logging>
+        <event>
+          <link-status/>
+        </event>
+      </logging>
+    </VirtualPortGroup>
+  </data>
+  <route-map>
+    <name>Capgemini-VRF-IMPORT</name>
+    <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
+      <seq_no>10</seq_no>
+      <operation>permit</operation>
+      <match>
         <ip>
           <address>
-            <primary>
-              <address>192.168.1.1</address>
-              <mask>255.255.255.0</mask>
-            </primary>
+            <prefix-list>Capgemini-DC1-Management</prefix-list>
           </address>
-          <nat xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-nat">
-            <inside/>
-          </nat>
         </ip>
-        <logging>
-          <event>
-            <link-status/>
-          </event>
-        </logging>
-      </VirtualPortGroup>
-    </interface>
-    <route-map>
-      <name>Capgemini-VRF-IMPORT</name>
-      <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
-        <seq_no>10</seq_no>
-        <operation>permit</operation>
-        <match>
-          <ip>
-            <address>
-              <prefix-list>Capgemini-DC1-Management</prefix-list>
-            </address>
-          </ip>
-        </match>
-      </route-map-without-order-seq>
-      <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map"/>
+      </match>
+    </route-map-without-order-seq>
+    <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
       <seq_no>20</seq_no>
       <operation>permit</operation>
       <match>
@@ -552,9 +736,17 @@ Thanks for stopping by.
           </address>
         </ip>
       </match>
-    </route-map>
-  </data>
+    </route-map-without-order-seq>
+  </route-map>
   <control-plane/>
+  <logging>
+    <console-config>
+      <console>false</console>
+    </console-config>
+    <console-conf>
+      <console>false</console>
+    </console-conf>
+  </logging>
   <login>
     <on-success>
       <log/>
@@ -639,6 +831,10 @@ Thanks for stopping by.
     </aux>
     <console>
       <first>0</first>
+      <exec-timeout>
+        <minutes>0</minutes>
+        <seconds>0</seconds>
+      </exec-timeout>
       <stopbits>1</stopbits>
     </console>
     <vty>
@@ -932,9 +1128,15 @@ config_customer_vrf_rendered_template = """
 
 # uncomment ONLY to run the jinja rendenring tests, when running workflows
 # the global params dict will be updated by the workflow activities
-params_init = {'interfaceName': ['GigabitEthernet1'], 'loopbackInterface': ['Loopback109'], 'name': 'phy_interface_vrf', 'log_forwarder_present': False, 'interfaces': ['GigabitEthernet1', 'GigabitEthernet2', 'GigabitEthernet3'], 'api_key': 'api_key_value', 'uuid': '7c277d3a-a11c-433a-a4a8-c9e6bc39a7a6', 'userId': 'palsa', 'interface_name': 'GigabitEthernet1', 'dns_name': '8.8.8.8', 'PL_AS_65003_IN': ['ip address 10.0.1.19', 'ip address 10.0.1.20', 'ip address 10.0.1.21'], 'ip_prefix_list': [[{'name': 'Capgemini-DC1-Management', 'index': 10, 'action': 'permit', 'prefix': '192.168.187.0/28'}]], 'route_map': [[{'name': 'Capgemini-VRF-IMPORT', 'match-list': [{'index': 10, 'operation': 'permit', 'prefix': 'Capgemini-DC1-Management'}, {'index': 20, 'operation': 'permit', 'prefix': 'Capgemini-DC2-Management'}]}]], 'vrf': [[{'name': 'VRF_Capgemini', 'rd': '100:110', 'rt-import': ['100:1000'], 'rt-export': ['100:1000'], 'ipv4-import': ['Capgemini-VRF-IMPORT'], 'ipv4-export': ['Capgemini-VRF-EXPORT']}]]}
+correlationID = '0c32b683-683a-4de4-a7f3-44318a14acbc'
+params_init = {'interfaceName': ['GigabitEthernet1'], 'loopbackInterface': ['Loopback109'], 'name': 'phy_interface_vrf', 'log_forwarder_present': False, 'interfaces': ['GigabitEthernet1', 'GigabitEthernet2', 'GigabitEthernet3'], 'api_key': 'api_key_value', 'uuid': '0c32b683-683a-4de4-a7f3-44318a14acbc', 'userId': 'palsa', 'interface_name': 'GigabitEthernet1', 'dns_name': '8.8.8.8', 'PL_AS_65003_IN': ['ip address 10.0.1.19', 'ip address 10.0.1.20', 'ip address 10.0.1.21'], 'ip_prefix_list': [[{'name': 'Capgemini-DC1-Management', 'index': 10, 'action': 'permit', 'prefix': '192.168.187.0/28'}]], 'route_map': [[{'name': 'Capgemini-VRF-IMPORT', 'match-list': [{'index': 10, 'operation': 'permit', 'prefix': 'Capgemini-DC1-Management'}, {'index': 20, 'operation': 'permit', 'prefix': 'Capgemini-DC2-Management'}]}]], 'vrf': [[{'name': 'VRF_Capgemini', 'rd': '100:110', 'rt-import': ['100:1000'], 'rt-export': ['100:1000'], 'ipv4-import': ['Capgemini-VRF-IMPORT'], 'ipv4-export': ['Capgemini-VRF-EXPORT']}]]}
+# params_init = {}
+
+global_params = Global_params().getMap(correlationID)
+print(global_params)
+
 for key, value in params_init.items():
-  global_params.setitem(key, value)
+  global_params[key] = value
 
 def test_expected_response():
     #test jsonpath response for data not empty
@@ -991,33 +1193,33 @@ def test_error_edit_response():
     assert edit_error_response_dict.get('rpc-reply').get('rpc-error') != None, "result contains error"
 
 def test_add_vrf_definition_rendered_template():
-    print(f"params - {global_params.getMap()}")
-    print(f"vrf name - {global_params.getMap().get('vrf')[0][0]['name']}")
+    print(f"params - {global_params}")
+    print(f"vrf name - {global_params.get('vrf')[0][0]['name']}")
     template = Template(add_vrf_definition_template, trim_blocks=True, lstrip_blocks=True)
-    renderedTemplate = template.render(**global_params.getMap())
+    renderedTemplate = template.render(**global_params)
     assert renderedTemplate == add_vrf_definition_exp_rendered_template, "rendered template is not as expected" 
 
 def test_add_prefix_lists_rendered_template():
-    print(f"params - {global_params.getMap()}")
-    print(f"vrf name - {global_params.getMap().get('ip_prefix_list')[0][0]['name']}")
+    print(f"params - {global_params}")
+    print(f"vrf name - {global_params.get('ip_prefix_list')[0][0]['name']}")
     template = Template(add_prefix_lists_template, trim_blocks=True, lstrip_blocks=True)
-    renderedTemplate = template.render(**global_params.getMap())
+    renderedTemplate = template.render(**global_params)
     print(renderedTemplate)
     assert renderedTemplate == add_prefix_lists_exp_rendered_template, "rendered template is not as expected"
 
 def test_add_route_maps_rendered_template():
-    print(f"params - {global_params.getMap()}")
-    print(f"vrf name - {global_params.getMap().get('route_map')[0][0]['name']}")
+    print(f"params - {global_params}")
+    print(f"vrf name - {global_params.get('route_map')[0][0]['name']}")
     template = Template(add_route_maps_template, trim_blocks=True, lstrip_blocks=True)
-    renderedTemplate = template.render(**global_params.getMap())
+    renderedTemplate = template.render(**global_params)
     print(renderedTemplate)
     assert renderedTemplate == add_route_map_exp_rendered_template, "rendered template is not as expected"
 
 def test_config_vrf_rendered_template():
-    print(f"params - {global_params.getMap()}")
-    print(f"vrf name - {global_params.getMap().get('vrf')[0][0]['name']}")
+    print(f"params - {global_params}")
+    print(f"vrf name - {global_params.get('vrf')[0][0]['name']}")
     template = Template(config_customer_vrf_template, trim_blocks=True, lstrip_blocks=True)
-    renderedTemplate = template.render(**global_params.getMap())
+    renderedTemplate = template.render(**global_params)
     print(renderedTemplate)
     assert renderedTemplate == config_customer_vrf_rendered_template, "rendered template is not as expected"
 
@@ -1061,16 +1263,16 @@ def test_validate_netconf_vrf_steps():
               address:
                 prefix-list: Capgemini-DC1-Management
         - "@xmlns": http://cisco.com/ns/yang/Cisco-IOS-XE-route-map
-      seq_no: "20"
-      operation: permit
-      match:
-        ip:
-          address:
-            prefix-list: Capgemini-DC2-Management
+          seq_no: "20"
+          operation: permit
+          match:
+            ip:
+              address:
+                prefix-list: Capgemini-DC2-Management
     validate:
       $..data.native.vrf: vrf_validate
       $..data.native.ip['prefix-lists']: prefix-lists-validate
-      $..data['route-map']: route-map-validate
+      $..['route-map']: route-map-validate
     """
 
     params_dict = yaml.load(yaml_string, Loader=yaml.FullLoader)
@@ -1096,5 +1298,5 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(startup())
     # loop.run_until_complete(invoke_steps("phy_interface_vrf.yml"))
-    loop.run_until_complete(invoke_steps("vpn_provisioning.yml"))
+    loop.run_until_complete(invoke_steps("vpn_provisioning.yml", correlationID))
     # loop.run_until_complete(get_steps_configs("vpn_provisioning.yml","0c32b683-683a-4de4-a7f3-44318a14acbc"))

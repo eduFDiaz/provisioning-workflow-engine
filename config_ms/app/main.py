@@ -38,8 +38,8 @@ async def startup():
 async def shutdown():
     log.info("Shutting down config_ms...")
 
-def getConfig(correlationId: str):
-    log.info(f"getConfig {correlationId}")
+def getConfig(correlationID: str):
+    log.info(f"getConfig {correlationID}")
     try:
         configs = {}
         configs["0c32b683-683a-4de4-a7f3-44318a14acbc"] ={
@@ -93,7 +93,7 @@ def getConfig(correlationId: str):
                 }
             ],
         }
-        return configs[correlationId]
+        return configs[correlationID]
     except Exception as e:
         log.error(f"Error: {e}")
         return f"Error: {e}"
@@ -104,13 +104,13 @@ def authorize(security: HTTPBasicCredentials = Depends(security)):
             return True
     return False
 
-@app.get("/config/{correlationId}",
-        summary="this API will return the config for the given correlationId",
-        description="this API will return the config for the given correlationId"
+@app.get("/config/{correlationID}",
+        summary="this API will return the config for the given correlationID",
+        description="this API will return the config for the given correlationID"
         ,dependencies=[Depends(authorize)])
-async def get_config(correlationId: str) -> JSONResponse:
+async def get_config(correlationID: str) -> JSONResponse:
     try:
-        config = getConfig(correlationId)
+        config = getConfig(correlationID)
         return JSONResponse(content=config, status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")

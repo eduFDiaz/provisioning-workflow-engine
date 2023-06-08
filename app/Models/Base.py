@@ -1,20 +1,15 @@
 from Models.GlobalParams import Global_params
 from config import api_credentials
-from Utils.Utils import read_step_yaml
 
-from typing import Optional, Union
-from jinja2 import Environment, Template, FileSystemLoader
+from typing import Union
+from jinja2 import Template
 
 from config import logger as log
-
-global_params = Global_params()
-
-from temporalio import activity
-import json
 
 class Process:
     """Base class for all process types"""
     def __init__(self, config):
+        self.global_params = Global_params().getMap(config['correlationID'])
         self.name = config['name']
         self.configType = config['configType']
         self.config = config
@@ -38,11 +33,11 @@ class Process:
     def replace_params(self, param: Union[str, dict]) -> Union[str, dict]:
         """ This method will replace all the jinja2 template variables with the values from the params file
         it will also replace header placeholders with the values from the global_params dictionary"""
-        log.debug(f"template params -> global {global_params}")
+        log.debug(f"template params -> global {self.global_params}")
         log.debug(f"{self.configType} before replace_params\n{param} - type: {type(param)}")
         if isinstance(param, str):
             template = Template(param, trim_blocks=True, lstrip_blocks=True)
-            renderedParam = template.render(**global_params.getMap())
+            renderedParam = template.render(**self.global_params)
             log.debug(f"{self.configType} after replace_params\n{renderedParam}")
             return renderedParam
         elif isinstance(param, dict):

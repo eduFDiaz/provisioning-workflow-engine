@@ -19,7 +19,8 @@ class CassandraConnection:
     def get_session(self):
         return self.session
 
-    def close(self):
+    def _del_(self):
+        log.info("Shutting down Cassandra connection...")
         self.cluster.shutdown()
     
     def drop_table(self):
@@ -28,7 +29,7 @@ class CassandraConnection:
     def create_table(self):
         self.session.execute("""
             CREATE TABLE IF NOT EXISTS workflows.Notifications (
-                "correlationId" uuid,
+                "correlationID" uuid,
                 "workflow" text,
                 "status" text,
                 "step" text,
@@ -36,6 +37,6 @@ class CassandraConnection:
                 "milestoneStepName" text,
                 "startTime" text,
                 "endTime" text,
-                PRIMARY KEY ("correlationId", "workflow", "step", "milestoneName")
+                PRIMARY KEY ("correlationID", "workflow", "step", "milestoneName")
             );
         """)
