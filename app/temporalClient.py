@@ -1,6 +1,5 @@
 from temporalio.client import Client
-from config import configs
-
+from config import settings
 
 class TemporalClient:
     _instance = None
@@ -8,7 +7,7 @@ class TemporalClient:
     @staticmethod
     async def get_instance():
         if TemporalClient._instance is None:
-            TemporalClient._instance = (await Client.connect(configs.get("temporal.server").data, namespace=configs.get("temporal.namespace").data))
+            TemporalClient._instance = (await Client.connect(settings.temporal_server, namespace=settings.temporal_namespace))
         return TemporalClient._instance
 
     def __init__(self):

@@ -1,15 +1,18 @@
 # main.py
 import asyncio
+import uuid
 
 from Services.Workflows.WorkflowService import invoke_steps, get_steps_configs
 from Models.NotificationModel import NotificationModel
 
 from config import logger as log
-
+from config import settings
 import config
 
+from typing import Optional
+
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
@@ -19,18 +22,12 @@ from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteN
 from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
 from temporal_worker import start_temporal_worker
 
-from jproperties import Properties
-
 users_db = {
     "admin": {
         "username": "admin",
         "password": "C1sco12345",
     }
 }
-
-
-
-
 
 app = FastAPI()
 app.add_middleware(
@@ -42,19 +39,13 @@ app.add_middleware(
 )
 security = HTTPBasic()
 
-
-
 @app.on_event("startup")
 async def startup():
-    configs = Properties()
-    with open('app.properties', 'rb') as config_file:
-        configs.load(config_file)
-
     log.info("Waiting for Temporal Worker to start up...")
     # await asyncio.sleep(30)
-    await start_temporal_worker(configs.get("temporal.server").data,
-                                configs.get("temporal.namespace").data,
-                                configs.get("temporal.queuename").data,
+    await start_temporal_worker(settings.temporal_server,
+                                settings.temporal_namespace,
+                                settings.temporal_queuename,
                                 [ExecuteRestTask,
                                  ExecuteCliTask,
                                  ExecuteNetConfTask,
@@ -64,7 +55,7 @@ async def startup():
                                  exec_netconf_step,
                                  exec_grpc_step])
     
-    app.kafka_producer = (await get_kafka_producer(configs.get("kafka.server").data, configs.get("kafka.port").data))
+    app.kafka_producer = (await get_kafka_producer(settings.kafka_server, settings.kafka_port))
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -74,9 +65,12 @@ async def shutdown():
 @app.post("/execute_workflow/",
          summary="this API will execute a temporal workflow from a YAML file", 
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
-async def execute_workflow(flowFileName: str) -> HTMLResponse:
+async def execute_workflow(flowFileName: str,
+                           request_id: Optional[str] = Header(None)) -> HTMLResponse:
     try:
-        res = (await invoke_steps(flowFileName))
+        if not request_id:
+            request_id = uuid.uuid4()
+        res = (await invoke_steps(flowFileName, request_id))
         return HTMLResponse(content=f"Workflow executed successfully {res}", status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")

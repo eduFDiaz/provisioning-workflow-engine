@@ -49,8 +49,8 @@ async def run_step(stepConfig):
         log.error(f"Unsupported configType: {step_type}")
         raise ValueError(f"Unsupported configType: {step_type}")
 
-async def invoke_steps(file: str) -> Tuple[Optional[Any], Optional[Exception]]:
-    log.debug("Invoking steps")
+async def invoke_steps(file: str, requestId: str) -> Tuple[Optional[Any], Optional[Exception]]:
+    log.debug(f"Invoking steps. requestId = {requestId} ")
     
     steps, error = await get_list_of_steps(file)
     

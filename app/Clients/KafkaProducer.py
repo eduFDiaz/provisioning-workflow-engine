@@ -20,7 +20,6 @@ global_params = Global_params()
 
 kafka_config = {
     'bootstrap.servers': 'localhost:9092',
-    # 'group.id': 'my-group',
 }
 
 class KafkaProducerSingleton(object):
