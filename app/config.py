@@ -5,6 +5,12 @@ from pydantic import BaseSettings
 
 import logging
 
+from jproperties import Properties
+
+configs = Properties()
+with open('app.properties', 'rb') as config_file:
+    configs.load(config_file)
+        
 def is_running_in_docker():
     return os.path.exists('/.dockerenv')
 

@@ -2,7 +2,8 @@ from Utils.Utils import read_step_yaml, get_list_of_steps
 
 from config import logger as log
 from config import workflow_definition_files_path as path
-from config import temporal_queue_name
+# from config import temporal_queue_name
+from config import configs
 
 from typing import Tuple, Any, Optional
 from collections import OrderedDict
@@ -19,25 +20,25 @@ async def run_step(stepConfig):
     client = (await TemporalClient.get_instance())
     if step_type == 'REST':
         result = (await client.execute_workflow(
-            ExecuteRestTask.run, stepConfig, id=("ExecuteRestTask_"+stepConfig['name']), task_queue=temporal_queue_name
+            ExecuteRestTask.run, stepConfig, id=("ExecuteRestTask_"+stepConfig['name']), task_queue=configs.get("temporal.queuename").data
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
     elif step_type == 'CLI':
         result = (await client.execute_workflow(
-            ExecuteCliTask.run, stepConfig, id=("ExecuteCliTask_"+stepConfig['name']), task_queue=temporal_queue_name
+            ExecuteCliTask.run, stepConfig, id=("ExecuteCliTask_"+stepConfig['name']), task_queue=configs.get("temporal.queuename").data
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
     elif step_type == 'NETCONF':
         result = (await client.execute_workflow(
-            ExecuteNetConfTask.run, stepConfig, id=("ExecuteNetConfTask_"+stepConfig['name']), task_queue=temporal_queue_name
+            ExecuteNetConfTask.run, stepConfig, id=("ExecuteNetConfTask_"+stepConfig['name']), task_queue=configs.get("temporal.queuename").data
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
     elif step_type == 'GRPC':
         result = (await client.execute_workflow(
-            ExecuteGrpcTask.run, stepConfig, id=("ExecuteGrpcTask_"+stepConfig['name']), task_queue=temporal_queue_name
+            ExecuteGrpcTask.run, stepConfig, id=("ExecuteGrpcTask_"+stepConfig['name']), task_queue=configs.get("temporal.queuename").data
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
@@ -46,7 +47,7 @@ async def run_step(stepConfig):
         raise ValueError(f"Unsupported configType: {step_type}")
 
 async def invoke_steps(file: str) -> Tuple[Optional[Any], Optional[Exception]]:
-    log.debug(f"Invoking steps")
+    log.debug("Invoking steps")
     
     steps, error = await get_list_of_steps(file)
     

@@ -19,12 +19,18 @@ from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteN
 from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
 from temporal_worker import start_temporal_worker
 
+from jproperties import Properties
+
 users_db = {
     "admin": {
         "username": "admin",
         "password": "C1sco12345",
     }
 }
+
+
+
+
 
 app = FastAPI()
 app.add_middleware(
@@ -40,11 +46,15 @@ security = HTTPBasic()
 
 @app.on_event("startup")
 async def startup():
+    configs = Properties()
+    with open('app.properties', 'rb') as config_file:
+        configs.load(config_file)
+
     log.info("Waiting for Temporal Worker to start up...")
-    await asyncio.sleep(30)
-    await start_temporal_worker(config.temporal_url,
-                                config.temporal_namespace,
-                                config.temporal_queue_name, 
+    # await asyncio.sleep(30)
+    await start_temporal_worker(configs.get("temporal.server").data,
+                                configs.get("temporal.namespace").data,
+                                configs.get("temporal.queuename").data,
                                 [ExecuteRestTask,
                                  ExecuteCliTask,
                                  ExecuteNetConfTask,
@@ -53,7 +63,8 @@ async def startup():
                                  exec_cli_step,
                                  exec_netconf_step,
                                  exec_grpc_step])
-    app.kafka_producer = (await get_kafka_producer())
+    
+    app.kafka_producer = (await get_kafka_producer(configs.get("kafka.server").data, configs.get("kafka.port").data))
 
 @app.on_event("shutdown")
 async def shutdown():
