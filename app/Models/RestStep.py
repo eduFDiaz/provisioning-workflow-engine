@@ -1,16 +1,10 @@
 from Models.Base import Process
-from Models.GlobalParams import Global_params
-from config import api_credentials
 from config import logger as log
 
 import requests
-from typing import Optional, Union, Dict
+from typing import Optional
 from jsonpath_ng.ext import parser
 import json
-
-global_params = Global_params()
-
-from temporalio import activity, workflow
 
 class RestStep(Process):
     """This class will be used to execute REST API calls"""
@@ -48,11 +42,11 @@ class RestStep(Process):
                         result = response.headers.get(value.replace("header.", ""))
                     if result is None or len(result) == 0:
                         raise ValueError(f"Error extracting variable: {key} - {value}")
-                    global_params.setitem(key, result)
+                    self.global_params[key] = result
                 except Exception as e:
                         log.error(f"RestStep extract_variables error: {e}")
                         return False
-            log.debug(f"RestStep global_params after extracting variables from the response: {global_params}")
+            log.debug(f"RestStep global_params after extracting variables from the response: {self.global_params}")
         else:
             return True
         return True
@@ -75,9 +69,9 @@ class RestStep(Process):
                 expression = parser.parse(path)
                 result = [match.value for match in expression.find(response.json())]
                 log.debug(f"RestStep validate_process json result: {result}")
-                if result != global_params.getitem(value):
-                    raise ValueError(f"JSON key mismatch: {key} != {global_params.getitem(value)}")
-                log.debug(f"RestStep validate_process json result: {result} - {value} - {global_params.getitem(value)}")
+                if result != self.global_params[value]:
+                    raise ValueError(f"JSON key mismatch: {key} != {self.global_params[value]}")
+                log.debug(f"RestStep validate_process json result: {result} - {value} - {self.global_params[value]}")
         if self.extract_variables(response) == False:
             raise ValueError(f"Error extracting variables")
     def prepare_step(self):

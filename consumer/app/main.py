@@ -4,7 +4,6 @@ from config import logger as log
 import asyncio
 from pydantic import BaseModel
 
-import json
 from CassandraConnection import CassandraConnection
 from NotificationDao import NotificationDao
 from typing import Dict
@@ -49,15 +48,16 @@ async def get_notification(notification: NotificationModel):
     return fetchedNotification
 
 @app.get("/notification/")
-async def get_notification_by_correlationId(correlationId: str):
+async def get_notification_by_correlationID(correlationID: str):
+    log.info(f"get_notification_by_correlationID: {correlationID}")
     connection = CassandraConnection()
     session = connection.get_session()
     notification_dao = NotificationDao(session)
-    notificationsbyCorrelationId = notification_dao.get_notifications_by_correlationId(uuid.UUID(correlationId))
+    notificationsbyCorrelationId = notification_dao.get_notifications_by_correlationID(uuid.UUID(correlationID))
     log.info(f"fetchedNotification: {notificationsbyCorrelationId}")
     if len(notificationsbyCorrelationId) == 0:
         return JSONResponse(content=[], status_code=202)
-    if len(notificationsbyCorrelationId) != 1:
+    if len(notificationsbyCorrelationId) != 0:
         return notificationsbyCorrelationId
     
 @app.websocket("/ws/")
@@ -89,8 +89,8 @@ class Message(BaseModel):
 async def send_message(message: NotificationModel):
     log.info(f"Received message: {message.toJSON()}")
     log.debug(f"active_connections: {manager.active_connections}")
-    if manager.active_connections.get(str(message.correlationId), None) is not None:
-        await manager.send_message(str(message.correlationId), message.toJSON())
+    if manager.active_connections.get(str(message.correlationID), None) is not None:
+        await manager.send_message(str(message.correlationID), message.toJSON())
     else:
         raise HTTPException(status_code=404, detail="Client not found")
     

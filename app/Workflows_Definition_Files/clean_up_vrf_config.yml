@@ -8,4 +8,5 @@ config: |
   config t
   no vrf definition VRF_Capgemini
   no route-map Capgemini-VRF-IMPORT
+  no route-map Capgemini-VRF-EXPORT
   exit

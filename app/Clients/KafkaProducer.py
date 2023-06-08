@@ -1,5 +1,3 @@
-import os
-
 from config import is_running_in_docker
 from config import logger as log
 
@@ -13,8 +11,6 @@ from datetime import datetime
 
 from config import logger as log
 from typing import Dict
-
-import asyncio
 
 global_params = Global_params()
 
@@ -73,7 +69,7 @@ async def send_complete_notification(notification: NotificationModel) -> Notific
 
 def prepare_notification(conf: Dict) -> NotificationModel:
     notification = NotificationModel(
-        correlationId=uuid.UUID(global_params.getitem('correlationId')),
+        correlationID=uuid.UUID(conf['correlationID']),
         workflow=conf['workflow_name'],
         status="in-progress",
         step=conf['name'],

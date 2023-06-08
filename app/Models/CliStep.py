@@ -1,14 +1,8 @@
-from typing import Dict
 from Models.Base import Process
-from Models.GlobalParams import Global_params
-from config import api_credentials
+
 from config import logger as log
 
-import json
-
 from Clients.SSHClient import SSHClient
-
-from temporalio import activity
 
 class CliStep(Process):
     """This class will execute a list of commands on a remote host through SSH"""
