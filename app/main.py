@@ -70,7 +70,7 @@ async def execute_workflow(flowFileName: str,
                            request_id: Optional[str] = Header(None)) -> HTMLResponse:
     try:
         if not request_id:
-            request_id = uuid.uuid4()
+            request_id = str(uuid.uuid4())
         res = (await invoke_steps(flowFileName, request_id))
         return HTMLResponse(content=f"Workflow executed successfully {res}", status_code=200)
     except Exception as e:
