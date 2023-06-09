@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     temporal_server: str
     temporal_namespace: str = "default"
     temporal_queuename: str
+    
+    temporal_task_init_interval: float = 3
+    temporal_task_backoff_coefficient: float = 2.0  
+    temporal_task_max_attempts: int = 3
+    temporal_task_max_interval: float = 10
 
 settings = Settings()
 
