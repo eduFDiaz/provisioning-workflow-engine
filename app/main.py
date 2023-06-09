@@ -42,7 +42,7 @@ security = HTTPBasic()
 @app.on_event("startup")
 async def startup():
     log.info("Waiting for Temporal Worker to start up...")
-    # await asyncio.sleep(30)
+    await asyncio.sleep(30)
     await start_temporal_worker(settings.temporal_server,
                                 settings.temporal_namespace,
                                 settings.temporal_queuename,
