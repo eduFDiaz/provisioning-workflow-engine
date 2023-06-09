@@ -2,15 +2,9 @@ import os
 from pydantic import BaseSettings
 
 import logging
-
+        
 def is_running_in_docker():
     return os.path.exists('/.dockerenv')
-
-TEMPORAL_URL = None
-if is_running_in_docker():
-    TEMPORAL_URL = os.environ.get("TEMPORAL_URL", "temporal:7233")
-else:
-    TEMPORAL_URL = os.environ.get("TEMPORAL_URL", "localhost:7233")
 
 MONGO_HOST = os.environ.get("MONGO_HOST", "mongodb")
 TEMPORAL_NAMESPACE = os.environ.get("TEMPORAL_NAMESPACE", "default")
@@ -19,17 +13,19 @@ MEMGRAPH_HOST = os.environ.get("MEMGRAPH_HOST", "memgraph")
 MEMGRAPH_PORT = int(os.environ.get("MEMGRAPH_PORT", 7687))
 
 class Settings(BaseSettings):
-    temporal_url: str = TEMPORAL_URL
-    temporal_namespace: str = TEMPORAL_NAMESPACE
-    temporal_queue_name: str = TEMPORAL_QUEUE_NAME
     memgraph_host: str = MEMGRAPH_HOST
     memgraph_port: int = MEMGRAPH_PORT
+    
+    kafka_server: str
+    kafka_port: str = "9092"
+    kafka_groupId: str = "group-template-engine"
+
+    temporal_server: str
+    temporal_namespace: str = "default"
+    temporal_queuename: str
 
 settings = Settings()
 
-temporal_url = settings.temporal_url
-temporal_namespace = settings.temporal_namespace
-temporal_queue_name = settings.temporal_queue_name
 memgraph_host = settings.memgraph_host
 memgraph_port = settings.memgraph_port
 

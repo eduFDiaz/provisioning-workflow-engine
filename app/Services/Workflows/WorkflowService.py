@@ -2,7 +2,8 @@ from Utils.Utils import read_step_yaml, get_list_of_steps
 
 from config import logger as log
 from config import workflow_definition_files_path as path
-from config import temporal_queue_name
+# from config import temporal_queue_name
+from config import configs
 
 from typing import Tuple, Any, Optional
 from collections import OrderedDict
@@ -29,7 +30,7 @@ async def run_step(stepConfig):
             id=("ExecuteRestTask_"+stepConfig['name'] + "_"+stepConfig['correlationID']), 
             execution_timeout=timedelta(seconds=600),
             retry_policy=RetryPolicy(maximum_interval=timedelta(seconds=10),backoff_coefficient=4.0),
-            task_queue=temporal_queue_name
+            task_queue=configs.get("temporal.queuename").data
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
@@ -39,7 +40,7 @@ async def run_step(stepConfig):
             id=("ExecuteCliTask_"+stepConfig['name'] + "_"+stepConfig['correlationID']),
             execution_timeout=timedelta(seconds=600),
             retry_policy=RetryPolicy(maximum_interval=timedelta(seconds=10), backoff_coefficient=4.0),
-            task_queue=temporal_queue_name
+            task_queue=configs.get("temporal.queuename").data
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
@@ -49,7 +50,7 @@ async def run_step(stepConfig):
             id=("ExecuteNetConfTask_"+stepConfig['name'] + "_"+stepConfig['correlationID']),
             execution_timeout=timedelta(seconds=600),
             retry_policy=RetryPolicy(maximum_interval=timedelta(seconds=10), backoff_coefficient=4.0),
-            task_queue=temporal_queue_name
+            task_queue=configs.get("temporal.queuename").data
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
@@ -59,7 +60,7 @@ async def run_step(stepConfig):
             id=("ExecuteGrpcTask_"+stepConfig['name'] + "_"+stepConfig['correlationID']),
             execution_timeout=timedelta(seconds=600),
             retry_policy=RetryPolicy(maximum_interval=timedelta(seconds=10), backoff_coefficient=4.0),
-            task_queue=temporal_queue_name
+            task_queue=configs.get("temporal.queuename").data
         ))
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])

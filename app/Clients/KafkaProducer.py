@@ -16,7 +16,6 @@ global_params = Global_params()
 
 kafka_config = {
     'bootstrap.servers': 'localhost:9092',
-    'group.id': 'my-group',
 }
 
 class KafkaProducerSingleton(object):
@@ -29,21 +28,17 @@ class KafkaProducerSingleton(object):
         self.producer = Producer(config)
 
     @classmethod
-    def get_instance(cls):
-        if is_running_in_docker():
-            KAFKA_URL = 'kafka:9092'
-        else:
-            KAFKA_URL = 'localhost:9092'
-        kafka_config['bootstrap.servers'] = KAFKA_URL
-        log.info(f"kafka_config: {kafka_config}")
+    def get_instance(cls, server, port):
+        kafka_config['bootstrap.servers'] = server + ':' + port
+        log.info("kafka_config: {kafka_config}")
         with cls._lock:
             if cls._instance is None:
                 cls._instance = KafkaProducerSingleton(kafka_config)
             return cls._instance
 
 # Kafka Producer Singleton instance
-async def get_kafka_producer():
-    kafka_producer = KafkaProducerSingleton.get_instance()
+async def get_kafka_producer(server, port):
+    kafka_producer = KafkaProducerSingleton.get_instance(server, port)
     return kafka_producer.producer
 
 async def send_notification(notification: NotificationModel) -> NotificationModel:

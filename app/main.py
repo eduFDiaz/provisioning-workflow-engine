@@ -1,15 +1,18 @@
 # main.py
 import asyncio
+import uuid
 
 from Services.Workflows.WorkflowService import invoke_steps, get_steps_configs
 from Models.NotificationModel import NotificationModel
 
 from config import logger as log
-
+from config import settings
 import config
 
+from typing import Optional
+
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
@@ -36,15 +39,13 @@ app.add_middleware(
 )
 security = HTTPBasic()
 
-
-
 @app.on_event("startup")
 async def startup():
     log.info("Waiting for Temporal Worker to start up...")
-    await asyncio.sleep(30)
-    await start_temporal_worker(config.temporal_url,
-                                config.temporal_namespace,
-                                config.temporal_queue_name, 
+    # await asyncio.sleep(30)
+    await start_temporal_worker(settings.temporal_server,
+                                settings.temporal_namespace,
+                                settings.temporal_queuename,
                                 [ExecuteRestTask,
                                  ExecuteCliTask,
                                  ExecuteNetConfTask,
@@ -53,7 +54,8 @@ async def startup():
                                  exec_cli_step,
                                  exec_netconf_step,
                                  exec_grpc_step])
-    app.kafka_producer = (await get_kafka_producer())
+    
+    app.kafka_producer = (await get_kafka_producer(settings.kafka_server, settings.kafka_port))
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -63,9 +65,13 @@ async def shutdown():
 @app.post("/execute_workflow/",
          summary="this API will execute a temporal workflow from a YAML file", 
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
-async def execute_workflow(flowFileName: str, correlationID: str) -> HTMLResponse:
+
+async def execute_workflow(flowFileName: str,
+                           request_id: Optional[str] = Header(None)) -> HTMLResponse:
     try:
-        res = (await invoke_steps(flowFileName, correlationID))
+        if not request_id:
+            request_id = uuid.uuid4()
+        res = (await invoke_steps(flowFileName, request_id))
         return HTMLResponse(content=f"Workflow executed successfully {res}", status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")
