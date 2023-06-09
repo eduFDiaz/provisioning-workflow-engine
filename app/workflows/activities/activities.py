@@ -1,9 +1,7 @@
-import time
 from temporalio import activity, workflow
 
 # Import activity, passing it through the sandbox without reloading the module
 with workflow.unsafe.imports_passed_through():
-    from datetime import timedelta    
     from config import logger as log
     from typing import Dict
     from Models.RestStep import RestStep

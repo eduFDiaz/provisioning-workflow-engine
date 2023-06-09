@@ -65,6 +65,7 @@ async def shutdown():
 @app.post("/execute_workflow/",
          summary="this API will execute a temporal workflow from a YAML file", 
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
+
 async def execute_workflow(flowFileName: str,
                            request_id: Optional[str] = Header(None)) -> HTMLResponse:
     try:
@@ -79,9 +80,10 @@ async def execute_workflow(flowFileName: str,
 @app.get("/fetch_flow_steps/",
          summary="this API will fetch workflow steps including child workflows from a YAML file", 
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
-async def fetch_steps(workflowFileName: str, correlationId: str):   
+async def fetch_steps(workflowFileName: str, correlationID: str):   
     try:
-        res, err = (await get_steps_configs(workflowFileName, correlationId))
+        log.info(f"fetch_steps {workflowFileName}, correlationID - {correlationID}")
+        res, err = (await get_steps_configs(workflowFileName, correlationID))
         if err:
             return JSONResponse(content=err, status_code=500)
         else:

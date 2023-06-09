@@ -1,6 +1,4 @@
 import os
-from typing_extensions import override
-from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseSettings
 
 import logging
@@ -41,27 +39,21 @@ logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', file
 # Create an instance of the logger
 logger = logging.getLogger()
 
-from contextvars import Context, ContextVar, copy_context
-
 api_credentials = {
     'REST': {
         'username': 'admin',
-        'password': 'C1sco12345',
-        'paramsFile': './Models/PARAMS/REST_PARAMS.yml'
+        'password': 'C1sco12345'
     },
     'CLI': {
         'username': 'admin',
-        'password': 'C1sco12345',
-        'paramsFile': './Models/PARAMS/CLI_PARAMS.yml'
+        'password': 'C1sco12345'
     },
     'NETCONF': {
         'username': 'admin',
-        'password': 'C1sco12345',
-        'paramsFile': './Models/PARAMS/NETCONF_PARAMS.yml'
+        'password': 'C1sco12345'
     },
     'GRPC': {
         'username': 'grpc_user',
-        'password': 'grpc_pass',
-        'paramsFile': './Models/PARAMS/GRPC_PARAMS.yml'
+        'password': 'grpc_pass'
     }
 }

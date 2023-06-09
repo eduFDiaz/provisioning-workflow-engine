@@ -18,7 +18,7 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   milestones: Map<string, Milestone[]> = new Map<string, Milestone[]>();
   milestonesArray: [string, Milestone[]][] = [];
   workflowsArray: Workflow[] = [];
-  correlationId = "0c32b683-683a-4de4-a7f3-44318a14acbc";
+  correlationID = "0c32b683-683a-4de4-a7f3-44318a14acbc";
   workflowFileName = "vpn_provisioning.yml";
   messagesSubscription!: Subscription;
   startTowerStatus = "not-started";
@@ -44,8 +44,8 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   }
   
   ngOnInit(): void {
-    const milestones$: Observable<Record<string, Milestone[]>> = this.http.getMilestones(this.workflowFileName, this.correlationId) as Observable<Record<string, Milestone[]>>;
-    const milestonesStatus$: Observable<Milestone[]> = this.http.getMilestonesStatus(this.workflowFileName, this.correlationId) as Observable<Milestone[]>;
+    const milestones$: Observable<Record<string, Milestone[]>> = this.http.getMilestones(this.workflowFileName, this.correlationID) as Observable<Record<string, Milestone[]>>;
+    const milestonesStatus$: Observable<Milestone[]> = this.http.getMilestonesStatus(this.workflowFileName, this.correlationID) as Observable<Milestone[]>;
 
     forkJoin([milestones$, milestonesStatus$]).subscribe(([milestonesRes, milestonesStatusRes]) => {
       console.log(milestonesRes);
@@ -68,7 +68,7 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
       this.updateWorkflowArray();
     });
 
-    this.messagesSubscription = this.ws.connect(`ws://localhost:4040/ws/?client_id=${this.correlationId}`).
+    this.messagesSubscription = this.ws.connect(`ws://localhost:4040/ws/?client_id=${this.correlationID}`).
     subscribe(
       message => {
         console.log('Received: ' + message);
@@ -116,7 +116,7 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
 
   startWorkflow(): void {
     console.log('Starting workflow');
-    this.http.startWorkflow(this.workflowFileName, this.correlationId).subscribe(
+    this.http.startWorkflow(this.workflowFileName, this.correlationID).subscribe(
       data => {
         console.log(data);
       },

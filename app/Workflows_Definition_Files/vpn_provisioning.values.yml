@@ -1,6 +1,5 @@
 name: master_flow
 log_forwarder_present: true
-correlationId: 0c32b683-683a-4de4-a7f3-44318a14acbc
 cust_subnet: 192.168.187.0/28
 demo: true
 
@@ -44,19 +43,19 @@ prefix-lists-validate:
       action: permit
       ip: 192.168.187.0/28
 route-map-validate:
-  name: Capgemini-VRF-IMPORT
-  route-map-without-order-seq:
-    - "@xmlns": http://cisco.com/ns/yang/Cisco-IOS-XE-route-map
-      seq_no: "10"
-      operation: permit
-      match:
-        ip:
-          address:
-            prefix-list: Capgemini-DC1-Management
-    - "@xmlns": http://cisco.com/ns/yang/Cisco-IOS-XE-route-map
-  seq_no: "20"
-  operation: permit
   match:
     ip:
       address:
         prefix-list: Capgemini-DC2-Management
+  name: Capgemini-VRF-IMPORT
+  operation: permit
+  route-map-without-order-seq:
+    - "@xmlns": http://cisco.com/ns/yang/Cisco-IOS-XE-route-map
+      match:
+        ip:
+          address:
+            prefix-list: Capgemini-DC1-Management
+      operation: permit
+      seq_no: "10"
+    - "@xmlns": http://cisco.com/ns/yang/Cisco-IOS-XE-route-map
+  seq_no: "20"

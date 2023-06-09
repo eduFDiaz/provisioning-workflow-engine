@@ -14,7 +14,7 @@ export class MilestoneHttpService {
     this.httpClient = http;
     this.mockMilestones = [
       {
-          "correlationId": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "phy_interface_vrf",
           "status": "completed",
           "step": "Fetch_order_configs",
@@ -25,7 +25,7 @@ export class MilestoneHttpService {
           "description": "Fetching order configs for flow steps"
       },
       {
-          "correlationId": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "phy_interface_vrf",
           "status": "completed",
           "step": "clean_up_vrf_config",
@@ -36,7 +36,7 @@ export class MilestoneHttpService {
           "description": "deleting vrf configs from the device"
       },
       {
-          "correlationId": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "netconf_vrf_steps",
           "status": "completed",
           "step": "add_vrf_definition",
@@ -47,7 +47,7 @@ export class MilestoneHttpService {
           "description": "adding vrf definition configs to the device"
       },
       {
-          "correlationId": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "netconf_vrf_steps",
           "status": "completed",
           "step": "add_prefix_lists",
@@ -58,7 +58,7 @@ export class MilestoneHttpService {
           "description": "adding prefix lists configs to the device"
       },
       {
-          "correlationId": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "netconf_vrf_steps",
           "status": "failed",
           "step": "add_route_maps",
@@ -71,18 +71,18 @@ export class MilestoneHttpService {
   ];
   }
 
-  getMilestones(workflowFileName: string, correlationId: string) {
+  getMilestones(workflowFileName: string, correlationID: string) {
     // This is a call to WORKFLOW MS (The PRODUCER APP which has the inventory of all the workflows file definitions)
-    var url = `http://localhost:8000/fetch_flow_steps/?workflowFileName=${workflowFileName}&correlationId=${correlationId}`
+    var url = `http://localhost:8000/fetch_flow_steps/?workflowFileName=${workflowFileName}&correlationID=${correlationID}`
     console.log("url: ", url);
     return this.httpClient.get(url);
   }
 
-  getMilestonesStatus(workflowFileName: string, correlationId: string) {
+  getMilestonesStatus(workflowFileName: string, correlationID: string) {
     // remove to get the milestones from the mock data instead of the notification MS Cassandra DB
     // return this.getMockMilestones();
     // this is a call to NOTIFICATION MS (The CONSUMER APP which has the casssandra DAO to fetch the milestones status)
-    var url = `http://localhost:4040/notification/?correlationId=${correlationId}`;
+    var url = `http://localhost:4040/notification/?correlationID=${correlationID}`;
     console.log("url: ", url);
     return this.httpClient.get(url);
   }
@@ -92,7 +92,7 @@ export class MilestoneHttpService {
     return of(this.mockMilestones);
   }
 
-  startWorkflow(workflowFileName: string, correlationId: string) {
-    return this.httpClient.post(`http://localhost:8000/execute_workflow/?flowFileName=${workflowFileName}`, {});
+  startWorkflow(workflowFileName: string, correlationID: string) {
+    return this.httpClient.post(`http://localhost:8000/execute_workflow/?flowFileName=${workflowFileName}&correlationID=${correlationID}`, {});
   }
 }

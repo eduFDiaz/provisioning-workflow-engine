@@ -16,7 +16,7 @@ async def main():
     notification_dao = NotificationDao(session)
 
     # jsonRes = {
-    # "correlationId": "00000000-0000-0000-0000-000000000000",
+    # "correlationID": "00000000-0000-0000-0000-000000000000",
     # "workflow": "phy_interface_vrf",
     # "status": "not-started",
     # "step": "Fetch_order_configs",
@@ -54,7 +54,7 @@ async def main():
 
     # # Updating a notification
     # updated_notification = NotificationModel(
-    #     correlationId=notificationId,
+    #     correlationID=notificationId,
     #     workflow="workflow1", 
     #     status="completed", 
     #     step="step1", 
@@ -70,7 +70,7 @@ async def main():
     # for notification in notifications:
     #     print(notification.toJSON())
 
-    notificationsbyCorrelationId = notification_dao.get_notifications_by_correlationId(notificationId)
+    notificationsbyCorrelationId = notification_dao.get_notifications_by_correlationID(notificationId)
     for notification in notificationsbyCorrelationId:
         print(notification.toJSON())
 
