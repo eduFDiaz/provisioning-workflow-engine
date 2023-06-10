@@ -9,7 +9,7 @@ from config import logger as log
 class Process:
     """Base class for all process types"""
     def __init__(self, config):
-        self.global_params = Global_params().getMap(config['correlationID'])
+        self.global_params = Global_params().getMap(config['requestID'])
         self.name = config['name']
         self.configType = config['configType']
         self.config = config

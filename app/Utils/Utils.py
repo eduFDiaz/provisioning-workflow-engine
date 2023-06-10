@@ -18,14 +18,14 @@ def read_step_yaml(file_path) -> collections.OrderedDict:
     with open(file_path, 'r') as f:
         return yaml.safe_load(f)
 
-def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) -> Tuple[Optional[List[Any]], Optional[Exception]]:
+def read_workflow_steps(file_path: str, steps: List[Any], requestID: str) -> Tuple[Optional[List[Any]], Optional[Exception]]:
     """This method will recursively read steps on the root  workflow YAML file, as well as child workflows.
     It will return a list of steps, or an error if one occurs.
     """
     log.debug(f"Reading read_flow_yaml YAML file: {file_path}")
     try:
         
-        global_params = Global_params().getMap(correlationID)
+        global_params = Global_params().getMap(requestID)
         log.debug(f"Global params:\n{global_params}")
 
         values_data = read_step_yaml(file_path.replace('.yml','.values.yml'))
@@ -53,26 +53,26 @@ def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) ->
         for step in renderedDict['steps']:
             log.debug(f"Found step: {step.get('name')}")
             if step.get('type') == 'workflow':
-                steps, err = read_workflow_steps(f"{path}/{step.get('file')}", steps, correlationID)
+                steps, err = read_workflow_steps(f"{path}/{step.get('file')}", steps, requestID)
                 # if err:
                 #     return None, err
             else:
                 step['workflow_name'] = renderedDict.get('name')
                 step['workflow_metadata'] = renderedDict.get('metadata')
                 step['workflow_dependencies'] = renderedDict.get('dependencies')
-                step['correlationID'] = correlationID
+                step['requestID'] = requestID
                 log.debug(f"Adding step: {step}")
                 steps.append(step)
         return steps, None
     except Exception as e:
         return None, e
     
-async def get_list_of_steps(file: str, correlationID: str) -> Tuple[Optional[Any], Optional[Exception]]:
+async def get_list_of_steps(file: str, requestID: str) -> Tuple[Optional[Any], Optional[Exception]]:
     log.debug(f"Getting list of steps")
     
     steps = []
     
-    steps, error = read_workflow_steps(f"{path}/{file}", steps, correlationID)
+    steps, error = read_workflow_steps(f"{path}/{file}", steps, requestID)
     
     if error:
         log.error(f"Error reading workflow file: {file}")
@@ -84,7 +84,7 @@ async def get_list_of_steps(file: str, correlationID: str) -> Tuple[Optional[Any
         config['workflow_name'] = step['workflow_name']
         config['workflow_metadata'] = step['workflow_metadata']
         config['workflow_dependencies'] = step['workflow_dependencies']
-        config['correlationID'] = step['correlationID']
+        config['requestID'] = step['requestID']
         stepConfigs.append(config)
 
     _ = [log.debug(stepConfig) for stepConfig in list(stepConfigs)]

@@ -2,7 +2,7 @@ name: Fetch PE Config
 description: fetch configuration for PE device
 configType: REST
 request:
-  url: http://{{pe.config_server_ip}}:{{pe.config_server_port}}/config/{{correlationID}}
+  url: http://{{pe.config_server_ip}}:{{pe.config_server_port}}/config/{{requestID}}
   method: GET
   headers:
     Accept: application/json

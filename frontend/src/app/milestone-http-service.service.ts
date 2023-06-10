@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Milestone } from './Models/Milestone';
 import { Observable, of } from 'rxjs';
 
@@ -14,7 +14,7 @@ export class MilestoneHttpService {
     this.httpClient = http;
     this.mockMilestones = [
       {
-          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "phy_interface_vrf",
           "status": "completed",
           "step": "Fetch_order_configs",
@@ -25,7 +25,7 @@ export class MilestoneHttpService {
           "description": "Fetching order configs for flow steps"
       },
       {
-          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "phy_interface_vrf",
           "status": "completed",
           "step": "clean_up_vrf_config",
@@ -36,7 +36,7 @@ export class MilestoneHttpService {
           "description": "deleting vrf configs from the device"
       },
       {
-          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "netconf_vrf_steps",
           "status": "completed",
           "step": "add_vrf_definition",
@@ -47,7 +47,7 @@ export class MilestoneHttpService {
           "description": "adding vrf definition configs to the device"
       },
       {
-          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "netconf_vrf_steps",
           "status": "completed",
           "step": "add_prefix_lists",
@@ -58,7 +58,7 @@ export class MilestoneHttpService {
           "description": "adding prefix lists configs to the device"
       },
       {
-          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "netconf_vrf_steps",
           "status": "failed",
           "step": "add_route_maps",
@@ -71,18 +71,18 @@ export class MilestoneHttpService {
   ];
   }
 
-  getMilestones(workflowFileName: string, correlationID: string) {
+  getMilestones(workflowFileName: string, requestID: string) {
     // This is a call to WORKFLOW MS (The PRODUCER APP which has the inventory of all the workflows file definitions)
-    var url = `http://localhost:8000/fetch_flow_steps/?workflowFileName=${workflowFileName}&correlationID=${correlationID}`
+    var url = `http://localhost:8000/fetch_flow_steps/?workflowFileName=${workflowFileName}&requestID=${requestID}`
     console.log("url: ", url);
     return this.httpClient.get(url);
   }
 
-  getMilestonesStatus(workflowFileName: string, correlationID: string) {
+  getMilestonesStatus(workflowFileName: string, requestID: string) {
     // remove to get the milestones from the mock data instead of the notification MS Cassandra DB
     // return this.getMockMilestones();
     // this is a call to NOTIFICATION MS (The CONSUMER APP which has the casssandra DAO to fetch the milestones status)
-    var url = `http://localhost:4040/notification/?correlationID=${correlationID}`;
+    var url = `http://localhost:8000/notification/?&requestID=${requestID}`;
     console.log("url: ", url);
     return this.httpClient.get(url);
   }
@@ -92,7 +92,13 @@ export class MilestoneHttpService {
     return of(this.mockMilestones);
   }
 
-  startWorkflow(workflowFileName: string, correlationID: string) {
-    return this.httpClient.post(`http://localhost:8000/execute_workflow/?flowFileName=${workflowFileName}&correlationID=${correlationID}`, {});
+  startWorkflow(workflowFileName: string, requestID: string) {
+    //Create the headers for the post request adding requestID to it
+    let httpHeaders = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'requestID': requestID
+    });
+    
+    return this.httpClient.post(`http://localhost:8000/execute_workflow/?flowFileName=${workflowFileName}`, {headers: httpHeaders});
   }
 }

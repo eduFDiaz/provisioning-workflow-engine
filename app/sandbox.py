@@ -1128,11 +1128,11 @@ config_customer_vrf_rendered_template = """
 
 # uncomment ONLY to run the jinja rendenring tests, when running workflows
 # the global params dict will be updated by the workflow activities
-correlationID = '0c32b683-683a-4de4-a7f3-44318a14acbc'
+requestID = '0c32b683-683a-4de4-a7f3-44318a14acbc'
 params_init = {'interfaceName': ['GigabitEthernet1'], 'loopbackInterface': ['Loopback109'], 'name': 'phy_interface_vrf', 'log_forwarder_present': False, 'interfaces': ['GigabitEthernet1', 'GigabitEthernet2', 'GigabitEthernet3'], 'api_key': 'api_key_value', 'uuid': '0c32b683-683a-4de4-a7f3-44318a14acbc', 'userId': 'palsa', 'interface_name': 'GigabitEthernet1', 'dns_name': '8.8.8.8', 'PL_AS_65003_IN': ['ip address 10.0.1.19', 'ip address 10.0.1.20', 'ip address 10.0.1.21'], 'ip_prefix_list': [[{'name': 'Capgemini-DC1-Management', 'index': 10, 'action': 'permit', 'prefix': '192.168.187.0/28'}]], 'route_map': [[{'name': 'Capgemini-VRF-IMPORT', 'match-list': [{'index': 10, 'operation': 'permit', 'prefix': 'Capgemini-DC1-Management'}, {'index': 20, 'operation': 'permit', 'prefix': 'Capgemini-DC2-Management'}]}]], 'vrf': [[{'name': 'VRF_Capgemini', 'rd': '100:110', 'rt-import': ['100:1000'], 'rt-export': ['100:1000'], 'ipv4-import': ['Capgemini-VRF-IMPORT'], 'ipv4-export': ['Capgemini-VRF-EXPORT']}]]}
 # params_init = {}
 
-global_params = Global_params().getMap(correlationID)
+global_params = Global_params().getMap(requestID)
 print(global_params)
 
 for key, value in params_init.items():
@@ -1298,5 +1298,5 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(startup())
     # loop.run_until_complete(invoke_steps("phy_interface_vrf.yml"))
-    loop.run_until_complete(invoke_steps("vpn_provisioning.yml", correlationID))
+    loop.run_until_complete(invoke_steps("vpn_provisioning.yml", requestID))
     # loop.run_until_complete(get_steps_configs("vpn_provisioning.yml","0c32b683-683a-4de4-a7f3-44318a14acbc"))

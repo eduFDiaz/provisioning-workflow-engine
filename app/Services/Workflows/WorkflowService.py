@@ -27,7 +27,7 @@ async def run_step(stepConfig):
     if step_type == 'REST':
         result = (await client.execute_workflow(
             ExecuteRestTask.run, stepConfig,
-            id=("ExecuteRestTask_"+stepConfig['name'] + "_"+stepConfig['correlationID']), 
+            id=("ExecuteRestTask_"+stepConfig['name'] + "_"+stepConfig['requestID']), 
             execution_timeout=timedelta(seconds=600),
             retry_policy=RetryPolicy(maximum_interval=timedelta(seconds=10),backoff_coefficient=4.0),
             task_queue=settings.temporal_queuename
@@ -37,7 +37,7 @@ async def run_step(stepConfig):
     elif step_type == 'CLI':
         result = (await client.execute_workflow(
             ExecuteCliTask.run, stepConfig,
-            id=("ExecuteCliTask_"+stepConfig['name'] + "_"+stepConfig['correlationID']),
+            id=("ExecuteCliTask_"+stepConfig['name'] + "_"+stepConfig['requestID']),
             execution_timeout=timedelta(seconds=600),
             # retry_policy=RetryPolicy(maximum_interval=settings.temporal_task_max_interval, backoff_coefficient=settings.temporal_task_backoff_coefficient),
             retry_policy=RetryPolicy(maximum_interval=timedelta(seconds=settings.temporal_task_max_interval), backoff_coefficient=settings.temporal_task_backoff_coefficient),
@@ -48,7 +48,7 @@ async def run_step(stepConfig):
     elif step_type == 'NETCONF':
         result = (await client.execute_workflow(
             ExecuteNetConfTask.run, stepConfig, 
-            id=("ExecuteNetConfTask_"+stepConfig['name'] + "_"+stepConfig['correlationID']),
+            id=("ExecuteNetConfTask_"+stepConfig['name'] + "_"+stepConfig['requestID']),
             execution_timeout=timedelta(seconds=600),
             retry_policy=RetryPolicy(maximum_interval=timedelta(seconds=10), backoff_coefficient=4.0),
             task_queue=settings.temporal_queuename
@@ -58,7 +58,7 @@ async def run_step(stepConfig):
     elif step_type == 'GRPC':
         result = (await client.execute_workflow(
             ExecuteGrpcTask.run, stepConfig,
-            id=("ExecuteGrpcTask_"+stepConfig['name'] + "_"+stepConfig['correlationID']),
+            id=("ExecuteGrpcTask_"+stepConfig['name'] + "_"+stepConfig['requestID']),
             execution_timeout=timedelta(seconds=600),
             retry_policy=RetryPolicy(maximum_interval=timedelta(seconds=10), backoff_coefficient=4.0),
             task_queue=settings.temporal_queuename
@@ -69,10 +69,10 @@ async def run_step(stepConfig):
         log.error(f"Unsupported configType: {step_type}")
         raise ValueError(f"Unsupported configType: {step_type}")
 
-async def invoke_steps(file: str, correlationID: str) -> Tuple[Optional[Any], Optional[Exception]]:
-    log.debug(f"Invoking steps, correlationID: {correlationID}")
+async def invoke_steps(file: str, requestID: str) -> Tuple[Optional[Any], Optional[Exception]]:
+    log.debug(f"Invoking steps, requestID: {requestID}")
     
-    steps, error = await get_list_of_steps(file, correlationID)
+    steps, error = await get_list_of_steps(file, requestID)
     
     if error:
         log.error(f"Error getting list of steps")
@@ -81,7 +81,7 @@ async def invoke_steps(file: str, correlationID: str) -> Tuple[Optional[Any], Op
     results = [await run_step(stepConfig) for stepConfig in steps]
     return results
 
-async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any], Optional[Exception]]:
+async def get_steps_configs(file: str, requestID: str) -> Tuple[Optional[Any], Optional[Exception]]:
     log.debug(f"get_steps_configs")
 
     # milestonesResult will be a map of milestone names to a list of steps
@@ -89,7 +89,7 @@ async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any
     root_flow_path = f"{path}/{file}"
     dict = read_step_yaml(root_flow_path)
 
-    global_params = Global_params().getMap(correlationID)
+    global_params = Global_params().getMap(requestID)
     values_data = read_step_yaml(root_flow_path.replace('.yml','.values.yml'))
     for key, value in values_data.items():
         global_params[key]=value
@@ -98,7 +98,7 @@ async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any
     log.debug(f"global_params: {global_params}")
     
     for milestone in dict['steps']:
-        steps, error = await get_list_of_steps(milestone['file'], correlationID)
+        steps, error = await get_list_of_steps(milestone['file'], requestID)
         if error:
             log.error(f"Error getting list of steps")
             return None, error
@@ -115,7 +115,7 @@ async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any
                     step['startedDate'] = ""
                     step['endTime'] = ""
                     step['status'] = "not-started"
-                    step['correlationID'] = correlationID
+                    step['requestID'] = requestID
                 # rename workflow_name to workflow to match notification schema
                 step['workflow'] = step.pop('workflow_name')
                 step['step'] = step.pop('name')

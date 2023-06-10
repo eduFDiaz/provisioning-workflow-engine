@@ -40,7 +40,7 @@ services:
       - kafka
     command: >
       bash -c "cub kafka-ready -b kafka:9092 1 20 && 
-                kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 --topic test
+                kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 --topic template-engine-topic
                 sleep infinity"
     networks:
       - temporal-network
@@ -84,6 +84,7 @@ services:
       - temporal-network
     volumes:
       - ./consumer/app:/app
+      - ./app/env:/app/env
     
   frontend:
     build: ./frontend

@@ -9,16 +9,8 @@ with workflow.unsafe.imports_passed_through():
     from Models.NetConfStep import NetConfStep
     from Models.GrpcStep import GrpcStep
     from Clients.KafkaProducer import send_in_progress_notification, send_complete_notification, send_error_notification, prepare_notification
-    import requests
-    import json
-    from Models.NotificationModel import NotificationModel
-    from config import is_running_in_docker
-
-consumer_app_host = None
-if is_running_in_docker:
-    consumer_app_host = 'consumer_app'
-else:
-    consumer_app_host = 'localhost'
+    from Clients.CassandraConnection import CassandraConnection
+    from dao.NotificationDao import NotificationDao
 
 def sendNotifications(func):
     """Decorator to send notifications when a step is started, completed or failed.
@@ -27,15 +19,11 @@ def sendNotifications(func):
     """
     async def wrapper(*args, **kwargs):
         notification = prepare_notification(args[0])
-        
-        # get this notification from the Consumer (Notification service)
-        # TODO: outsource this code to a separate service?
-        response = requests.post(f'http://{consumer_app_host}:4040/notification/', json=json.loads(notification.toJSON()), verify=False)
-        
-        log.debug(f"sendNotifications response {response.status_code}")
-        log.debug(f"sendNotifications response {response.json()}")
-        log.debug(f"sendNotifications response unpacked {json.loads(json.dumps(response.json()))}")
-        notification = NotificationModel(**json.loads(json.dumps(response.json())))
+
+        connection = CassandraConnection()
+        session = connection.get_session()
+        notification_dao = NotificationDao(session)
+        notification = notification_dao.get_notification(notification)
 
         log.debug(f"notification from response {notification}")
         if notification.status == "completed":

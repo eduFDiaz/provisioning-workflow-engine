@@ -2,30 +2,13 @@ from confluent_kafka import Consumer, KafkaException
 import threading
 from Models.NotificationModel import NotificationModel
 from config import logger as log
-from config import is_running_in_docker
 import json
-from CassandraConnection import CassandraConnection
-from NotificationDao import NotificationDao
-from typing import Dict
 
 from Clients.WebSocketManager import WebSocketManager as WSClient
 
 import asyncio
 
-manager = WSClient()
-
-# docker exec -it kafka bash
-# kafka-console-consumer --bootstrap-server kafka:9092 --topic test --from-beginning
-# [appuser@0586aeb882ba ~]$ kafka-console-consumer --bootstrap-server kafka:9092 --topic test --from-beginning
-# workflow='string2' status='string2' step='string' milestoneName='string' milestoneStepName='string' startTime='string' endTime='string'
-# workflow='string2' status='string2' step='string' milestoneName='string' milestoneStepName='string' startTime='string' endTime='string'
-# workflow='string2' status='string2' step='string' milestoneName='string' milestoneStepName='string' startTime='string' endTime='string'
-
-kafka_config = {
-                'bootstrap.servers': 'kafka:9092',
-                'group.id': 'my-group',
-                'auto.offset.reset': 'earliest'
-            }
+from config import settings
 
 class KafkaConsumerSingleton(object):
     _instance = None
@@ -44,26 +27,14 @@ class KafkaConsumerSingleton(object):
             if self._instance != None:
                 raise Exception("This class is a singleton!")
             else:
-                if is_running_in_docker():
-                    KAFKA_URL = 'kafka:9092'
-                else:
-                    KAFKA_URL = 'localhost:9092'
-                kafka_config['bootstrap.servers'] = KAFKA_URL
+                kafka_config = {}
+                kafka_config['bootstrap.servers'] = f"{settings.kafka_server}:{settings.kafka_port}"
+                kafka_config['group.id'] = settings.kafka_groupId
+                kafka_config['auto.offset.reset'] = 'earliest'
                 log.info(f"kafka_config: {kafka_config}")
                 self._instance = Consumer(kafka_config)
         except Exception as e:
             log.error(f"KafkaConsumerSingleton.__init__(): {e}")
-    
-    def add_or_update_notification(self, message: Dict):
-        log.info(f"notification_dict: {message}")
-        notification = NotificationModel(**message)
-        log.info(f"notification: {notification}")
-        log.info(f"KafkaConsumerSingleton.add_or_update_notification({notification})")
-        connection = CassandraConnection()
-        session = connection.get_session()
-        notification_dao = NotificationDao(session)
-        notification_dao.add_or_update_notification(notification)
-        return notification
 
     async def start_consuming(self, topic, manager: WSClient):
         log.info(f"KafkaConsumerSingleton.start_consuming({topic})")
@@ -81,8 +52,8 @@ class KafkaConsumerSingleton(object):
                     # Here you can do whatever you want with the messages.
                     log.debug(f"Received message with key {msg.key()} and value {msg.value().decode('utf-8')}")
                     notification_dict = json.loads(msg.value().decode('utf-8'))
-                    notification = self.add_or_update_notification(notification_dict)
-                    client_id = str(notification.correlationID)
+                    notification = NotificationModel(**notification_dict)
+                    client_id = str(notification.requestID)
                     log.info(f"client_id: {client_id}")
                     log.info(f"manager.active_connections: {manager.active_connections}")
                     if manager.active_connections[client_id] is not None:

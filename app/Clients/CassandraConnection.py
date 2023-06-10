@@ -1,16 +1,13 @@
 from cassandra.cluster import Cluster
 from config import logger as log
-from config import is_running_in_docker
+from config import settings
 
-if is_running_in_docker():
-    CASSANDRA_URL = ['cassandra']
-else:
-    CASSANDRA_URL = ['0.0.0.0']
+CASSANDRA_URL = [settings.cassandra_server]
 
 class CassandraConnection:
     def __init__(self):
         log.info("CASSANDRA_URL: " + str(CASSANDRA_URL))
-        self.cluster = Cluster(CASSANDRA_URL, port=9042)
+        self.cluster = Cluster(CASSANDRA_URL, port=settings.cassandra_port)
         self.session = self.cluster.connect()
         self.session.execute("CREATE KEYSPACE IF NOT EXISTS workflows WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };")
         # self.drop_table() # uncomment this line to drop the notifications table
@@ -29,7 +26,7 @@ class CassandraConnection:
     def create_table(self):
         self.session.execute("""
             CREATE TABLE IF NOT EXISTS workflows.Notifications (
-                "correlationID" uuid,
+                "requestID" uuid,
                 "workflow" text,
                 "status" text,
                 "step" text,
@@ -37,6 +34,6 @@ class CassandraConnection:
                 "milestoneStepName" text,
                 "startTime" text,
                 "endTime" text,
-                PRIMARY KEY ("correlationID", "workflow", "step", "milestoneName")
+                PRIMARY KEY ("requestID", "workflow", "step", "milestoneName")
             );
         """)

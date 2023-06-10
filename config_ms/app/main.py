@@ -38,11 +38,11 @@ async def startup():
 async def shutdown():
     log.info("Shutting down config_ms...")
 
-def getConfig(correlationID: str):
-    log.info(f"getConfig {correlationID}")
+def getConfig(requestID: str):
+    log.info(f"getConfig {requestID}")
     try:
         configs = {}
-        configs["0c32b683-683a-4de4-a7f3-44318a14acbc"] ={
+        configs["changing-this-to-any-id"] ={
             "vrf": [
                 {
                     "name": "VRF_Capgemini",
@@ -93,7 +93,7 @@ def getConfig(correlationID: str):
                 }
             ],
         }
-        return configs[correlationID]
+        return configs['changing-this-to-any-id']
     except Exception as e:
         log.error(f"Error: {e}")
         return f"Error: {e}"
@@ -104,13 +104,13 @@ def authorize(security: HTTPBasicCredentials = Depends(security)):
             return True
     return False
 
-@app.get("/config/{correlationID}",
-        summary="this API will return the config for the given correlationID",
-        description="this API will return the config for the given correlationID"
+@app.get("/config/{requestID}",
+        summary="this API will return the config for the given requestID",
+        description="this API will return the config for the given requestID"
         ,dependencies=[Depends(authorize)])
-async def get_config(correlationID: str) -> JSONResponse:
+async def get_config(requestID: str) -> JSONResponse:
     try:
-        config = getConfig(correlationID)
+        config = getConfig(requestID)
         return JSONResponse(content=config, status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")

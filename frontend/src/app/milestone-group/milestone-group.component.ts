@@ -18,7 +18,7 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   milestones: Map<string, Milestone[]> = new Map<string, Milestone[]>();
   milestonesArray: [string, Milestone[]][] = [];
   workflowsArray: Workflow[] = [];
-  correlationID = "0c32b683-683a-4de4-a7f3-44318a14acbc";
+  requestID: string = "";
   workflowFileName = "vpn_provisioning.yml";
   messagesSubscription!: Subscription;
   startTowerStatus = "not-started";
@@ -44,67 +44,12 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   }
   
   ngOnInit(): void {
-    const milestones$: Observable<Record<string, Milestone[]>> = this.http.getMilestones(this.workflowFileName, this.correlationID) as Observable<Record<string, Milestone[]>>;
-    const milestonesStatus$: Observable<Milestone[]> = this.http.getMilestonesStatus(this.workflowFileName, this.correlationID) as Observable<Milestone[]>;
-
-    forkJoin([milestones$, milestonesStatus$]).subscribe(([milestonesRes, milestonesStatusRes]) => {
-      console.log(milestonesRes);
-      console.log(milestonesStatusRes);
-
-      this.milestones = new Map<string, any>(Object.entries(milestonesRes));
-      this.milestonesArray = Array.from(this.milestones.entries());
-
-      // find each element of milestonesStatusRes in this.milestones and merge them using the spread operator
-      milestonesStatusRes.forEach(milestone => {
-        const arrayIndex = this.milestonesArray.findIndex(milestoneArray => milestoneArray[0] === milestone.workflow);
-        if (arrayIndex !== -1) {
-          const milestoneIndex = this.milestonesArray[arrayIndex][1].findIndex(milestoneArray => milestoneArray.step === milestone.step);
-          if (milestoneIndex !== -1) {
-            this.milestonesArray[arrayIndex][1][milestoneIndex] = {...this.milestonesArray[arrayIndex][1][milestoneIndex], ...milestone};
-          }
-        }
-      });
-      
-      this.updateWorkflowArray();
-    });
-
-    this.messagesSubscription = this.ws.connect(`ws://localhost:4040/ws/?client_id=${this.correlationID}`).
-    subscribe(
-      message => {
-        console.log('Received: ' + message);
-        if (message !== 'ping') {
-            // parse the message as a Milestone object
-            var tmpMilestone: Milestone = JSON.parse(message);
-            console.log(tmpMilestone, typeof(tmpMilestone));
-            // find the element in the milestoneArray that contains the milestone received and merge it with the newly received tmpMilestone using spread operator
-            const arrayIndex = this.milestonesArray.findIndex(milestone => milestone[0] === tmpMilestone.workflow);
-            if (arrayIndex !== -1) {
-                const milestoneIndex = this.milestonesArray[arrayIndex][1].findIndex(milestone => milestone.step === tmpMilestone.step);
-                if (milestoneIndex !== -1) {
-                    console.log('milestone before update', this.milestonesArray[arrayIndex][1][milestoneIndex]);
-                    this.milestonesArray[arrayIndex][1][milestoneIndex] = {...this.milestonesArray[arrayIndex][1][milestoneIndex], ...tmpMilestone};
-                    console.log('milestone after update', this.milestonesArray[arrayIndex][1][milestoneIndex]);
-                }
-            }
-            this.cd.detectChanges();
-            console.log(this.milestonesArray);
-            this.updateWorkflowArray();
-        }
-      },
-      error => console.error('Error: ' + error),
-      () => console.log('Completed')
-    );
+    this.startWorkflow();
 
     this.sendMessage();
     this.sendMessage();
     this.sendMessage();
     this.sendMessage();
-  }
-  
-  // When you want to send a message
-  sendMessage(): void {
-    console.log('Sending a message');
-    this.ws.send('Hello from Angular!');
   }
 
   ngOnDestroy(): void {
@@ -116,9 +61,34 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
 
   startWorkflow(): void {
     console.log('Starting workflow');
-    this.http.startWorkflow(this.workflowFileName, this.correlationID).subscribe(
-      data => {
-        console.log(data);
+    this.http.startWorkflow(this.workflowFileName, this.requestID).subscribe(
+      (response: any) => {
+        this.requestID = response["requestID"]
+        this.subscribeToMessages(this.requestID);
+        console.log(response);
+        const milestones$: Observable<Record<string, Milestone[]>> = this.http.getMilestones(this.workflowFileName, this.requestID) as Observable<Record<string, Milestone[]>>;
+        const milestonesStatus$: Observable<Milestone[]> = this.http.getMilestonesStatus(this.workflowFileName, this.requestID) as Observable<Milestone[]>;
+
+        forkJoin([milestones$, milestonesStatus$]).subscribe(([milestonesRes, milestonesStatusRes]) => {
+          console.log(milestonesRes);
+          console.log(milestonesStatusRes);
+
+          this.milestones = new Map<string, any>(Object.entries(milestonesRes));
+          this.milestonesArray = Array.from(this.milestones.entries());
+
+          // find each element of milestonesStatusRes in this.milestones and merge them using the spread operator
+          milestonesStatusRes.forEach(milestone => {
+            const arrayIndex = this.milestonesArray.findIndex(milestoneArray => milestoneArray[0] === milestone.workflow);
+            if (arrayIndex !== -1) {
+              const milestoneIndex = this.milestonesArray[arrayIndex][1].findIndex(milestoneArray => milestoneArray.step === milestone.step);
+              if (milestoneIndex !== -1) {
+                this.milestonesArray[arrayIndex][1][milestoneIndex] = {...this.milestonesArray[arrayIndex][1][milestoneIndex], ...milestone};
+              }
+            }
+          });
+          
+          this.updateWorkflowArray();
+        });
       },
       error => {
         console.log(error);
@@ -206,4 +176,40 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
     console.log("retry flow from parent", $event);
     this.startWorkflow();
   }
+
+  subscribeToMessages(requestID: string): void {
+    this.messagesSubscription = this.ws.connect(`ws://localhost:4040/ws/?client_id=${requestID}`).
+    subscribe(
+      message => {
+        console.log('Received: ' + message);
+        if (message !== 'ping') {
+            // parse the message as a Milestone object
+            var tmpMilestone: Milestone = JSON.parse(message);
+            console.log(tmpMilestone, typeof(tmpMilestone));
+            // find the element in the milestoneArray that contains the milestone received and merge it with the newly received tmpMilestone using spread operator
+            const arrayIndex = this.milestonesArray.findIndex(milestone => milestone[0] === tmpMilestone.workflow);
+            if (arrayIndex !== -1) {
+                const milestoneIndex = this.milestonesArray[arrayIndex][1].findIndex(milestone => milestone.step === tmpMilestone.step);
+                if (milestoneIndex !== -1) {
+                    console.log('milestone before update', this.milestonesArray[arrayIndex][1][milestoneIndex]);
+                    this.milestonesArray[arrayIndex][1][milestoneIndex] = {...this.milestonesArray[arrayIndex][1][milestoneIndex], ...tmpMilestone};
+                    console.log('milestone after update', this.milestonesArray[arrayIndex][1][milestoneIndex]);
+                }
+            }
+            this.cd.detectChanges();
+            console.log(this.milestonesArray);
+            this.updateWorkflowArray();
+        }
+      },
+      error => console.error('Error: ' + error),
+      () => console.log('Completed')
+    );
+  }
+  
+  // When you want to send a message
+  sendMessage(): void {
+    console.log('Sending a message');
+    this.ws.send('Hello from Angular!');
+  }
 }
+

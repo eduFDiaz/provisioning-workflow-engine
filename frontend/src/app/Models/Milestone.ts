@@ -1,5 +1,5 @@
 export interface Milestone {
-    correlationID:     string;
+    requestID:     string;
     workflow:          string;
     status:            string | ["not-started", "in-progress", "completed", "failed"];
     step:              string;

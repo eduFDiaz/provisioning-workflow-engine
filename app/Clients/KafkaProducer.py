@@ -1,10 +1,8 @@
-from config import is_running_in_docker
 from config import logger as log
 
 from confluent_kafka import Producer
 from threading import Lock
 
-from Models.GlobalParams import Global_params
 from Models.NotificationModel import NotificationModel
 import uuid
 from datetime import datetime
@@ -12,10 +10,12 @@ from datetime import datetime
 from config import logger as log
 from typing import Dict
 
-global_params = Global_params()
+from config import settings
+from Clients.CassandraConnection import CassandraConnection
+from dao.NotificationDao import NotificationDao
 
 kafka_config = {
-    'bootstrap.servers': 'localhost:9092',
+    'bootstrap.servers': f"{settings.kafka_server}:{settings.kafka_port}",
 }
 
 class KafkaProducerSingleton(object):
@@ -41,30 +41,42 @@ async def get_kafka_producer(server, port):
     kafka_producer = KafkaProducerSingleton.get_instance(server, port)
     return kafka_producer.producer
 
+def add_or_update_notification(message: Dict):
+    log.info(f"notification_dict: {message}")
+    notification = NotificationModel(**message)
+    log.info(f"notification: {notification}")
+    log.info(f"KafkaConsumerSingleton.add_or_update_notification({notification})")
+    connection = CassandraConnection()
+    session = connection.get_session()
+    notification_dao = NotificationDao(session)
+    notification_dao.add_or_update_notification(notification)
+    return notification
+
 async def send_notification(notification: NotificationModel) -> NotificationModel:
     log.debug(f"Sending notification: {notification.toJSON()}")
-    producer = (await get_kafka_producer())
-    producer.produce('test', notification.toJSON())
+    add_or_update_notification(notification.__dict__)
+    producer = (await get_kafka_producer(settings.kafka_server, settings.kafka_port))
+    producer.produce(settings.kafka_topic, notification.toJSON())
     producer.flush()
     return notification
 
 async def send_error_notification(notification: NotificationModel) -> NotificationModel:
     notification.status = "failed"
-    notification.endTime = datetime.utcnow().strftime("%Y-%m-%d UTC %H:%M:%S")
+    notification.endTime = datetime.utcnow().strftime(settings.notification_date_format)
     log.debug(f"Notification Error: {notification.toJSON()}")
     await send_notification(notification)
     return notification
 
 async def send_complete_notification(notification: NotificationModel) -> NotificationModel:
     notification.status = "completed"
-    notification.endTime = datetime.utcnow().strftime("%Y-%m-%d UTC %H:%M:%S")
+    notification.endTime = datetime.utcnow().strftime(settings.notification_date_format)
     log.debug(f"Notification Completed: {notification.toJSON()}")
     await send_notification(notification)
     return notification
 
 def prepare_notification(conf: Dict) -> NotificationModel:
     notification = NotificationModel(
-        correlationID=uuid.UUID(conf['correlationID']),
+        requestID=uuid.UUID(conf['requestID']),
         workflow=conf['workflow_name'],
         status="in-progress",
         step=conf['name'],
@@ -78,7 +90,7 @@ def prepare_notification(conf: Dict) -> NotificationModel:
 
 async def send_in_progress_notification(notification: NotificationModel) -> NotificationModel:
     notification.status="in-progress"
-    notification.startTime = datetime.utcnow().strftime("%Y-%m-%d UTC %H:%M:%S")
+    notification.startTime = datetime.utcnow().strftime(settings.notification_date_format)
     notification.endTime = ""
     log.debug(f"Notification In Progress: {notification.toJSON()}")
     await send_notification(notification)
