@@ -28,6 +28,18 @@ class Settings(BaseSettings):
     temporal_task_backoff_coefficient: float = 2.0  
     temporal_task_max_attempts: int = 3
     temporal_task_max_interval: float = 10
+    temporal_task_start_to_close_timeout: float = 30
+    temporal_workflow_execution_timeout: float = 300
+    
+    cassandra_host: str
+    cassandra_port : str = 9042
+    
+    ssh_timeout: int = 5
+    ssh_banner_timeout: int = 5
+    ssh_auth_timeout: int = 5
+    
+    consumer_app_host: str
+    consumer_app_port: str
 
 settings = Settings()
 

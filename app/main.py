@@ -1,8 +1,9 @@
 # main.py
 import asyncio
 import uuid
+from datetime import timedelta
 
-from Services.Workflows.WorkflowService import invoke_steps, get_steps_configs
+from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow
 from Models.NotificationModel import NotificationModel
 
 from config import logger as log
@@ -10,6 +11,7 @@ from config import settings
 import config
 
 from typing import Optional
+
 
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Depends, FastAPI, Request, Header
@@ -19,8 +21,11 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from Clients.KafkaProducer import get_kafka_producer
 
 from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
-from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
+from workflows.activities.activities import read_template, exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
+
+
 from temporal_worker import start_temporal_worker
+from temporalClient import TemporalClient
 
 users_db = {
     "admin": {
@@ -46,11 +51,14 @@ async def startup():
     await start_temporal_worker(settings.temporal_server,
                                 settings.temporal_namespace,
                                 settings.temporal_queuename,
-                                [ExecuteRestTask,
+                                [TemplateWorkflow,
+                                 TemplateChildWorkflow,
+                                 ExecuteRestTask,
                                  ExecuteCliTask,
                                  ExecuteNetConfTask,
                                  ExecuteGrpcTask], 
-                                [exec_rest_step,
+                                [read_template,
+                                 exec_rest_step,
                                  exec_cli_step,
                                  exec_netconf_step,
                                  exec_grpc_step])
@@ -60,7 +68,7 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     log.info("Shutting down Temporal Worker...")
-    await config.temporal_worker.stop()
+    # await config.temporal_worker.stop()
     
 @app.post("/execute_workflow/",
          summary="this API will execute a temporal workflow from a YAML file", 
@@ -68,11 +76,21 @@ async def shutdown():
 
 async def execute_workflow(flowFileName: str,
                            request_id: Optional[str] = Header(None)) -> HTMLResponse:
+    print(f"POST API: execute_workflow/?flowFileName={flowFileName}, request_id={request_id}")
     try:
         if not request_id:
             request_id = str(uuid.uuid4())
-        res = (await invoke_steps(flowFileName, request_id))
-        return HTMLResponse(content=f"Workflow executed successfully {res}", status_code=200)
+        client = (await TemporalClient.get_instance())
+        print(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
+        result = (await client.execute_workflow(
+            TemplateWorkflow.run, TemplateWorkflowArgs(request_id, flowFileName),
+            id=(flowFileName + "_" + request_id), 
+            task_queue=settings.temporal_queuename,
+            execution_timeout=timedelta(seconds=settings.temporal_workflow_execution_timeout),
+        ))
+        
+        # res = (await invoke_steps(flowFileName, request_id))
+        return HTMLResponse(content=f"Workflow executed successfully {result}", status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")
         return HTMLResponse(content=f"Error: {e}", status_code=500)
@@ -107,3 +125,5 @@ async def kafka_endpoint(payload: NotificationModel) -> JSONResponse:
     app.kafka_producer.produce('test', payload.toJSON())
     app.kafka_producer.flush()
     return {"message": f"Message sent to Kafka {payload.toJSON()}"}
+
+

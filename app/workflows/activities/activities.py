@@ -13,7 +13,9 @@ with workflow.unsafe.imports_passed_through():
     import json
     from Models.NotificationModel import NotificationModel
     from config import is_running_in_docker
-
+    from config import settings
+    from Utils.Utils import read_step_yaml, get_list_of_steps
+    
 consumer_app_host = None
 if is_running_in_docker:
     consumer_app_host = 'consumer_app'
@@ -30,7 +32,7 @@ def sendNotifications(func):
         
         # get this notification from the Consumer (Notification service)
         # TODO: outsource this code to a separate service?
-        response = requests.post(f'http://{consumer_app_host}:4040/notification/', json=json.loads(notification.toJSON()), verify=False)
+        response = requests.post(f'http://{settings.consumer_app_host}:{settings.consumer_app_port}/notification/', json=json.loads(notification.toJSON()), verify=False)
         
         log.debug(f"sendNotifications response {response.status_code}")
         log.debug(f"sendNotifications response {response.json()}")
@@ -61,6 +63,14 @@ def sendNotifications(func):
         return result
     
     return wrapper
+
+@activity.defn(name="read_template")
+# @sendNotifications
+async def read_template(wfFileName: str, requestId: str) -> list:
+    log.debug(f"Step read_template {wfFileName} {requestId}")
+    steps, error = get_list_of_steps(wfFileName, requestId)
+    return steps
+
 
 @activity.defn(name="exec_rest_step")
 @sendNotifications

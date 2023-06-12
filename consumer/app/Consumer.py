@@ -12,20 +12,13 @@ from Clients.WebSocketManager import WebSocketManager as WSClient
 
 import asyncio
 
+from config import settings
+
 manager = WSClient()
 
-# docker exec -it kafka bash
-# kafka-console-consumer --bootstrap-server kafka:9092 --topic test --from-beginning
-# [appuser@0586aeb882ba ~]$ kafka-console-consumer --bootstrap-server kafka:9092 --topic test --from-beginning
-# workflow='string2' status='string2' step='string' milestoneName='string' milestoneStepName='string' startTime='string' endTime='string'
-# workflow='string2' status='string2' step='string' milestoneName='string' milestoneStepName='string' startTime='string' endTime='string'
-# workflow='string2' status='string2' step='string' milestoneName='string' milestoneStepName='string' startTime='string' endTime='string'
-
 kafka_config = {
-                'bootstrap.servers': 'kafka:9092',
-                'group.id': 'my-group',
-                'auto.offset.reset': 'earliest'
-            }
+    'auto.offset.reset': 'earliest'
+}
 
 class KafkaConsumerSingleton(object):
     _instance = None
@@ -44,11 +37,8 @@ class KafkaConsumerSingleton(object):
             if self._instance != None:
                 raise Exception("This class is a singleton!")
             else:
-                if is_running_in_docker():
-                    KAFKA_URL = 'kafka:9092'
-                else:
-                    KAFKA_URL = 'localhost:9092'
-                kafka_config['bootstrap.servers'] = KAFKA_URL
+                kafka_config['bootstrap.servers'] = settings.kafka_server + ':' + settings.kafka_port
+                kafka_config['group.id'] = settings.kafka_groupId
                 log.info(f"kafka_config: {kafka_config}")
                 self._instance = Consumer(kafka_config)
         except Exception as e:

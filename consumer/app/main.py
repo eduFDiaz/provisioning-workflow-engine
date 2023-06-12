@@ -32,7 +32,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     log.info("Waiting for Kafka to start up...")
-    await asyncio.sleep(20)
+    # await asyncio.sleep(20)
     log.info("Starting Kafka Consumer...")
     app.kafka_consumer = KafkaConsumerSingleton.getInstance()
     await app.kafka_consumer.start_consuming('test', manager)
