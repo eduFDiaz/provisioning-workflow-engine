@@ -65,6 +65,8 @@ async def RunTask(task):
             parent_close_policy= ParentClosePolicy.TERMINATE
         )
         
+    #TODO: add code for starting activity
+        
     return
       
 async def run_step(stepConfig):
