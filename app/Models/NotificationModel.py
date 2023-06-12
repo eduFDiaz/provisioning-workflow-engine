@@ -10,7 +10,7 @@ with open('Models/models_metadata.yaml', 'r') as f:
     status_enum_values = tuple(models_metadata['NotificationModel']['properties']['status'])
 
     class NotificationModel(BaseModel):
-        requestID: uuid.UUID
+        correlationID: uuid.UUID
         workflow: str
         status: Literal[status_enum_values]
         step: str
@@ -21,7 +21,7 @@ with open('Models/models_metadata.yaml', 'r') as f:
 
         def toJSON(self):
             json_dict = self.dict()
-            json_dict['requestID'] = str(json_dict['requestID'])
+            json_dict['correlationID'] = str(json_dict['correlationID'])
             return json.dumps(json_dict, default=lambda o: o.__dict__, 
                 sort_keys=True, indent=4)
 

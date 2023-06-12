@@ -18,25 +18,27 @@ def read_step_yaml(file_path) -> collections.OrderedDict:
     with open(file_path, 'r') as f:
         return yaml.safe_load(f)
 
-def read_workflow_steps(file_path: str, steps: List[Any], requestID: str) -> Tuple[Optional[List[Any]], Optional[Exception]]:
+def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) -> Tuple[Optional[List[Any]], Optional[Exception]]:
     """This method will recursively read steps on the root  workflow YAML file, as well as child workflows.
     It will return a list of steps, or an error if one occurs.
     """
-    log.debug(f"Reading read_flow_yaml YAML file: {file_path}")
     try:
         
-        global_params = Global_params().getMap(requestID)
-        log.debug(f"Global params:\n{global_params}")
+        global_params = Global_params().getMap(correlationID)
+        log.debug(f"Global params:{global_params}")
 
         values_data = read_step_yaml(file_path.replace('.yml','.values.yml'))
-        
         for key, value in values_data.items():
             global_params[key] = value
 
+        log.debug(f"Global params:{global_params}")
         log.debug(f"Values file:\n{values_data}")
+        
+        log.debug(f"Reading file: {file_path}")
         with open(file_path, 'r') as f:
             file_content = f.read()
-            
+        
+        log.debug(f"Render the file content as a Jinja template")    
         # Render the file content as a Jinja template
         template = Template(file_content)
         rendered_template = template.render(**global_params)
@@ -52,41 +54,53 @@ def read_workflow_steps(file_path: str, steps: List[Any], requestID: str) -> Tup
         # root workflow should be a list of steps (i.e renderedDict.get('steps')==True)
         for step in renderedDict['steps']:
             log.debug(f"Found step: {step.get('name')}")
+            step['workflow_name'] = renderedDict.get('name')
+            step['workflow_metadata'] = renderedDict.get('metadata')
+            step['workflow_dependencies'] = renderedDict.get('dependencies')
+            step['correlationID'] = correlationID
+                
             if step.get('type') == 'workflow':
-                steps, err = read_workflow_steps(f"{path}/{step.get('file')}", steps, requestID)
+                step['steps'] = []
+                step['steps'], err = read_workflow_steps(f"{path}/{step.get('file')}", step['steps'], correlationID)
                 # if err:
                 #     return None, err
             else:
-                step['workflow_name'] = renderedDict.get('name')
-                step['workflow_metadata'] = renderedDict.get('metadata')
-                step['workflow_dependencies'] = renderedDict.get('dependencies')
-                step['requestID'] = requestID
-                log.debug(f"Adding step: {step}")
-                steps.append(step)
+                step['type'] = "activity"
+                step['config'] = read_step_yaml(f"{path}/{step['file']}")
+                step['config']['correlationID'] = step['correlationID']
+                step['config']['workflow_name'] = step['workflow_name']
+                
+            log.debug(f"Adding step: {step}")
+            steps.append(step)
         return steps, None
     except Exception as e:
         return None, e
     
-async def get_list_of_steps(file: str, requestID: str) -> Tuple[Optional[Any], Optional[Exception]]:
-    log.debug(f"Getting list of steps")
+def get_list_of_steps(file: str, correlationID: str) -> Tuple[Optional[Any], Optional[Exception]]:
+    log.debug(f"Getting list of steps from file {file}, path={path}, correlationID:{correlationID}")
     
     steps = []
     
-    steps, error = read_workflow_steps(f"{path}/{file}", steps, requestID)
-    
+    steps, error = read_workflow_steps(f"{path}/{file}", steps, correlationID)
+    log.debug(f"steps:\n {steps}")
+        
     if error:
-        log.error(f"Error reading workflow file: {file}")
+        log.error(f"Error reading workflow file: {path}/{file}. error: {str(error)}")
         return None, error
 
-    stepConfigs = []
-    for step in steps:
-        config = read_step_yaml(f"{path}/{step['file']}")
-        config['workflow_name'] = step['workflow_name']
-        config['workflow_metadata'] = step['workflow_metadata']
-        config['workflow_dependencies'] = step['workflow_dependencies']
-        config['requestID'] = step['requestID']
-        stepConfigs.append(config)
+    return steps, None
+    # stepConfigs = []
+    # for item in steps:
+    #      if item.get('type') == 'workflow':
+             
+             
+    #     config = read_step_yaml(f"{path}/{step['file']}")
+    #     config['workflow_name'] = step['workflow_name']
+    #     config['workflow_metadata'] = step['workflow_metadata']
+    #     config['workflow_dependencies'] = step['workflow_dependencies']
+    #     config['correlationID'] = step['correlationID']
+    #     stepConfigs.append(config)
 
-    _ = [log.debug(stepConfig) for stepConfig in list(stepConfigs)]
+    # _ = [log.debug(stepConfig) for stepConfig in list(stepConfigs)]
     
-    return stepConfigs, None
+    # return stepConfigs, None

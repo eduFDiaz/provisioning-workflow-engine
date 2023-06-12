@@ -14,13 +14,25 @@ class Settings(BaseSettings):
     temporal_namespace: str = "default"
     temporal_queuename: str
     
-    temporal_task_init_interval: float = 3
-    temporal_task_backoff_coefficient: float = 2.0  
-    temporal_task_max_attempts: int = 3
-    temporal_task_max_interval: float = 10
-
-    cassandra_server: str = "cassandra"
-    cassandra_port: int = 9042
+    temporal_task_init_interval: float
+    temporal_task_backoff_coefficient: float
+    temporal_task_max_attempts: int
+    temporal_task_max_interval: float
+    temporal_task_start_to_close_timeout: float
+    temporal_workflow_execution_timeout: float
+    
+    cassandra_host: str
+    cassandra_port : str = 9042
+    cassandra_user: str
+    cassandra_password: str
+    
+    ssh_timeout: int = 5
+    ssh_banner_timeout: int = 5
+    ssh_auth_timeout: int = 5
+    
+    consumer_app_host: str
+    consumer_app_port: str
+    
 
     notification_date_format: str = "%Y-%m-%d UTC %H:%M:%S"
 

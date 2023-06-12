@@ -14,7 +14,7 @@ export class MilestoneHttpService {
     this.httpClient = http;
     this.mockMilestones = [
       {
-          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "phy_interface_vrf",
           "status": "completed",
           "step": "Fetch_order_configs",
@@ -25,7 +25,7 @@ export class MilestoneHttpService {
           "description": "Fetching order configs for flow steps"
       },
       {
-          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "phy_interface_vrf",
           "status": "completed",
           "step": "clean_up_vrf_config",
@@ -36,7 +36,7 @@ export class MilestoneHttpService {
           "description": "deleting vrf configs from the device"
       },
       {
-          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "netconf_vrf_steps",
           "status": "completed",
           "step": "add_vrf_definition",
@@ -47,7 +47,7 @@ export class MilestoneHttpService {
           "description": "adding vrf definition configs to the device"
       },
       {
-          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "netconf_vrf_steps",
           "status": "completed",
           "step": "add_prefix_lists",
@@ -58,7 +58,7 @@ export class MilestoneHttpService {
           "description": "adding prefix lists configs to the device"
       },
       {
-          "requestID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
+          "correlationID": "0c32b683-683a-4de4-a7f3-44318a14acbc",
           "workflow": "netconf_vrf_steps",
           "status": "failed",
           "step": "add_route_maps",
@@ -95,7 +95,7 @@ export class MilestoneHttpService {
   startWorkflow(workflowFileName: string, requestID: string) {
     //Create the headers for the post request adding requestID to it
     let httpHeaders = new HttpHeaders();
-    httpHeaders = httpHeaders.append('requestID', requestID);
+    httpHeaders = httpHeaders.append('correlationID', requestID);
 
     let options = {headers: httpHeaders};
     

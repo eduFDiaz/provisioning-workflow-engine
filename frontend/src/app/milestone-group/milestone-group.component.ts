@@ -18,7 +18,7 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   milestones: Map<string, Milestone[]> = new Map<string, Milestone[]>();
   milestonesArray: [string, Milestone[]][] = [];
   workflowsArray: Workflow[] = [];
-  requestID: string = "";
+  correlationID: string = "";
   workflowFileName = "vpn_provisioning.yml";
   messagesSubscription!: Subscription;
   startTowerStatus = "not-started";
@@ -61,13 +61,13 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
 
   startWorkflow(): void {
     console.log('Starting workflow');
-    this.http.startWorkflow(this.workflowFileName, this.requestID).subscribe(
+    this.http.startWorkflow(this.workflowFileName, this.correlationID).subscribe(
       (response: any) => {
-        this.requestID = response["requestID"]
-        this.subscribeToMessages(this.requestID);
+        this.correlationID = response["correlationID"]
+        this.subscribeToMessages(this.correlationID);
         console.log(response);
-        const milestones$: Observable<Record<string, Milestone[]>> = this.http.getMilestones(this.workflowFileName, this.requestID) as Observable<Record<string, Milestone[]>>;
-        const milestonesStatus$: Observable<Milestone[]> = this.http.getMilestonesStatus(this.workflowFileName, this.requestID) as Observable<Milestone[]>;
+        const milestones$: Observable<Record<string, Milestone[]>> = this.http.getMilestones(this.workflowFileName, this.correlationID) as Observable<Record<string, Milestone[]>>;
+        const milestonesStatus$: Observable<Milestone[]> = this.http.getMilestonesStatus(this.workflowFileName, this.correlationID) as Observable<Milestone[]>;
 
         forkJoin([milestones$, milestonesStatus$]).subscribe(([milestonesRes, milestonesStatusRes]) => {
           console.log(milestonesRes);

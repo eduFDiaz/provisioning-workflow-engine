@@ -55,8 +55,8 @@ class Message(BaseModel):
 async def send_message(message: NotificationModel):
     log.info(f"Received message: {message.toJSON()}")
     log.debug(f"active_connections: {manager.active_connections}")
-    if manager.active_connections.get(str(message.requestID), None) is not None:
-        await manager.send_message(str(message.requestID), message.toJSON())
+    if manager.active_connections.get(str(message.correlationID), None) is not None:
+        await manager.send_message(str(message.correlationID), message.toJSON())
     else:
         raise HTTPException(status_code=404, detail="Client not found")
     

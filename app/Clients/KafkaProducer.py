@@ -9,6 +9,7 @@ from datetime import datetime
 
 from config import logger as log
 from typing import Dict
+from config import settings
 
 from config import settings
 from Clients.CassandraConnection import CassandraConnection
@@ -29,7 +30,7 @@ class KafkaProducerSingleton(object):
 
     @classmethod
     def get_instance(cls, server, port):
-        kafka_config['bootstrap.servers'] = server + ':' + port
+        kafka_config['bootstrap.servers'] = settings.kafka_server + ':' + settings.kafka_port
         log.info("kafka_config: {kafka_config}")
         with cls._lock:
             if cls._instance is None:
@@ -54,7 +55,6 @@ def add_or_update_notification(message: Dict):
 
 async def send_notification(notification: NotificationModel) -> NotificationModel:
     log.debug(f"Sending notification: {notification.toJSON()}")
-    add_or_update_notification(notification.__dict__)
     producer = (await get_kafka_producer(settings.kafka_server, settings.kafka_port))
     producer.produce(settings.kafka_topic, notification.toJSON())
     producer.flush()
@@ -76,7 +76,7 @@ async def send_complete_notification(notification: NotificationModel) -> Notific
 
 def prepare_notification(conf: Dict) -> NotificationModel:
     notification = NotificationModel(
-        requestID=uuid.UUID(conf['requestID']),
+        correlationID=uuid.UUID(conf['correlationID']),
         workflow=conf['workflow_name'],
         status="in-progress",
         step=conf['name'],

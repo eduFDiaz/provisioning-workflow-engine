@@ -1,13 +1,14 @@
 from cassandra.cluster import Cluster
+from cassandra.auth import PlainTextAuthProvider
 from config import logger as log
+# from config import is_running_in_docker
 from config import settings
-
-CASSANDRA_URL = [settings.cassandra_server]
 
 class CassandraConnection:
     def __init__(self):
-        log.info("CASSANDRA_URL: " + str(CASSANDRA_URL))
-        self.cluster = Cluster(CASSANDRA_URL, port=settings.cassandra_port)
+        log.info("CASSANDRA_URL: " + settings.cassandra_host)
+        auth_provider = PlainTextAuthProvider(settings.cassandra_user, settings.cassandra_password)
+        self.cluster = Cluster([settings.cassandra_host], port=settings.cassandra_port, auth_provider=auth_provider)
         self.session = self.cluster.connect()
         self.session.execute("CREATE KEYSPACE IF NOT EXISTS workflows WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };")
         # self.drop_table() # uncomment this line to drop the notifications table
@@ -26,7 +27,7 @@ class CassandraConnection:
     def create_table(self):
         self.session.execute("""
             CREATE TABLE IF NOT EXISTS workflows.Notifications (
-                "requestID" uuid,
+                "correlationID" uuid,
                 "workflow" text,
                 "status" text,
                 "step" text,
@@ -34,6 +35,6 @@ class CassandraConnection:
                 "milestoneStepName" text,
                 "startTime" text,
                 "endTime" text,
-                PRIMARY KEY ("requestID", "workflow", "step", "milestoneName")
+                PRIMARY KEY ("correlationID", "workflow", "step", "milestoneName")
             );
         """)

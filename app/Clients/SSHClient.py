@@ -1,7 +1,8 @@
 import paramiko
 import time
 
-from config import logger as log
+from config import logger as log, settings
+from socket import error as socket_error
 
 class SSHClient:
     """SSH Client for the CliStep class"""
@@ -11,7 +12,32 @@ class SSHClient:
         self.password = password
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.ssh.connect(hostname, username=username, password=password)
+        try:
+            self.ssh.connect(hostname, username=username, password=password, 
+                timeout=settings.ssh_timeout, banner_timeout=settings.ssh_banner_timeout, 
+                auth_timeout=settings.ssh_auth_timeout, look_for_keys=False)
+        except paramiko.BadHostKeyException as error:
+            log.error("BadHostKeyException")
+            log.error(error)
+        except paramiko.AuthenticationException as error:
+            log.error("AuthenticationException")
+            log.error(error)
+        # except paramiko.UnableToAuthenticate as error:
+        #     print ("UnableToAuthenticate")
+        #     print (error)
+        # except socket_error as error:
+        #     print ("socket_error")
+        #     print (error)
+        # except paramiko.NoValidConnectionsError as error:
+        #     print ("NoValidConnectionsError")
+        #     print (error)
+        except paramiko.SSHException as error:
+            log.error("SSHException")
+            log.error(error)
+        except Exception as error:
+            log.error("Exception")
+            log.error(error)
+        
         self.channel = self.ssh.invoke_shell()
     
     def __del__(self):

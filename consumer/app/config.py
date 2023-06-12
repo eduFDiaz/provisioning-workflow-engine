@@ -15,4 +15,9 @@ class Settings(BaseSettings):
     kafka_groupId: str
     kafka_topic: str
 
+    cassandra_host: str
+    cassandra_port : str
+    cassandra_user: str
+    cassandra_password: str
+    
 settings = Settings()

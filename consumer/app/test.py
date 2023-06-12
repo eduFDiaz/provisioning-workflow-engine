@@ -16,7 +16,7 @@ async def main():
     notification_dao = NotificationDao(session)
 
     # jsonRes = {
-    # "requestID": "00000000-0000-0000-0000-000000000000",
+    # "correlationID": "00000000-0000-0000-0000-000000000000",
     # "workflow": "phy_interface_vrf",
     # "status": "not-started",
     # "step": "Fetch_order_configs",

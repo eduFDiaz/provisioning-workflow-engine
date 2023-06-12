@@ -11,7 +11,7 @@ class Global_params:
     
     def getMap(self, requestID: str):
         if requestID not in self._singleton_data:
-            self._singleton_data[requestID] = { 'requestID': requestID }
+            self._singleton_data[requestID] = { 'correlationID': requestID }
         return self._singleton_data[requestID]
     
     @override

@@ -2,7 +2,7 @@ name: Fetch CE Config
 description: fetch configuration for CE device
 configType: REST
 request:
-  url: http://{{ce.config_server_ip}}:{{ce.config_server_port}}/config/{{requestID}}
+  url: http://{{ce.config_server_ip}}:{{ce.config_server_port}}/config/{{correlationID}}
   method: GET
   headers:
     Accept: application/json

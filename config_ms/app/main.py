@@ -104,13 +104,13 @@ def authorize(security: HTTPBasicCredentials = Depends(security)):
             return True
     return False
 
-@app.get("/config/{requestID}",
-        summary="this API will return the config for the given requestID",
-        description="this API will return the config for the given requestID"
+@app.get("/config/{correlationID}",
+        summary="this API will return the config for the given correlationID",
+        description="this API will return the config for the given correlationID"
         ,dependencies=[Depends(authorize)])
-async def get_config(requestID: str) -> JSONResponse:
+async def get_config(correlationID: str) -> JSONResponse:
     try:
-        config = getConfig(requestID)
+        config = getConfig(correlationID)
         return JSONResponse(content=config, status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")

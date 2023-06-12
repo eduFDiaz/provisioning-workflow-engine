@@ -10,6 +10,12 @@ import asyncio
 
 from config import settings
 
+manager = WSClient()
+
+kafka_config = {
+    'auto.offset.reset': 'earliest'
+}
+
 class KafkaConsumerSingleton(object):
     _instance = None
     _lock = threading.Lock()
@@ -27,10 +33,8 @@ class KafkaConsumerSingleton(object):
             if self._instance != None:
                 raise Exception("This class is a singleton!")
             else:
-                kafka_config = {}
-                kafka_config['bootstrap.servers'] = f"{settings.kafka_server}:{settings.kafka_port}"
+                kafka_config['bootstrap.servers'] = settings.kafka_server + ':' + settings.kafka_port
                 kafka_config['group.id'] = settings.kafka_groupId
-                kafka_config['auto.offset.reset'] = 'earliest'
                 log.info(f"kafka_config: {kafka_config}")
                 self._instance = Consumer(kafka_config)
         except Exception as e:
@@ -53,7 +57,7 @@ class KafkaConsumerSingleton(object):
                     log.debug(f"Received message with key {msg.key()} and value {msg.value().decode('utf-8')}")
                     notification_dict = json.loads(msg.value().decode('utf-8'))
                     notification = NotificationModel(**notification_dict)
-                    client_id = str(notification.requestID)
+                    client_id = str(notification.correlationID)
                     log.info(f"client_id: {client_id}")
                     log.info(f"manager.active_connections: {manager.active_connections}")
                     if manager.active_connections[client_id] is not None:

@@ -11,6 +11,13 @@ with workflow.unsafe.imports_passed_through():
     from Clients.KafkaProducer import send_in_progress_notification, send_complete_notification, send_error_notification, prepare_notification
     from Clients.CassandraConnection import CassandraConnection
     from dao.NotificationDao import NotificationDao
+    from Utils.Utils import get_list_of_steps
+    
+# consumer_app_host = None
+# if is_running_in_docker:
+#     consumer_app_host = 'consumer_app'
+# else:
+#     consumer_app_host = 'localhost'
 
 def sendNotifications(func):
     """Decorator to send notifications when a step is started, completed or failed.
@@ -19,7 +26,7 @@ def sendNotifications(func):
     """
     async def wrapper(*args, **kwargs):
         notification = prepare_notification(args[0])
-
+        
         connection = CassandraConnection()
         session = connection.get_session()
         notification_dao = NotificationDao(session)
@@ -49,6 +56,15 @@ def sendNotifications(func):
         return result
     
     return wrapper
+
+@activity.defn(name="read_template")
+# @sendNotifications
+async def read_template(wfFileName: str, requestId: str) -> list:
+    log.debug(f"Step read_template {wfFileName} {requestId}")
+    steps, error = get_list_of_steps(wfFileName, requestId)
+    _ = [log.debug(f"read_template steps - {stepConfig}") for stepConfig in list(steps)]
+    return steps
+
 
 @activity.defn(name="exec_rest_step")
 @sendNotifications
