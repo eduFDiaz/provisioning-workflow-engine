@@ -5,6 +5,7 @@ from typing import Union
 from jinja2 import Template
 
 from config import logger as log
+from dataclasses import dataclass
 
 class Process:
     """Base class for all process types"""
@@ -47,3 +48,9 @@ class Process:
             log.debug(f"{self.configType} after replace_params\n{renderedParam}")
             return renderedParam
         raise ValueError(f"Unsupported type: {type(param)}")
+    
+@dataclass
+class TemplateWorkflowArgs:
+    requestId: str
+    WorkflowFileName: str
+    

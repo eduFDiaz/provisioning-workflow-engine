@@ -93,7 +93,7 @@ def getConfig(correlationID: str):
                 }
             ],
         }
-        return configs[correlationID]
+        return configs["0c32b683-683a-4de4-a7f3-44318a14acbc"]
     except Exception as e:
         log.error(f"Error: {e}")
         return f"Error: {e}"

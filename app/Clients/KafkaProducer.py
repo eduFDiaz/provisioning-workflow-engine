@@ -11,6 +11,7 @@ from datetime import datetime
 
 from config import logger as log
 from typing import Dict
+from config import settings
 
 global_params = Global_params()
 
@@ -29,7 +30,7 @@ class KafkaProducerSingleton(object):
 
     @classmethod
     def get_instance(cls, server, port):
-        kafka_config['bootstrap.servers'] = server + ':' + port
+        kafka_config['bootstrap.servers'] = settings.kafka_server + ':' + settings.kafka_port
         log.info("kafka_config: {kafka_config}")
         with cls._lock:
             if cls._instance is None:
@@ -43,7 +44,7 @@ async def get_kafka_producer(server, port):
 
 async def send_notification(notification: NotificationModel) -> NotificationModel:
     log.debug(f"Sending notification: {notification.toJSON()}")
-    producer = (await get_kafka_producer())
+    producer = (await get_kafka_producer(settings.kafka_server, settings.kafka_port))
     producer.produce('test', notification.toJSON())
     producer.flush()
     return notification
