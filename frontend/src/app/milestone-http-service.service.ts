@@ -94,11 +94,11 @@ export class MilestoneHttpService {
 
   startWorkflow(workflowFileName: string, requestID: string) {
     //Create the headers for the post request adding requestID to it
-    let httpHeaders = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'requestID': requestID
-    });
+    let httpHeaders = new HttpHeaders();
+    httpHeaders = httpHeaders.append('requestID', requestID);
+
+    let options = {headers: httpHeaders};
     
-    return this.httpClient.post(`http://localhost:8000/execute_workflow/?flowFileName=${workflowFileName}`, {headers: httpHeaders});
+    return this.httpClient.post(`http://localhost:8000/execute_workflow/?flowFileName=${workflowFileName}`, options);
   }
 }
