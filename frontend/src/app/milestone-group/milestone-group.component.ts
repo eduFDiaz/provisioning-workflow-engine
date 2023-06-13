@@ -63,8 +63,8 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
     console.log('Starting workflow');
     this.http.startWorkflow(this.workflowFileName, this.correlationID).subscribe(
       (response: any) => {
-        this.correlationID = response["correlationID"]
-        this.subscribeToMessages(this.correlationID);
+        this.correlationID = response["requestID"];
+        
         console.log(response);
         const milestones$: Observable<Record<string, Milestone[]>> = this.http.getMilestones(this.workflowFileName, this.correlationID) as Observable<Record<string, Milestone[]>>;
         const milestonesStatus$: Observable<Milestone[]> = this.http.getMilestonesStatus(this.workflowFileName, this.correlationID) as Observable<Milestone[]>;
@@ -89,6 +89,7 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
           
           this.updateWorkflowArray();
         });
+        this.subscribeToMessages(this.correlationID);
       },
       error => {
         console.log(error);

@@ -55,6 +55,7 @@ def add_or_update_notification(message: Dict):
 
 async def send_notification(notification: NotificationModel) -> NotificationModel:
     log.debug(f"Sending notification: {notification.toJSON()}")
+    add_or_update_notification(notification.__dict__)
     producer = (await get_kafka_producer(settings.kafka_server, settings.kafka_port))
     producer.produce(settings.kafka_topic, notification.toJSON())
     producer.flush()

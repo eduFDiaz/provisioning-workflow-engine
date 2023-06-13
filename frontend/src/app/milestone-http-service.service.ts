@@ -95,7 +95,13 @@ export class MilestoneHttpService {
   startWorkflow(workflowFileName: string, requestID: string) {
     //Create the headers for the post request adding requestID to it
     let httpHeaders = new HttpHeaders();
-    httpHeaders = httpHeaders.append('correlationID', requestID);
+
+    if (requestID != null && requestID != undefined && requestID != "") {
+      console.log(`append requestID to the headers - request_id: ${requestID}`);
+      httpHeaders = httpHeaders.append('request_id', requestID);
+    } else {
+      console.log("requestID is null or undefined or empty");
+    }
 
     let options = {headers: httpHeaders};
     

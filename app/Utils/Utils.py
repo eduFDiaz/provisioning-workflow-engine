@@ -88,7 +88,7 @@ def get_list_of_steps(file: str, correlationID: str) -> Tuple[Optional[Any], Opt
         log.error(f"Error reading workflow file: {path}/{file}. error: {str(error)}")
         return None, error
 
-    return steps, None
+    # return steps, None
     # stepConfigs = []
     # for item in steps:
     #      if item.get('type') == 'workflow':
