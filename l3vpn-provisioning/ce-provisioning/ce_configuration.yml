@@ -12,7 +12,7 @@ dependencies:
 steps:
 {% if demo %}
   - name: Clean up vrf configs
-    file: l3vpn-provisioning/clean_up_vrf_config.yml
+    file: l3vpn-provisioning/ce-provisioning/clean_up_vrf_config.yml
 {% endif %}
   - name: Fetch CE configs
     file: l3vpn-provisioning/ce-provisioning/Fetch_CE_configs.yml
