@@ -3,9 +3,6 @@ from pydantic import BaseSettings
 
 import logging
 
-def is_running_in_docker():
-    return os.path.exists('/.dockerenv')
-
 class Settings(BaseSettings):
     pass
 

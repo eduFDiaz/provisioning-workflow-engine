@@ -17,23 +17,26 @@ class SSHClient:
                 timeout=settings.ssh_timeout, banner_timeout=settings.ssh_banner_timeout, 
                 auth_timeout=settings.ssh_auth_timeout, look_for_keys=False)
         except paramiko.BadHostKeyException as error:
-            print ("BadHostKeyException")
-            print (error)
+            log.error("BadHostKeyException")
+            log.error(error)
         except paramiko.AuthenticationException as error:
-            print ("AuthenticationException")
-            print (error)
-        except paramiko.UnableToAuthenticate as error:
-            print ("UnableToAuthenticate")
-            print (error)
-        except socket_error as error:
-            print ("socket_error")
-            print (error)
-        except paramiko.NoValidConnectionsError as error:
-            print ("NoValidConnectionsError")
-            print (error)
+            log.error("AuthenticationException")
+            log.error(error)
+        # except paramiko.UnableToAuthenticate as error:
+        #     print ("UnableToAuthenticate")
+        #     print (error)
+        # except socket_error as error:
+        #     print ("socket_error")
+        #     print (error)
+        # except paramiko.NoValidConnectionsError as error:
+        #     print ("NoValidConnectionsError")
+        #     print (error)
         except paramiko.SSHException as error:
-            print ("SSHException")
-            print (error)
+            log.error("SSHException")
+            log.error(error)
+        except Exception as error:
+            log.error("Exception")
+            log.error(error)
         
         self.channel = self.ssh.invoke_shell()
     

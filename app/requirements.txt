@@ -12,3 +12,6 @@ temporalio==1.2.0
 typing_extensions==4.6.3
 xmltodict==0.13.0
 python-dotenv==1.0.0
+uvicorn
+grpcio
+cassandra-driver

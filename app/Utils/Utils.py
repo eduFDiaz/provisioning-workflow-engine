@@ -69,6 +69,10 @@ def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) ->
                 step['config'] = read_step_yaml(f"{path}/{step['file']}")
                 step['config']['correlationID'] = step['correlationID']
                 step['config']['workflow_name'] = step['workflow_name']
+                step['description'] = step['config']['description']
+                step['milestoneStepName'] = step['config']['name']
+                step['milestone'] = renderedDict.get('name')
+                step['name'] = step['config']['name']
                 
             log.debug(f"Adding step: {step}")
             steps.append(step)

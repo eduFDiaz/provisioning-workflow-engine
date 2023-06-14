@@ -26,7 +26,7 @@ with open('Models/models_metadata.yaml', 'r') as f:
                 sort_keys=True, indent=4)
 
 # new_notification = NotificationModel(
-#     correlationID=uuid.UUID("951ee60f-bceb-49bd-ad85-cd85ec1d8595"),
+#     requestID=uuid.UUID("951ee60f-bceb-49bd-ad85-cd85ec1d8595"),
 #     workflow="workflow1", 
 #     status="completed", 
 #     step="step1", 

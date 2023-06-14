@@ -38,11 +38,11 @@ async def startup():
 async def shutdown():
     log.info("Shutting down config_ms...")
 
-def getConfig(correlationID: str):
-    log.info(f"getConfig {correlationID}")
+def getConfig(requestID: str):
+    log.info(f"getConfig {requestID}")
     try:
         configs = {}
-        configs["0c32b683-683a-4de4-a7f3-44318a14acbc"] ={
+        configs["changing-this-to-any-id"] ={
             "vrf": [
                 {
                     "name": "VRF_Capgemini",
@@ -93,7 +93,7 @@ def getConfig(correlationID: str):
                 }
             ],
         }
-        return configs["0c32b683-683a-4de4-a7f3-44318a14acbc"]
+        return configs['changing-this-to-any-id']
     except Exception as e:
         log.error(f"Error: {e}")
         return f"Error: {e}"

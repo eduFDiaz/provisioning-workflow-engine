@@ -121,7 +121,6 @@ async def run_step(stepConfig):
         raise ValueError(f"Unsupported configType: {step_type}")
 
 
-
 async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any], Optional[Exception]]:
     log.debug(f"get_steps_configs")
     # milestonesResult will be a map of milestone names to a list of steps

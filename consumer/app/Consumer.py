@@ -2,11 +2,7 @@ from confluent_kafka import Consumer, KafkaException
 import threading
 from Models.NotificationModel import NotificationModel
 from config import logger as log
-from config import is_running_in_docker
 import json
-from CassandraConnection import CassandraConnection
-from NotificationDao import NotificationDao
-from typing import Dict
 
 from Clients.WebSocketManager import WebSocketManager as WSClient
 
@@ -43,17 +39,6 @@ class KafkaConsumerSingleton(object):
                 self._instance = Consumer(kafka_config)
         except Exception as e:
             log.error(f"KafkaConsumerSingleton.__init__(): {e}")
-    
-    def add_or_update_notification(self, message: Dict):
-        log.info(f"notification_dict: {message}")
-        notification = NotificationModel(**message)
-        log.info(f"notification: {notification}")
-        log.info(f"KafkaConsumerSingleton.add_or_update_notification({notification})")
-        connection = CassandraConnection()
-        session = connection.get_session()
-        notification_dao = NotificationDao(session)
-        notification_dao.add_or_update_notification(notification)
-        return notification
 
     async def start_consuming(self, topic, manager: WSClient):
         log.info(f"KafkaConsumerSingleton.start_consuming({topic})")
@@ -71,7 +56,7 @@ class KafkaConsumerSingleton(object):
                     # Here you can do whatever you want with the messages.
                     log.debug(f"Received message with key {msg.key()} and value {msg.value().decode('utf-8')}")
                     notification_dict = json.loads(msg.value().decode('utf-8'))
-                    notification = self.add_or_update_notification(notification_dict)
+                    notification = NotificationModel(**notification_dict)
                     client_id = str(notification.correlationID)
                     log.info(f"client_id: {client_id}")
                     log.info(f"manager.active_connections: {manager.active_connections}")

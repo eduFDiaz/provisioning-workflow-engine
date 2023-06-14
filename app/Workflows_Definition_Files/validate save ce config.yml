@@ -9,4 +9,4 @@ request:
   validate:
     $..data.native.vrf: vrf-validate
     $..data.native.ip['prefix-lists']: prefix-lists-validate
-    $..['route-map']: route-map-validate
+    # $..['route-map']: route-map-validate

@@ -4,8 +4,8 @@ fastapi
 uvicorn
 confluent_kafka
 asyncio
-cassandra-driver
 pyyaml
 uuid
 requests
 websockets
+python-dotenv==1.0.0

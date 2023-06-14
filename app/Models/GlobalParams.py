@@ -9,10 +9,10 @@ class Global_params:
             cls._instance = super().__new__(cls, *args, **kwargs)
         return cls._instance
     
-    def getMap(self, correlationID: str):
-        if correlationID not in self._singleton_data:
-            self._singleton_data[correlationID] = { 'correlationID': correlationID }
-        return self._singleton_data[correlationID]
+    def getMap(self, requestID: str):
+        if requestID not in self._singleton_data:
+            self._singleton_data[requestID] = { 'correlationID': requestID }
+        return self._singleton_data[requestID]
     
     @override
     def __str__(self) -> str:

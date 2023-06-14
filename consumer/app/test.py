@@ -54,7 +54,7 @@ async def main():
 
     # # Updating a notification
     # updated_notification = NotificationModel(
-    #     correlationID=notificationId,
+    #     requestID=notificationId,
     #     workflow="workflow1", 
     #     status="completed", 
     #     step="step1", 

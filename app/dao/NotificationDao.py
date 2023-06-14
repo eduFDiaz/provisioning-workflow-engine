@@ -7,7 +7,7 @@ class NotificationDao:
     def __init__(self, session):
         self.session = session
 
-    def get_notification(self, notification):
+    def get_notification(self, notification: NotificationModel):
         """ This method returns a notification for a given workflow, step, milestoneName and correlationID. """
         log.info(f"NotificationDao.get_notification({notification})")
         stmt = SimpleStatement("""
@@ -40,14 +40,14 @@ class NotificationDao:
         log.info(f"notification from get_notification - {notification}")
         return NotificationModel(**notification)
     
-    def get_notifications_by_correlationID(self, correlationID):
-        """ This method returns all notifications for a given correlationID."""
+    def get_notifications_by_correlationID(self, requestID):
+        """ This method returns all notifications for a given requestID."""
         stmt = SimpleStatement("""
             SELECT * 
             FROM workflows.Notifications 
             WHERE "correlationID"=%s
         """, fetch_size=100)
-        notifications = self.session.execute(stmt, [correlationID])
+        notifications = self.session.execute(stmt, [requestID])
         #sort notifications by startTime
         notifications = sorted(notifications, key=lambda notification: notification.startTime)
         return [NotificationModel(**notification._asdict()) for notification in notifications]
@@ -88,13 +88,13 @@ class NotificationDao:
             notification.milestoneName
             ])
     
-    def delete_notifications_by_correlationID(self, correlationID):
-        """ This method deletes all notifications for a given correlationID. """
+    def delete_notifications_by_correlationID(self, requestID):
+        """ This method deletes all notifications for a given requestID. """
         stmt = SimpleStatement("""
             DELETE FROM workflows.Notifications 
             WHERE "correlationID"=%s
         """)
-        self.session.execute(stmt, [correlationID])
+        self.session.execute(stmt, [requestID])
 
     def add_or_update_notification(self, notification):
         """ By design, Cassandra performs Upserts. so this stamement will also update
