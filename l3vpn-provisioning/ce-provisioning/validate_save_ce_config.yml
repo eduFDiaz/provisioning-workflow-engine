@@ -1,0 +1,12 @@
+name: Validate and Save CE Config
+hostname: "{{ce.management_ip}}"
+port: "{{ce.netconf_port}}"
+description: validate device configuration and save
+configType: NETCONF
+request:
+  type: FETCH
+  payload: ""
+  validate:
+    $..data.native.vrf: vrf-validate
+    $..data.native.ip['prefix-lists']: prefix-lists-validate
+    $..['route-map']: route-map-validate

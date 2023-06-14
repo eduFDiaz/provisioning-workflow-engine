@@ -36,6 +36,8 @@ class Settings(BaseSettings):
 
     notification_date_format: str = "%Y-%m-%d UTC %H:%M:%S"
 
+    repo_access_token: str = "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"
+
 settings = Settings()
 
 workflow_definition_files_path = "./Workflows_Definition_Files" 

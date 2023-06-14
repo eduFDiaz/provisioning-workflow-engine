@@ -1,0 +1,17 @@
+name: VPN Provisioning
+metadata:
+    retry_policy:
+      init_interval: 1
+      backoff_coefficient: 2
+      max_interval: 100
+      max_attempts: 10
+    version: 1.0
+dependencies:
+steps:
+  - name: PE Configuration
+    file: pe-provisioning/pe_configuration.yml
+    type: workflow
+
+  - name: CE Configuration
+    file: ce-provisioning/ce_configuration.yml 
+    type: workflow

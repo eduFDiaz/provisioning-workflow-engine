@@ -57,6 +57,14 @@ def sendNotifications(func):
     
     return wrapper
 
+@activity.defn(name="clone_template")
+# @sendNotifications
+async def clone_template(repoName: str, branch: str, wfFileName: str, requestId: str) -> list:
+    log.debug(f"Step clone_template - {repoName} - {branch} - {wfFileName} - {requestId}")
+    steps, error = clone_template(repoName, branch, wfFileName, requestId)
+    _ = [log.debug(f"clone_template steps - {stepConfig}") for stepConfig in list(steps)]
+    return steps
+
 @activity.defn(name="read_template")
 # @sendNotifications
 async def read_template(wfFileName: str, requestId: str) -> list:

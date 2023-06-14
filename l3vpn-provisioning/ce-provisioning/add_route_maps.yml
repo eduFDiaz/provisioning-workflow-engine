@@ -1,0 +1,30 @@
+name: Apply route maps
+description: apply route maps config to the device
+hostname: "{{ce.management_ip}}"
+port: "{{ce.netconf_port}}"
+configType: NETCONF
+request:
+  type: EDIT
+  payload: |
+    <config>
+      <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+      {% for rm in route_map[0] %}
+        <route-map operation="merge">
+          <name>{{rm['name']}}</name>
+          {% for route in rm['match-list'] %}
+          <route-map-without-order-seq xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-route-map">
+            <seq_no>{{route['index']}}</seq_no>
+            <operation>{{route['operation']}}</operation>
+            <match>
+              <ip>
+                <address>
+                  <prefix-list>{{route['prefix']}}</prefix-list>
+                </address>
+              </ip>
+            </match>
+          </route-map-without-order-seq>
+          {% endfor %}
+        </route-map>
+      {% endfor %}
+      </native>
+    </config>

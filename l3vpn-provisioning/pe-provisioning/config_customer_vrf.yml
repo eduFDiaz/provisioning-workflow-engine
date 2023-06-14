@@ -1,0 +1,31 @@
+name: Config Customer VRF
+hostname: "{{pe.management_ip}}"
+description: apply customer vrf config to the device
+configType: CLI
+config: |
+  terminal length 0
+  enable
+  config t
+  {% for rm in route_map[0] %}
+  {% for pl in ip_prefix_list[0] %}
+  ip prefix-list {{pl['name']}} seq {{pl['index']}} {{pl['action']}} {{pl['prefix']}}
+  {% endfor %}
+  {% for route in rm['match-list'] %}
+  route-map {{rm['name']}} {{route['operation']}} {{route['index']}}
+  match ip address prefix-list {{route['prefix']}}
+  exit
+  {% endfor %}
+  {% endfor %}
+  vrf definition {{vrf[0][0].name}}
+  rd {{vrf[0][0].rd}}
+  {% for rt in vrf[0][0]['rt-export'] %}
+  route-target export {{rt}}
+  {% endfor %}
+  {% for rt in vrf[0][0]['rt-export'] %}
+  route-target import {{rt}}
+  {% endfor %}
+  address-family ipv4
+  import map {{vrf[0][0]['ipv4-import'][0]}}
+  export map {{vrf[0][0]['ipv4-export'][0]}}
+  exit-address-family
+  end

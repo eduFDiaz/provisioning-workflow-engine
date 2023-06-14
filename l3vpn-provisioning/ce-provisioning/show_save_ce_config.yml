@@ -1,0 +1,8 @@
+name: Save Current CE Config
+hostname: "{{ce.management_ip}}"
+port: "{{ce.netconf_port}}"
+description: fetch and save current CE config
+configType: NETCONF
+request:
+  type: FETCH
+  payload: ""

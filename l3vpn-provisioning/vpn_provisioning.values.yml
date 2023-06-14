@@ -1,0 +1,61 @@
+name: master_flow
+log_forwarder_present: true
+cust_subnet: 192.168.187.0/28
+demo: true
+
+pe:
+  management_ip: sandbox-iosxe-latest-1.cisco.com
+  cli_port: 22
+  netconf_port: 830
+  config_server_ip: config_ms
+  config_server_port: 8002
+
+ce:
+  management_ip: sandbox-iosxe-latest-1.cisco.com
+  cli_port: 22
+  netconf_port: 830
+  config_server_ip: config_ms
+  config_server_port: 8002
+
+vrf-validate:
+  definition:
+    name: VRF_Capgemini
+    rd: 100:110
+    address-family:
+      ipv4:
+        export:
+          map: Capgemini-VRF-EXPORT
+        import:
+          map: Capgemini-VRF-IMPORT
+    route-target:
+      export:
+        asn-ip: 100:1000
+      import:
+        asn-ip: 100:1000
+prefix-lists-validate:
+  prefixes:
+    - name: Capgemini-DC1-Management
+      "no": "10"
+      action: permit
+      ip: 192.168.187.0/28
+    - name: Capgemini-DC2-Management
+      "no": "20"
+      action: permit
+      ip: 192.168.187.0/28
+route-map-validate:
+  match:
+    ip:
+      address:
+        prefix-list: Capgemini-DC2-Management
+  name: Capgemini-VRF-IMPORT
+  operation: permit
+  route-map-without-order-seq:
+    - "@xmlns": http://cisco.com/ns/yang/Cisco-IOS-XE-route-map
+      match:
+        ip:
+          address:
+            prefix-list: Capgemini-DC1-Management
+      operation: permit
+      seq_no: "10"
+    - "@xmlns": http://cisco.com/ns/yang/Cisco-IOS-XE-route-map
+  seq_no: "20"

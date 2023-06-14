@@ -1,0 +1,40 @@
+name: Apply VRF Definition
+description: aply vrf config to the device
+hostname: "{{ce.management_ip}}"
+port: "{{ce.netconf_port}}"
+configType: NETCONF
+request:
+  type: EDIT
+  payload: |
+    <config>
+      <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+        <vrf operation="merge">
+          <definition>
+            <name>{{vrf[0][0].name}}</name>
+            <rd>{{vrf[0][0].rd}}</rd>
+            <address-family>
+              <ipv4>
+                <export>
+                  <map>{{vrf[0][0]['ipv4-export'][0]}}</map>
+                </export>
+                <import>
+                  <map>{{vrf[0][0]['ipv4-import'][0]}}</map>
+                </import>
+              </ipv4>
+            </address-family>
+            <route-target>
+            {% for rt in vrf[0][0]['rt-export'] %}
+              <export>
+                <asn-ip>{{rt}}</asn-ip>
+              </export>
+            {% endfor %}
+            {% for rt in vrf[0][0]['rt-import'] %}
+              <import>
+                <asn-ip>{{rt}}</asn-ip>
+              </import>
+            {% endfor %}
+            </route-target>
+          </definition>
+        </vrf>
+      </native>
+    </config>

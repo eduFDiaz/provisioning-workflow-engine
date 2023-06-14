@@ -1,0 +1,7 @@
+name: Save Current PE Config
+hostname: "{{pe.management_ip}}"
+description: fetch and save current PE config
+configType: CLI
+config: |
+  terminal length 0
+  show running

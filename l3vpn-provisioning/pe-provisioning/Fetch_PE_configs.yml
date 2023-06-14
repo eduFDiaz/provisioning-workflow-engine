@@ -1,0 +1,20 @@
+name: Fetch PE Config
+description: fetch configuration for PE device
+configType: REST
+request:
+  url: http://{{pe.config_server_ip}}:{{pe.config_server_port}}/config/{{correlationID}}
+  method: GET
+  headers:
+    Accept: application/json
+    Content-Type: application/json
+response:
+  status_code: 200
+  variables:
+    vrf: json.$.vrf
+    route_map: json.$.route-map
+    ip_prefix_list: json.$.ip-prefix-list
+retry_policy:
+    init_interval: 1
+    backoff_coefficient: 2
+    max_interval: 100
+    max_attempts: 10
