@@ -10,16 +10,16 @@ dependencies:
 steps:
 {% if demo %}
   - name: Clean up vrf configs
-    file: pe-provisioning/clean_up_vrf_config.yml
+    file: l3vpn-provisioning/pe-provisioning/clean_up_vrf_config.yml
 {% endif %}
   - name: Fetch PE configs
-    file: pe-provisioning/Fetch_PE_configs.yml
+    file: l3vpn-provisioning/pe-provisioning/Fetch_PE_configs.yml
 
   - name: show_save_pe_config
-    file: pe-provisioning/show_save_pe_config.yml
+    file: l3vpn-provisioning/pe-provisioning/show_save_pe_config.yml
 
   - name: config customer vrf
-    file: pe-provisioning/config_customer_vrf.yml
+    file: l3vpn-provisioning/pe-provisioning/config_customer_vrf.yml
 
   - name: validate save pe config
-    file: pe-provisioning/validate_save_pe_config.yml
+    file: l3vpn-provisioning/pe-provisioning/validate_save_pe_config.yml

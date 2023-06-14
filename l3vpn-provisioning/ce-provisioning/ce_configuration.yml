@@ -12,22 +12,22 @@ dependencies:
 steps:
 {% if demo %}
   - name: Clean up vrf configs
-    file: clean_up_vrf_config.yml
+    file: l3vpn-provisioning/clean_up_vrf_config.yml
 {% endif %}
   - name: Fetch CE configs
-    file: ce-provisioning/Fetch_CE_configs.yml
+    file: l3vpn-provisioning/ce-provisioning/Fetch_CE_configs.yml
   
   - name: show_save_ce_config
-    file: ce-provisioning/show_save_ce_config.yml
+    file: l3vpn-provisioning/ce-provisioning/show_save_ce_config.yml
 
   - name: add_vrf_definition
-    file: ce-provisioning/add_vrf_definition.yml
+    file: l3vpn-provisioning/ce-provisioning/add_vrf_definition.yml
 
   - name: add_prefix_lists
-    file: ce-provisioning/add_prefix_lists.yml
+    file: l3vpn-provisioning/ce-provisioning/add_prefix_lists.yml
 
   - name: add_route_maps
-    file: ce-provisioning/add_route_maps.yml
+    file: l3vpn-provisioning/ce-provisioning/add_route_maps.yml
 
   - name: validate save ce config 
-    file: ce-provisioning/validate_save_ce_config.yml
+    file: l3vpn-provisioning/ce-provisioning/validate_save_ce_config.yml
