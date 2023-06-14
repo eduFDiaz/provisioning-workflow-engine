@@ -2,12 +2,26 @@
 import asyncio
 from temporalio.client import Client
 from temporalio.worker import Worker
+from config import logger as log
 
 async def run_temporal_worker(client, task_queue, workflows, activities):
-    worker = Worker(client, task_queue=task_queue, workflows=workflows, activities=activities)
+    while True:
+        try:
+            worker = Worker(client, task_queue=task_queue, workflows=workflows, activities=activities)
+            break
+        except Exception as e:
+            log.debug(f"Failed to create Temporal worker due to {str(e)}, retrying in 5 seconds...")
+            await asyncio.sleep(5)
+    log.debug("Temporal worker created.")
     await worker.run()
 
 async def start_temporal_worker(temporal_address, namespace, task_queue, workflows, activities):
-    client = await Client.connect(temporal_address, namespace=namespace)
+    while True:
+        try:
+            client = await Client.connect(temporal_address, namespace=namespace)
+            break
+        except Exception as e:
+            log.debug(f"Failed to connect to Temporal server due to {str(e)}, retrying in 5 seconds...")
+            await asyncio.sleep(5)
     asyncio.create_task(run_temporal_worker(client, task_queue, workflows, activities))
-    print("Temporal worker started.")
+    log.debug("Temporal worker started.")

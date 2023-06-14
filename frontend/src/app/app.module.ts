@@ -9,6 +9,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { ClarityModule } from "@clr/angular";
 import { MilestoneComponent } from './milestone/milestone.component';
 import { StepTitleDirective } from './step-title.directive';
+import { CookieService } from 'ngx-cookie-service';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,7 @@ import { StepTitleDirective } from './step-title.directive';
     BrowserAnimationsModule,
     ClarityModule
    ],
-  providers: [],
+  providers: [CookieService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

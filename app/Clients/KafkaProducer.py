@@ -15,6 +15,8 @@ from config import settings
 from Clients.CassandraConnection import CassandraConnection
 from dao.NotificationDao import NotificationDao
 
+import asyncio
+
 kafka_config = {
     'bootstrap.servers': f"{settings.kafka_server}:{settings.kafka_port}",
 }
@@ -26,20 +28,27 @@ class KafkaProducerSingleton(object):
     def __init__(self, config):
         if KafkaProducerSingleton._instance is not None:
             raise Exception("This is a singleton class.")
-        self.producer = Producer(config)
+        while True:
+            try:
+                log.info(f"KafkaProducerSingleton.__init__(): {config}")    
+                self.producer = Producer(config)
+                break
+            except Exception as e:
+                log.debug(f"Failed to connect to Kafka server due to {str(e)}, retrying in 5 seconds...")
+                asyncio.sleep(5)
 
     @classmethod
-    def get_instance(cls, server, port):
+    def get_instance(cls):
         kafka_config['bootstrap.servers'] = settings.kafka_server + ':' + settings.kafka_port
-        log.info("kafka_config: {kafka_config}")
+        log.info(f"kafka_config: {kafka_config}")
         with cls._lock:
             if cls._instance is None:
                 cls._instance = KafkaProducerSingleton(kafka_config)
             return cls._instance
 
 # Kafka Producer Singleton instance
-async def get_kafka_producer(server, port):
-    kafka_producer = KafkaProducerSingleton.get_instance(server, port)
+async def get_kafka_producer():
+    kafka_producer = KafkaProducerSingleton.get_instance()
     return kafka_producer.producer
 
 def add_or_update_notification(message: Dict):
@@ -55,10 +64,13 @@ def add_or_update_notification(message: Dict):
 
 async def send_notification(notification: NotificationModel) -> NotificationModel:
     log.debug(f"Sending notification: {notification.toJSON()}")
-    add_or_update_notification(notification.__dict__)
-    producer = (await get_kafka_producer(settings.kafka_server, settings.kafka_port))
-    producer.produce(settings.kafka_topic, notification.toJSON())
-    producer.flush()
+    try:
+        add_or_update_notification(notification.__dict__)
+        producer = (await get_kafka_producer())
+        producer.produce(settings.kafka_topic, notification.toJSON())
+        producer.flush()
+    except Exception as e:
+        log.error(f"Failed to send notification due to {str(e)}")
     return notification
 
 async def send_error_notification(notification: NotificationModel) -> NotificationModel:

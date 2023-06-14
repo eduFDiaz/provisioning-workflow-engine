@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Milestone } from './Models/Milestone';
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -97,14 +97,12 @@ export class MilestoneHttpService {
     let httpHeaders = new HttpHeaders();
 
     if (requestID != null && requestID != undefined && requestID != "") {
-      console.log(`append requestID to the headers - request_id: ${requestID}`);
-      httpHeaders = httpHeaders.append('request_id', requestID);
+      console.log(`append requestID to the headers - request-id: ${requestID}`);
+      httpHeaders = httpHeaders.append('request-id', requestID);
     } else {
       console.log("requestID is null or undefined or empty");
     }
-
-    let options = {headers: httpHeaders};
     
-    return this.httpClient.post(`http://localhost:8000/execute_workflow/?flowFileName=${workflowFileName}`, options);
+    return this.httpClient.post(`http://localhost:8000/execute_workflow/?flowFileName=${workflowFileName}`, {}, { observe: 'response', headers: httpHeaders });
   }
 }

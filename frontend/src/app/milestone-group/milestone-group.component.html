@@ -165,9 +165,10 @@
 
 <ng-template #loadingTemplate>
   <div class="container">
-    <div class="header">
-      <h3 class="title">Workflow: <clr-spinner clrMedium aria-label="In progress">Fetching data</clr-spinner></h3>
-    </div>
+   <div class="header">
+    <h3 class="title">Workflow: {{workflowFileName}}</h3>
+    <button (click)="startWorkflow()" class="btn btn-sm">Start flow</button>
+  </div>
   </div>
 </ng-template>
 

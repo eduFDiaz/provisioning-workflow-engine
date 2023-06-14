@@ -48,13 +48,14 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 security = HTTPBasic()
 
 @app.on_event("startup")
 async def startup():
     log.info("Waiting for Temporal Worker to start up...")
-    await asyncio.sleep(30)
+    # await asyncio.sleep(30)
     await start_temporal_worker(settings.temporal_server,
                                 settings.temporal_namespace,
                                 settings.temporal_queuename,
@@ -70,7 +71,8 @@ async def startup():
                                  exec_netconf_step,
                                  exec_grpc_step])
     
-    app.kafka_producer = (await get_kafka_producer(settings.kafka_server, settings.kafka_port))
+    app.kafka_producer = (await get_kafka_producer())
+    log.info("Temporal Worker and Kafka Producer started successfully.")
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -153,10 +155,9 @@ async def execute_workflow(flowFileName: str,
             # invoke_steps on a separate thread
             loop = asyncio.get_event_loop()
             threading.Thread(target=run_in_new_thread, args=(loop, run_TemplateWorkFlow(flowFileName, request_id))).start()
-                
-        response = {"requestID": request_id}
-        log.info(f"returning response: {response}")
-        return JSONResponse(content = response, status_code=200)
+
+        response = JSONResponse(content={}, status_code=200, headers={"request-id": request_id})
+        return response
     except Exception as e:
         log.error(f"Error: {e}")
         return HTMLResponse(content=f"Error: {e}", status_code=500)
