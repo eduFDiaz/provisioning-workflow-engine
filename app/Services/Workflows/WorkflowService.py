@@ -11,7 +11,7 @@ from typing import Tuple, Any, Optional, Dict
 from collections import OrderedDict
 
 from temporalClient import TemporalClient
-from workflows.activities.activities import read_template, exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
+from workflows.activities.activities import read_template, clone_template, exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
 
 from config import workflow_definition_files_path as path
 
@@ -31,6 +31,14 @@ class TemplateWorkflow:
     @workflow.run
     async def run(self, args: TemplateWorkflowArgs) -> int:
         log.debug(f"workflow: {args.WorkflowFileName}, correlation-id: {args.requestId}")
+        cloneTemplateResult = await workflow.execute_activity(
+            clone_template, args=[args.repoName, args.branch, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
+            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
+                backoff_coefficient=settings.temporal_task_backoff_coefficient,
+                maximum_attempts=settings.temporal_task_max_attempts,
+                maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
+        )
+        log.debug(f"cloneResult: {cloneTemplateResult}")
         taskList = await workflow.execute_activity(
             read_template, args=[args.WorkflowFileName, args.requestId], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
             retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),

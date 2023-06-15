@@ -1,9 +1,0 @@
-name: fetch_routing_instances_after_adding
-hostname: sandbox-iosxe-latest-1.cisco.com
-port: 830
-configType: NETCONF
-request:
-  type: FETCH
-  payload: |
-    <routing xmlns="urn:ietf:params:xml:ns:yang:ietf-routing">
-    </interfaces>

@@ -1,4 +1,22 @@
-# import asyncio, os
+import asyncio, os
+from datetime import timedelta
+
+import argparse
+from dotenv import load_dotenv
+
+parser = argparse.ArgumentParser(description="Load a .env file and print variables.")
+parser.add_argument('--env-file', type=str, help='Path to the .env file')
+
+# Parse arguments
+args = parser.parse_args()
+
+# Load .env file
+load_dotenv(dotenv_path=args.env_file)
+
+from temporalClient import TemporalClient
+
+from config import settings
+from config import logger as log
 
 # import logging
 
@@ -19,29 +37,34 @@
 
 # log = logging.getLogger()
 
-# from temporal_worker import start_temporal_worker
+from temporal_worker import start_temporal_worker
 
 # import config
 
-# from Services.Workflows.WorkflowService import invoke_steps, get_steps_configs
-# from workflows.ExecuteStepsFlow import TemplateWorkflow, ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
-# from workflows.activities.activities import exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
+from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow
+from Utils.Utils import fetch_template_files
+from Services.Workflows.WorkflowService import get_steps_configs
+from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
+from workflows.activities.activities import read_template, clone_template, exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
 
-# async def startup():
-#     log.info("Waiting for Temporal Worker to start up...")
-#     await asyncio.sleep(5)
-#     await start_temporal_worker(config.temporal_url,
-#                                 config.temporal_namespace,
-#                                 config.temporal_queue_name, 
-#                                 [TemplateWorkflow,
-#                                  ExecuteRestTask,
-#                                  ExecuteCliTask,
-#                                  ExecuteNetConfTask,
-#                                  ExecuteGrpcTask], 
-#                                 [exec_rest_step,
-#                                  exec_cli_step,
-#                                  exec_netconf_step,
-#                                  exec_grpc_step])
+async def startup():
+    log.info("Waiting for Temporal Worker to start up...")
+    await asyncio.sleep(5)
+    await start_temporal_worker(settings.temporal_server,
+                                settings.temporal_namespace,
+                                settings.temporal_queuename,
+                                [TemplateWorkflow,
+                                TemplateChildWorkflow,
+                                ExecuteRestTask,
+                                ExecuteCliTask,
+                                ExecuteNetConfTask,
+                                ExecuteGrpcTask], 
+                                [read_template,
+                                clone_template,
+                                exec_rest_step,
+                                exec_cli_step,
+                                exec_netconf_step,
+                                exec_grpc_step])
 
 # response_expected = """
 # <rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="101">
@@ -1294,10 +1317,24 @@
 #         print(f"Result: {result[0]} - \nExpected: {params_dict.get(value)}")
 #         assert result[0] == params_dict.get(value), "Expected param not found"
 
-# if __name__ == "__main__":
-#     print("Running sandbox.py")
-#     loop = asyncio.get_event_loop()
-#     loop.run_until_complete(startup())
-#     # loop.run_until_complete(invoke_steps("phy_interface_vrf.yml"))
-#     loop.run_until_complete(invoke_steps("vpn_provisioning.yml", correlationID))
-#     # loop.run_until_complete(get_steps_configs("vpn_provisioning.yml","0c32b683-683a-4de4-a7f3-44318a14acbc"))
+async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str, branch: str):
+    client = (await TemporalClient.get_instance())
+    log.debug(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
+    tmplArguments = TemplateWorkflowArgs(requestId=request_id, WorkflowFileName=flowFileName, repoName=repoName, branch=branch)
+    print(f"tmplArguments - {tmplArguments}")
+    result = (await client.execute_workflow(
+        TemplateWorkflow.run, tmplArguments,
+        id=(flowFileName + "_" + request_id), 
+        task_queue=settings.temporal_queuename,
+        execution_timeout=timedelta(seconds=settings.temporal_workflow_execution_timeout),
+    ))
+    return result
+
+if __name__ == "__main__":
+    print("Running sandbox.py")
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(startup())
+    # loop.run_until_complete(invoke_steps("phy_interface_vrf.yml"))
+    # fetch_template_files(repoName="python-microservices-refresh", branch="feature-issue-18", wfFileName="l3vpn-provisioning/vpn_provisioning.yml", requestId="0c32b683-683a-4de4-a7f3-44318a14acbc")
+    # loop.run_until_complete(get_steps_configs("l3vpn-provisioning/vpn_provisioning.yml","0c32b683-683a-4de4-a7f3-44318a14acbc"))
+    loop.run_until_complete(run_TemplateWorkFlow(flowFileName="l3vpn-provisioning/vpn_provisioning.yml",request_id="0c32b683-683a-4de4-a7f3-44318a14acbc", repoName="python-microservices-refresh", branch="feature-issue-18"))

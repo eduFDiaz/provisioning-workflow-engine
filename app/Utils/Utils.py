@@ -112,97 +112,36 @@ def get_list_of_steps(file: str, correlationID: str) -> Tuple[Optional[Any], Opt
 
     # _ = [log.debug(stepConfig) for stepConfig in list(stepConfigs)]
     
-    # return stepConfigs, 
+    # return stepConfigs, None
 
-def clone_step_yaml(repoName: str, branch: str, file_path) -> collections.OrderedDict:
-    """This function will read a YAML file and return an OrderedDict
-    will be used to read configs and steps files"""
-    # check if file exists locally, if not, read from repo and save locally
-    if not os.path.exists(f"{path}/{file_path}"):
+def download_file(file_content, local_path):
+    with open(local_path, 'wb') as f:
+        f.write(file_content.decoded_content)
+
+def save_path_recursively(repo, path, local_dir, branch):
+    contents = repo.get_contents(path, ref=branch)
+
+    for content in contents:
+        log.debug(f"Fetching - {content.path}")
+        if content.type == "dir":
+            new_dir = os.path.join(local_dir, content.name)
+            os.makedirs(new_dir, exist_ok=True)
+            save_path_recursively(repo, content.path, new_dir, branch)
+        else:
+            local_path = os.path.join(local_dir, content.name)
+            download_file(content, local_path)
+
+def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[Optional[Any], Optional[Exception]]:
+    try:
+        log.debug(f"Getting list of steps from file {wfFileName}, path={path}")
         g = Github(settings.repo_access_token)
         user = g.get_user()
-        repository = user.get_repo(repoName)
-        file_content = repository.get_contents(file_path, ref=branch).decoded_content.decode()
-        log.info(file_content)
-        with open(f"{path}/{file_path}", 'w') as f:
-            f.write(file_content)
-    return yaml.safe_load(file_content)
-    
-def clone_workflow_steps(repoName: str, branch: str, wfFileName: str, steps: List[Any], correlationID: str) -> Tuple[Optional[List[Any]], Optional[Exception]]:
-    """This method will recursively read steps on the root  workflow YAML file, as well as child workflows.
-    It will return a list of steps, or an error if one occurs.
-    """
-    try:
-        
-        global_params = Global_params().getMap(correlationID)
-        log.debug(f"Global params:{global_params}")
-
-        values_data = clone_step_yaml(wfFileName.replace('.yml','.values.yml'))
-        for key, value in values_data.items():
-            global_params[key] = value
-
-        log.debug(f"Global params:{global_params}")
-        log.debug(f"Values file:\n{values_data}")
-        
-        log.debug(f"Reading file: {wfFileName}")
-
-        # TODO: add PyGithub code here to read the file from the repo
-        # and to save it locally as well, comment out the code below after testing
-        # with open(wfFileName, 'r') as f:
-        #     file_content = f.read()
-        
-        # check if file exists locally, if not, read from repo and save locally
-        if not os.path.exists(f"{path}/{wfFileName}"):
-            g = Github(settings.repo_access_token)
-            user = g.get_user()
-            repository = user.get_repo(repoName)
-            file_content = repository.get_contents(wfFileName, ref=branch).decoded_content.decode()
-            log.info(file_content)
-            with open(f"{path}/{wfFileName}", 'w') as f:
-                f.write(file_content)
-        
-        log.debug(f"Render the file content as a Jinja template")    
-        # Render the file content as a Jinja template
-        template = Template(file_content)
-        rendered_template = template.render(**global_params)
-
-        log.debug(f"Jinja template:\n{file_content}")
-        log.debug(f"Rendered YAML file:\n{rendered_template}")
-
-        # Load the rendered template as a YAML
-        renderedDict = yaml.safe_load(rendered_template)
-
-        log.debug(f"Rendered YAML file dict:\n{renderedDict}")
-        
-        # root workflow should be a list of steps (i.e renderedDict.get('steps')==True)
-        for step in renderedDict['steps']:
-            log.debug(f"Found step: {step.get('name')}")
-            step['workflow_name'] = renderedDict.get('name')
-            step['correlationID'] = correlationID
-                
-            if step.get('type') == 'workflow':
-                step['steps'], err = clone_workflow_steps(repoName, branch, step.get('file'), step['steps'], correlationID)
-                if err:
-                    return None, err
-            else:
-                step['config'] = clone_step_yaml(step['file'])
-                
-            log.debug(f"Adding step: {step}")
-            steps.append(step)
-        return steps, None
+        repo = user.get_repo(repoName)
+        repoPath = wfFileName.split('/')[0]
+        log.debug(f"repoPath: {repoPath}")
+        local_dir = f"{path}/{repoPath}"
+        log.debug(f"local_dir: {local_dir}")
+        save_path_recursively(repo, repoPath, local_dir, branch)
+        return "template files fetched successfully", None
     except Exception as e:
         return None, e
-
-def clone_template(repoName: str, branch: str, wfFileName: str, requestId: str) -> Tuple[Optional[Any], Optional[Exception]]:
-    log.debug(f"Getting list of steps from file {wfFileName}, path={path}")
-    
-    steps = []
-    
-    steps, error = clone_workflow_steps(repoName, branch, wfFileName,  steps, requestId)
-    log.debug(f"steps:\n {steps}")
-        
-    if error:
-        log.error(f"Error reading workflow file: {path}/{wfFileName}. error: {str(error)}")
-        return None, error
-
-    return steps, None

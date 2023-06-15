@@ -53,4 +53,6 @@ class Process:
 class TemplateWorkflowArgs:
     requestId: str
     WorkflowFileName: str
+    repoName: str
+    branch: str
     

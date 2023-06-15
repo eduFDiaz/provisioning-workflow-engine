@@ -19,9 +19,10 @@ async def start_temporal_worker(temporal_address, namespace, task_queue, workflo
     while True:
         try:
             client = await Client.connect(temporal_address, namespace=namespace)
+            asyncio.create_task(run_temporal_worker(client, task_queue, workflows, activities))
             break
         except Exception as e:
             log.debug(f"Failed to connect to Temporal server due to {str(e)}, retrying in 5 seconds...")
             await asyncio.sleep(5)
-    asyncio.create_task(run_temporal_worker(client, task_queue, workflows, activities))
+    
     log.debug("Temporal worker started.")

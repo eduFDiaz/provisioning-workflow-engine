@@ -24,7 +24,7 @@ from Clients.CassandraConnection import CassandraConnection
 from dao.NotificationDao import NotificationDao
 
 from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
-from workflows.activities.activities import read_template, exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
+from workflows.activities.activities import read_template, clone_template, exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
 
 
 from temporal_worker import start_temporal_worker
@@ -66,6 +66,7 @@ async def startup():
                                  ExecuteNetConfTask,
                                  ExecuteGrpcTask], 
                                 [read_template,
+                                 clone_template,
                                  exec_rest_step,
                                  exec_cli_step,
                                  exec_netconf_step,
@@ -79,11 +80,11 @@ async def shutdown():
     log.info("Shutting down Temporal Worker...")
     await config.temporal_worker.stop()
 
-async def run_TemplateWorkFlow(flowFileName: str, request_id: str):
+async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str, branch: str):
     client = (await TemporalClient.get_instance())
     log.debug(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
     result = (await client.execute_workflow(
-        TemplateWorkflow.run, TemplateWorkflowArgs(request_id, flowFileName),
+        TemplateWorkflow.run, TemplateWorkflowArgs(requestId=request_id, WorkflowFileName=flowFileName, repoName=repoName, branch=branch),
         id=(flowFileName + "_" + request_id), 
         task_queue=settings.temporal_queuename,
         execution_timeout=timedelta(seconds=settings.temporal_workflow_execution_timeout),
@@ -96,7 +97,7 @@ def run_in_new_thread(loop, coro):
 @app.post("/execute_workflow/",
          summary="this API will execute a temporal workflow from a YAML file", 
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
-async def execute_workflow(flowFileName: str,
+async def execute_workflow(flowFileName: str, repoName: str, branch: str,
                            request_id: Optional[str] = Header(None)) -> HTMLResponse:
     log.debug(f"POST API: execute_workflow/?flowFileName={flowFileName}, request_id={request_id}")
     try:
@@ -154,7 +155,7 @@ async def execute_workflow(flowFileName: str,
         if should_invoke_steps is True:
             # invoke_steps on a separate thread
             loop = asyncio.get_event_loop()
-            threading.Thread(target=run_in_new_thread, args=(loop, run_TemplateWorkFlow(flowFileName, request_id))).start()
+            threading.Thread(target=run_in_new_thread, args=(loop, run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))).start()
 
         response = JSONResponse(content={}, status_code=200, headers={"request-id": request_id})
         return response

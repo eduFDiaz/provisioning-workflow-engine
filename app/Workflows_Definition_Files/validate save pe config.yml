@@ -1,7 +1,0 @@
-name: Validate and Save PE Config
-hostname: "{{pe.management_ip}}"
-configType: CLI
-description: validate device configuration and save
-config: |
-  terminal length 0
-  show running

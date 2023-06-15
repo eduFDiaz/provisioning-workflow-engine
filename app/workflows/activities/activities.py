@@ -11,7 +11,7 @@ with workflow.unsafe.imports_passed_through():
     from Clients.KafkaProducer import send_in_progress_notification, send_complete_notification, send_error_notification, prepare_notification
     from Clients.CassandraConnection import CassandraConnection
     from dao.NotificationDao import NotificationDao
-    from Utils.Utils import get_list_of_steps
+    from Utils.Utils import get_list_of_steps, fetch_template_files
     
 # consumer_app_host = None
 # if is_running_in_docker:
@@ -61,9 +61,8 @@ def sendNotifications(func):
 # @sendNotifications
 async def clone_template(repoName: str, branch: str, wfFileName: str, requestId: str) -> list:
     log.debug(f"Step clone_template - {repoName} - {branch} - {wfFileName} - {requestId}")
-    steps, error = clone_template(repoName, branch, wfFileName, requestId)
-    _ = [log.debug(f"clone_template steps - {stepConfig}") for stepConfig in list(steps)]
-    return steps
+    result = fetch_template_files(repoName, branch, wfFileName)
+    return result
 
 @activity.defn(name="read_template")
 # @sendNotifications
