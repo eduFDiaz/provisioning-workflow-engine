@@ -20,7 +20,9 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   milestones: Map<string, Milestone[]> = new Map<string, Milestone[]>();
   milestonesArray: [string, Milestone[]][] = [];
   workflowsArray: Workflow[] = [];
-  workflowFileName = "vpn_provisioning.yml";
+  workflowFileName = "l3vpn-provisioning/vpn_provisioning.yml";
+  repoName = "network-workflows";
+  branch = "feature-issues-18";
   messagesSubscription!: Subscription;
   startTowerStatus = "not-started";
   CompleteTowerStatus = "not-started";
@@ -59,19 +61,16 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   startWorkflow(): void {
     console.log('Starting workflow');
     let requestID = this.session.getSessionVar('request-id');
-    this.http.startWorkflow(this.workflowFileName, requestID)
+    this.http.startWorkflow(this.workflowFileName, requestID, this.repoName, this.branch)
     .subscribe(
-      (response: HttpResponse<any>) => {
-        // read request-id from the response headers and update the correlationID
-        console.log(`response headers: ${response.headers.keys()}`);
-        let requestID = response.headers.get('request-id') as string;
-        console.log(`requestID from response headers: ${requestID}`);
+      (response: any) => {
+        let requestID = response['request-id'] as string;
+        console.log(`requestID from response body: ${requestID}`);
 
         let date = new Date();
         date.setMonth(date.getMonth() + 1);
         this.session.setSessionVar('request-id', requestID, date);
         
-        this.updateDashboard();
         this.subscribeToMessages(requestID);
       },
       error => {

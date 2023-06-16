@@ -59,8 +59,8 @@ def sendNotifications(func):
 
 @activity.defn(name="clone_template")
 # @sendNotifications
-async def clone_template(repoName: str, branch: str, wfFileName: str, requestId: str) -> list:
-    log.debug(f"Step clone_template - {repoName} - {branch} - {wfFileName} - {requestId}")
+async def clone_template(repoName: str, branch: str, wfFileName: str) -> list:
+    log.debug(f"Step clone_template - {repoName} - {branch} - {wfFileName}")
     result = fetch_template_files(repoName, branch, wfFileName)
     return result
 

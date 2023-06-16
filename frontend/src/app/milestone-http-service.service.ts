@@ -92,7 +92,7 @@ export class MilestoneHttpService {
     return of(this.mockMilestones);
   }
 
-  startWorkflow(workflowFileName: string, requestID: string) {
+  startWorkflow(workflowFileName: string, requestID: string, repoName: string, repoBranch: string) {
     //Create the headers for the post request adding requestID to it
     let httpHeaders = new HttpHeaders();
 
@@ -102,7 +102,12 @@ export class MilestoneHttpService {
     } else {
       console.log("requestID is null or undefined or empty");
     }
+    httpHeaders = httpHeaders.append('flowFileName', workflowFileName);
+    httpHeaders = httpHeaders.append('repoName', repoName);
+    httpHeaders = httpHeaders.append('branch', repoBranch);
+
+    console.log("httpHeaders: ", httpHeaders);
     
-    return this.httpClient.post(`http://localhost:8000/execute_workflow/?flowFileName=${workflowFileName}`, {}, { observe: 'response', headers: httpHeaders });
+    return this.httpClient.post(`http://localhost:8000/execute_workflow`, {}, { headers: httpHeaders });
   }
 }

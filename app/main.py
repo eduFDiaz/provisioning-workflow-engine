@@ -97,8 +97,10 @@ def run_in_new_thread(loop, coro):
 @app.post("/execute_workflow/",
          summary="this API will execute a temporal workflow from a YAML file", 
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
-async def execute_workflow(flowFileName: str, repoName: str, branch: str,
-                           request_id: Optional[str] = Header(None)) -> HTMLResponse:
+async def execute_workflow(request_id: Optional[str] = Header(None),
+                           flowFileName: str = Header(...),
+                           repoName: str = Header(...),
+                           branch: str = Header(...)) -> JSONResponse:
     log.debug(f"POST API: execute_workflow/?flowFileName={flowFileName}, request_id={request_id}")
     try:
         should_invoke_steps = False
@@ -157,11 +159,11 @@ async def execute_workflow(flowFileName: str, repoName: str, branch: str,
             loop = asyncio.get_event_loop()
             threading.Thread(target=run_in_new_thread, args=(loop, run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))).start()
 
-        response = JSONResponse(content={}, status_code=200, headers={"request-id": request_id})
+        response = JSONResponse(content={"request-id": request_id}, status_code=202)
         return response
     except Exception as e:
         log.error(f"Error: {e}")
-        return HTMLResponse(content=f"Error: {e}", status_code=500)
+        return JSONResponse(content={"error": str(e)}, status_code=500)
     
 def authorize(security: HTTPBasicCredentials = Depends(security)):
     if security.username in users_db:

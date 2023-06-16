@@ -12,7 +12,9 @@ from config import settings
 
 from typing import Tuple, Any, Optional, List
 
-from github import Github
+from temporalio import workflow
+with workflow.unsafe.imports_passed_through():
+    from github import Github
 
 import os
 
