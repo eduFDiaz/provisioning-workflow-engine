@@ -1,4 +1,5 @@
 from temporalio import activity, workflow
+from temporalio.exceptions import ApplicationError
 
 # Import activity, passing it through the sandbox without reloading the module
 with workflow.unsafe.imports_passed_through():
@@ -59,18 +60,22 @@ def sendNotifications(func):
 
 @activity.defn(name="clone_template")
 # @sendNotifications
-async def clone_template(repoName: str, branch: str, wfFileName: str) -> list:
+async def clone_template(repoName: str, branch: str, wfFileName: str):
     log.debug(f"Step clone_template - {repoName} - {branch} - {wfFileName}")
-    result = fetch_template_files(repoName, branch, wfFileName)
-    return result
+    result, err = fetch_template_files(repoName, branch, wfFileName)
+    if err is not None:
+        return None, err
+    return result, None
 
 @activity.defn(name="read_template")
 # @sendNotifications
-async def read_template(wfFileName: str, requestId: str) -> list:
+async def read_template(wfFileName: str, requestId: str):
     log.debug(f"Step read_template {wfFileName} {requestId}")
-    steps, error = get_list_of_steps(wfFileName, requestId)
+    steps, err = get_list_of_steps(wfFileName, requestId)
+    if err is not None:
+        return None, err
     _ = [log.debug(f"read_template steps - {stepConfig}") for stepConfig in list(steps)]
-    return steps
+    return steps, None
 
 
 @activity.defn(name="exec_rest_step")

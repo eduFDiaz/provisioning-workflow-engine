@@ -3,7 +3,7 @@ import asyncio
 import uuid
 from datetime import timedelta
 
-from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow
+from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow, RunTasks, run_TemplateWorkFlow
 from Models.NotificationModel import NotificationModel
 
 from config import logger as log
@@ -80,17 +80,6 @@ async def shutdown():
     log.info("Shutting down Temporal Worker...")
     await config.temporal_worker.stop()
 
-async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str, branch: str):
-    client = (await TemporalClient.get_instance())
-    log.debug(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
-    result = (await client.execute_workflow(
-        TemplateWorkflow.run, TemplateWorkflowArgs(requestId=request_id, WorkflowFileName=flowFileName, repoName=repoName, branch=branch),
-        id=(flowFileName + "_" + request_id), 
-        task_queue=settings.temporal_queuename,
-        execution_timeout=timedelta(seconds=settings.temporal_workflow_execution_timeout),
-    ))
-    return result
-
 def run_in_new_thread(loop, coro):
     asyncio.run_coroutine_threadsafe(coro, loop)
     
@@ -156,8 +145,20 @@ async def execute_workflow(request_id: Optional[str] = Header(None),
         log.info(f"should_invoke_steps final value: {should_invoke_steps} - flowFileName {flowFileName} - requestID: {request_id}")
         if should_invoke_steps is True:
             # invoke_steps on a separate thread
+            taskList = {}
+            
+            # run_TemplateWorkFlow will run synchronously (clone_template, read_template)
+            result, err = await (run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))
+            if err is not None:
+                log.error(f"Exception error - {err}")
+                log.error(f"Exception cloning and reading templates files for requestID: {request_id}")
+                return JSONResponse(content={"error": str(err)}, status_code=500)
+            
+            taskList = result
+
+            # if code reaches here, it means that cloning and reading templates was successful
             loop = asyncio.get_event_loop()
-            threading.Thread(target=run_in_new_thread, args=(loop, run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))).start()
+            threading.Thread(target=run_in_new_thread, args=(loop, RunTasks(taskList))).start()
 
         response = JSONResponse(content={"request-id": request_id}, status_code=202)
         return response

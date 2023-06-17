@@ -24,31 +24,43 @@ from temporalio.common import RetryPolicy
 from temporalio import workflow
 from temporalio.workflow import ParentClosePolicy
 
+from temporalio.exceptions import ApplicationError
+
 @workflow.defn
 class TemplateWorkflow:
     def __init__(self) -> None:
         log.debug(f"__init__")
     @workflow.run
-    async def run(self, args: TemplateWorkflowArgs) -> int:
+    async def run(self, args: TemplateWorkflowArgs):
         log.debug(f"workflow: {args.WorkflowFileName}, correlation-id: {args.requestId}")
-        cloneTemplateResult = await workflow.execute_activity(
+        cloneTemplateResult, err = await workflow.execute_activity(
             clone_template, args=[args.repoName, args.branch, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
             retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
                 backoff_coefficient=settings.temporal_task_backoff_coefficient,
                 maximum_attempts=settings.temporal_task_max_attempts,
                 maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
         )
+
+        if err is not None:
+            # returning the error as part of the tuple will not make the actual workflow fail
+            # the calling method should also check the error and return it
+            # as a result, the workflow will complete "successfully" but this is not the case
+            # question is: how to return the error and make the workflow fail at the same time?
+            return None, err
+        
         log.debug(f"cloneResult: {cloneTemplateResult}")
-        taskList = await workflow.execute_activity(
+        taskList, err = await workflow.execute_activity(
             read_template, args=[args.WorkflowFileName, args.requestId], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
             retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
                 backoff_coefficient=settings.temporal_task_backoff_coefficient,
                 maximum_attempts=settings.temporal_task_max_attempts,
                 maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
         )
+        if err is not None:
+            return None, err
+        
         log.debug(f"taskList len = {len(taskList)}")
-        results = [await RunTask(task) for task in taskList]
-        return None
+        return taskList, None
 
 @workflow.defn
 class TemplateChildWorkflow:
@@ -59,23 +71,44 @@ class TemplateChildWorkflow:
         steps = task.get('steps')
         log.debug(f"step count: {len(steps)}")
         results = [await run_step(step.get('config')) for step in steps]
-        return None    
+        return None
 
 async def RunTask(task):
     taskType = task.get('type')
     log.debug(f"executing task {task.get('name')} of type {taskType}")
+    client = (await TemporalClient.get_instance())
     if taskType == 'workflow':
         log.debug(f"starting child workflow {task.get('file')}")
-        result = await workflow.execute_child_workflow(
+        result = (await client.execute_workflow(
             TemplateChildWorkflow.run, task, 
-            id=(task.get('file') + "_" + task.get('correlationID')), 
+            id=(task.get('file') + "_" + task.get('correlationID')),
+            task_queue=settings.temporal_queuename,
             execution_timeout=timedelta(seconds=settings.temporal_workflow_execution_timeout),
-            parent_close_policy= ParentClosePolicy.TERMINATE
-        )
-        
+            # parent_close_policy= ParentClosePolicy.TERMINATE
+        ))
+        return result
     #TODO: add code for starting activity
-        
-    return
+
+async def RunTasks(taskList):
+    log.debug(f"RunTasks")
+    results = [await RunTask(task) for task in taskList]
+    return results
+
+async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str, branch: str):
+    client = (await TemporalClient.get_instance())
+    log.debug(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
+    try:
+        result = (await client.execute_workflow(
+            TemplateWorkflow.run, TemplateWorkflowArgs(requestId=request_id, WorkflowFileName=flowFileName, repoName=repoName, branch=branch),
+            id=(flowFileName + "_" + request_id), 
+            task_queue=settings.temporal_queuename,
+            execution_timeout=timedelta(seconds=10),
+        ))
+        log.debug(f"run_TemplateWorkFlow: result- {result}")
+        return result
+    except Exception as e:
+        log.error(f"run_TemplateWorkFlow Exception: {e}")
+        return None, e
       
 async def run_step(stepConfig):
     """This function will create an API object based on the configType"""
