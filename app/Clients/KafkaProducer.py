@@ -66,9 +66,9 @@ async def send_notification(notification: NotificationModel) -> NotificationMode
     log.debug(f"Sending notification: {notification.toJSON()}")
     try:
         add_or_update_notification(notification.__dict__)
-        # producer = (await get_kafka_producer())
-        # producer.produce(settings.kafka_topic, notification.toJSON())
-        # producer.flush()
+        producer = (await get_kafka_producer())
+        producer.produce(settings.kafka_topic, notification.toJSON())
+        producer.flush()
     except Exception as e:
         log.error(f"Failed to send notification due to {str(e)}")
     return notification

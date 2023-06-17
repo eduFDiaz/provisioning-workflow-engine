@@ -45,7 +45,7 @@ workflow_definition_files_path = "./Workflows_Definition_Files"
 import logging
 FORMAT = "[%(asctime)s - %(levelname)s - %(filename)s:%(funcName)21s:%(lineno)s] %(message)s"
 # Set up basic configuration for logging
-logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='./SANDBOX_WORKFLOW_MS.log', filemode='w')
+logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='./WORKFLOW_MS.log', filemode='w')
 
 # Create an instance of the logger
 logging.getLogger('github').setLevel(logging.ERROR)
