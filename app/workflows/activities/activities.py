@@ -1,4 +1,5 @@
 from temporalio import activity, workflow
+from temporalio.exceptions import ApplicationError
 
 # Import activity, passing it through the sandbox without reloading the module
 with workflow.unsafe.imports_passed_through():
@@ -11,7 +12,7 @@ with workflow.unsafe.imports_passed_through():
     from Clients.KafkaProducer import send_in_progress_notification, send_complete_notification, send_error_notification, prepare_notification
     from Clients.CassandraConnection import CassandraConnection
     from dao.NotificationDao import NotificationDao
-    from Utils.Utils import get_list_of_steps
+    from Utils.Utils import get_list_of_steps, fetch_template_files
     
 # consumer_app_host = None
 # if is_running_in_docker:
@@ -57,13 +58,24 @@ def sendNotifications(func):
     
     return wrapper
 
+@activity.defn(name="clone_template")
+# @sendNotifications
+async def clone_template(repoName: str, branch: str, wfFileName: str):
+    log.debug(f"Step clone_template - {repoName} - {branch} - {wfFileName}")
+    result, err = fetch_template_files(repoName, branch, wfFileName)
+    if err is not None:
+        return None, err
+    return result, None
+
 @activity.defn(name="read_template")
 # @sendNotifications
-async def read_template(wfFileName: str, requestId: str) -> list:
+async def read_template(wfFileName: str, requestId: str):
     log.debug(f"Step read_template {wfFileName} {requestId}")
-    steps, error = get_list_of_steps(wfFileName, requestId)
+    steps, err = get_list_of_steps(wfFileName, requestId)
+    if err is not None:
+        return None, err
     _ = [log.debug(f"read_template steps - {stepConfig}") for stepConfig in list(steps)]
-    return steps
+    return steps, None
 
 
 @activity.defn(name="exec_rest_step")

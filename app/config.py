@@ -36,6 +36,8 @@ class Settings(BaseSettings):
 
     notification_date_format: str = "%Y-%m-%d UTC %H:%M:%S"
 
+    repo_access_token: str = "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"
+
 settings = Settings()
 
 workflow_definition_files_path = "./Workflows_Definition_Files" 
@@ -46,6 +48,7 @@ FORMAT = "[%(asctime)s - %(levelname)s - %(filename)s:%(funcName)21s:%(lineno)s]
 logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='./WORKFLOW_MS.log', filemode='w')
 
 # Create an instance of the logger
+logging.getLogger('github').setLevel(logging.ERROR)
 logger = logging.getLogger()
 
 api_credentials = {

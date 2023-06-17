@@ -3,7 +3,7 @@ import asyncio
 import uuid
 from datetime import timedelta
 
-from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow
+from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow, RunTasks, run_TemplateWorkFlow
 from Models.NotificationModel import NotificationModel
 
 from config import logger as log
@@ -24,7 +24,7 @@ from Clients.CassandraConnection import CassandraConnection
 from dao.NotificationDao import NotificationDao
 
 from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
-from workflows.activities.activities import read_template, exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
+from workflows.activities.activities import read_template, clone_template, exec_rest_step, exec_cli_step, exec_netconf_step, exec_grpc_step
 
 
 from temporal_worker import start_temporal_worker
@@ -66,6 +66,7 @@ async def startup():
                                  ExecuteNetConfTask,
                                  ExecuteGrpcTask], 
                                 [read_template,
+                                 clone_template,
                                  exec_rest_step,
                                  exec_cli_step,
                                  exec_netconf_step,
@@ -79,25 +80,16 @@ async def shutdown():
     log.info("Shutting down Temporal Worker...")
     await config.temporal_worker.stop()
 
-async def run_TemplateWorkFlow(flowFileName: str, request_id: str):
-    client = (await TemporalClient.get_instance())
-    log.debug(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
-    result = (await client.execute_workflow(
-        TemplateWorkflow.run, TemplateWorkflowArgs(request_id, flowFileName),
-        id=(flowFileName + "_" + request_id), 
-        task_queue=settings.temporal_queuename,
-        execution_timeout=timedelta(seconds=settings.temporal_workflow_execution_timeout),
-    ))
-    return result
-
 def run_in_new_thread(loop, coro):
     asyncio.run_coroutine_threadsafe(coro, loop)
     
 @app.post("/execute_workflow/",
          summary="this API will execute a temporal workflow from a YAML file", 
          description="The workflow yaml file will have declaration of the steps and embedded jinja templates")
-async def execute_workflow(flowFileName: str,
-                           request_id: Optional[str] = Header(None)) -> HTMLResponse:
+async def execute_workflow(request_id: Optional[str] = Header(None),
+                           flowFileName: str = Header(...),
+                           repoName: str = Header(...),
+                           branch: str = Header(...)) -> JSONResponse:
     log.debug(f"POST API: execute_workflow/?flowFileName={flowFileName}, request_id={request_id}")
     try:
         should_invoke_steps = False
@@ -153,14 +145,26 @@ async def execute_workflow(flowFileName: str,
         log.info(f"should_invoke_steps final value: {should_invoke_steps} - flowFileName {flowFileName} - requestID: {request_id}")
         if should_invoke_steps is True:
             # invoke_steps on a separate thread
-            loop = asyncio.get_event_loop()
-            threading.Thread(target=run_in_new_thread, args=(loop, run_TemplateWorkFlow(flowFileName, request_id))).start()
+            taskList = {}
+            
+            # run_TemplateWorkFlow will run synchronously (clone_template, read_template)
+            result, err = await (run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))
+            if err is not None:
+                log.error(f"Exception error - {err}")
+                log.error(f"Exception cloning and reading templates files for requestID: {request_id}")
+                return JSONResponse(content={"error": str(err)}, status_code=500)
+            
+            taskList = result
 
-        response = JSONResponse(content={}, status_code=200, headers={"request-id": request_id})
+            # if code reaches here, it means that cloning and reading templates was successful
+            loop = asyncio.get_event_loop()
+            threading.Thread(target=run_in_new_thread, args=(loop, RunTasks(taskList))).start()
+
+        response = JSONResponse(content={"request-id": request_id}, status_code=202)
         return response
     except Exception as e:
         log.error(f"Error: {e}")
-        return HTMLResponse(content=f"Error: {e}", status_code=500)
+        return JSONResponse(content={"error": str(e)}, status_code=500)
     
 def authorize(security: HTTPBasicCredentials = Depends(security)):
     if security.username in users_db:

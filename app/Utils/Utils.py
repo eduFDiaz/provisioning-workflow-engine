@@ -8,8 +8,16 @@ from Models.GlobalParams import Global_params
 
 from config import workflow_definition_files_path as path
 import config
+from config import settings
 
 from typing import Tuple, Any, Optional, List
+
+from temporalio import workflow
+with workflow.unsafe.imports_passed_through():
+    from github import Github
+    from github.GithubException import UnknownObjectException
+
+import os
 
 def read_step_yaml(file_path) -> collections.OrderedDict:
     """This function will read a YAML file and return an OrderedDict
@@ -108,3 +116,61 @@ def get_list_of_steps(file: str, correlationID: str) -> Tuple[Optional[Any], Opt
     # _ = [log.debug(stepConfig) for stepConfig in list(stepConfigs)]
     
     # return stepConfigs, None
+
+def download_file(file_content, local_path):
+    with open(local_path, 'wb') as f:
+        f.write(file_content.decoded_content)
+
+def save_path_recursively(repo, path, local_dir, branch):
+    contents = repo.get_contents(path, ref=branch)
+
+    for content in contents:
+        log.debug(f"Fetching - {content.path}")
+        if content.type == "dir":
+            new_dir = os.path.join(local_dir, content.name)
+            os.makedirs(new_dir, exist_ok=True)
+            save_path_recursively(repo, content.path, new_dir, branch)
+        else:
+            local_path = os.path.join(local_dir, content.name)
+            download_file(content, local_path)
+
+errorMetadata = {
+    421 : { "description" : "repo not found" },
+    422 : { "description" : "branch not found" },
+    423 : { "description" : "file not found" },
+    900 : { "description" : "Generic error" },
+}    
+
+from dataclasses import dataclass
+
+@dataclass
+class CustomError:
+    code: int = 900
+    description: str = ''
+    message: str = ''
+    def __post_init__(self):
+        self.description = errorMetadata[self.code]['description']
+    def __str__(self):
+        return f"Error code: {self.code}, description: {self.description}, message: {self.message}"
+
+def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[Optional[Any], Optional[CustomError]]:
+    try:
+        log.debug(f"Getting list of steps from file {wfFileName}, path={path}")
+        g = Github(settings.repo_access_token)
+        user = g.get_user()
+        repo = user.get_repo(repoName)
+        repoPath = wfFileName.split('/')[0]
+        log.debug(f"repoPath: {repoPath}")
+        local_dir = f"{path}/{repoPath}"
+        log.debug(f"local_dir: {local_dir}")
+        save_path_recursively(repo, repoPath, local_dir, branch)
+        return "template files fetched successfully", None
+    except UnknownObjectException as e:
+        # generate error objects with codes and descriptions, this metadata will be maintained in a different file
+        error = CustomError(code=421, message=str(e))
+        log.error(f"Error fetching template files: {str(error)}")
+        return None, error
+    except Exception as e:
+        error = CustomError(code=900, message=str(e))
+        log.error(f"Error fetching template files: {str(error)}")
+        return None, error

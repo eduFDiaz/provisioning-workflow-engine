@@ -9,9 +9,9 @@ metadata:
 dependencies:
 steps:
   - name: PE Configuration
-    file: pe_configuration.yml
+    file: l3vpn-provisioning/pe-provisioning/pe_configuration.yml
     type: workflow
 
   - name: CE Configuration
-    file: ce_configuration.yml 
+    file: l3vpn-provisioning/ce-provisioning/ce_configuration.yml 
     type: workflow
