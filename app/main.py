@@ -34,6 +34,9 @@ import asyncio
 import concurrent.futures
 import threading
 
+from temporalio.exceptions import ApplicationError, ActivityError
+from temporalio.client import WorkflowFailureError
+
 users_db = {
     "admin": {
         "username": "admin",
@@ -147,14 +150,20 @@ async def execute_workflow(request_id: Optional[str] = Header(None),
             # invoke_steps on a separate thread
             taskList = {}
             
-            # run_TemplateWorkFlow will run synchronously (clone_template, read_template)
-            result, err = await (run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))
-            if err is not None:
-                log.error(f"Exception error - {err}")
-                log.error(f"Exception cloning and reading templates files for requestID: {request_id}")
-                return JSONResponse(content={"error": str(err)}, status_code=500)
-            
-            taskList = result
+            try:
+                # run_TemplateWorkFlow will run synchronously (clone_template, read_template)
+                result, err = await (run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))
+                taskList = result
+            except WorkflowFailureError as err:
+                if isinstance(err.cause, ApplicationError):
+                    log.debug(f"Workflow failed with application error: {err.cause.cause}")
+                elif isinstance(err.cause, ActivityError):
+                    log.debug(f"Workflow failed with a non-application error: {err.cause.cause}")
+                    log.error(f"Exception error - {err.cause.cause}")
+                    log.error(f"Exception cloning and reading templates files for requestID: {request_id}")
+                    return JSONResponse(content={"error": str(err.cause.cause)}, status_code=500)
+                else:
+                    log.debug(f"Workflow failed with error: {err}")
 
             # if code reaches here, it means that cloning and reading templates was successful
             loop = asyncio.get_event_loop()

@@ -1,5 +1,4 @@
 from temporalio import activity, workflow
-from temporalio.exceptions import ApplicationError
 
 # Import activity, passing it through the sandbox without reloading the module
 with workflow.unsafe.imports_passed_through():

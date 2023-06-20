@@ -152,6 +152,12 @@ class CustomError:
         self.description = errorMetadata[self.code]['description']
     def __str__(self):
         return f"Error code: {self.code}, description: {self.description}, message: {self.message}"
+    def toJSON(self):
+        return {
+            "code": self.code,
+            "description": self.description,
+            "message": self.message
+        }
 
 def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[Optional[Any], Optional[CustomError]]:
     try:
@@ -169,11 +175,11 @@ def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[O
         # generate error objects with codes and descriptions, this metadata will be maintained in a different file
         error = CustomError(code=421, message=str(e))
         log.error(f"Error fetching template files: {str(error)}")
-        return None, error
+        raise ValueError(error.toJSON())
     except Exception as e:
         error = CustomError(code=900, message=str(e))
         log.error(f"Error fetching template files: {str(error)}")
-        return None, error
+        raise ValueError(error.toJSON())
 
 def get_value_from_dict_path(nested_dict, path):
     keys_list = path.split('.')

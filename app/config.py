@@ -38,6 +38,8 @@ class Settings(BaseSettings):
 
     repo_access_token: str = "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"
 
+    log_fileName: str = "./WORKFLOW_MS.log"
+
 settings = Settings()
 
 workflow_definition_files_path = "./Workflows_Definition_Files" 
@@ -45,7 +47,7 @@ workflow_definition_files_path = "./Workflows_Definition_Files"
 import logging
 FORMAT = "[%(asctime)s - %(levelname)s - %(filename)s:%(funcName)21s:%(lineno)s] %(message)s"
 # Set up basic configuration for logging
-logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename='./WORKFLOW_MS.log', filemode='w')
+logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', filename=settings.log_fileName, filemode='w')
 
 # Create an instance of the logger
 logging.getLogger('github').setLevel(logging.ERROR)

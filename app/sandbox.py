@@ -18,7 +18,8 @@ from temporalClient import TemporalClient
 from config import settings
 from config import logger as log
 
-from temporalio.exceptions import FailureError, ApplicationError
+from temporalio.exceptions import ApplicationError, ActivityError
+from temporalio.client import WorkflowFailureError
 
 # import logging
 
@@ -1326,14 +1327,26 @@ if __name__ == "__main__":
     
     taskList = {}
     # run_TemplateWorkFlow will run synchronously
-    taskList, err = loop.run_until_complete(run_TemplateWorkFlow(flowFileName="l3vpn-provisioning/vpn_provisioning.yml",request_id="0c32b683-683a-4de4-a7f3-44318a14acbc", repoName="network-workflows", branch="feature-issues-18"))
-    if err is not None:
-        # return error response in real app
-        log.error("error after calling run_TemplateWorkFlow",err)
+
+    try:
+    
+        taskList, err = loop.run_until_complete(run_TemplateWorkFlow(flowFileName="l3vpn-provisioning/vpn_provisioning.yml",request_id="0c32b683-683a-4de4-a7f3-44318a14acbc", repoName="network-workflowss", branch="feature-issues-18"))
+
+        if err is not None:
+            # return error response in real app
+            log.error(f"error after calling run_TemplateWorkFlow - {err}")
+            exit(1)
+    except WorkflowFailureError as err:
+        if isinstance(err.cause, ApplicationError):
+            log.debug(f"Workflow failed with application error: {err.cause.cause}")
+        elif isinstance(err.cause, ActivityError):
+            log.debug(f"Workflow failed with a non-application error: {err.cause.cause}")
+        else:
+            log.debug(f"Workflow failed with error: {err}")
         exit(1)
 
     # if there are no errors will call RunTasks for the taskList result of cloning and reading the templates
-    print(f"taskList len - {len(taskList)}")
+    log.debug(f"taskList len - {len(taskList)}")
     runTasksResult = loop.run_until_complete(RunTasks(taskList))
-    print(f"runTasksResult - {runTasksResult}")
+    log.debug(f"runTasksResult - {runTasksResult}")
     

@@ -24,7 +24,8 @@ from temporalio.common import RetryPolicy
 from temporalio import workflow
 from temporalio.workflow import ParentClosePolicy
 
-from temporalio.exceptions import ApplicationError
+from temporalio.exceptions import ApplicationError, FailureError, ActivityError, TemporalError
+from temporalio.client import WorkflowFailureError
 
 
 
@@ -35,22 +36,22 @@ class TemplateWorkflow:
     @workflow.run
     async def run(self, args: TemplateWorkflowArgs):
         log.debug(f"workflow: {args.WorkflowFileName}, correlation-id: {args.requestId}")
-        cloneTemplateResult, err = await workflow.execute_activity(
-            clone_template, args=[args.repoName, args.branch, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
-            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
-                backoff_coefficient=settings.temporal_task_backoff_coefficient,
-                maximum_attempts=settings.temporal_task_max_attempts,
-                maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
-        )
 
-        if err is not None:
-            # returning the error as part of the tuple will not make the actual workflow fail
-            # the calling method should also check the error and return it
-            # as a result, the workflow will complete "successfully" but this is not the case
-            # question is: how to return the error and make the workflow fail at the same time?
-            return None, err
+        cloneTemplateResult, err = await workflow.execute_activity(
+                clone_template, args=[args.repoName, args.branch, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
+                retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
+                    backoff_coefficient=settings.temporal_task_backoff_coefficient,
+                    maximum_attempts=settings.temporal_task_max_attempts,
+                    maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
+            )
+        # if err is not None:
+        #     # returning the error as part of the tuple will not make the actual workflow fail
+        #     # the calling method should also check the error and return it
+        #     # as a result, the workflow will complete "successfully" but this is not the case
+        #     # question is: how to return the error and make the workflow fail at the same time?
+        #     return None, err
         
-        log.debug(f"cloneResult: {cloneTemplateResult}")
+        log.debug(f"cloneResult: {cloneTemplateResult} - {err}")
         taskList, err = await workflow.execute_activity(
             read_template, args=[args.WorkflowFileName, args.requestId], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
             retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
@@ -58,9 +59,8 @@ class TemplateWorkflow:
                 maximum_attempts=settings.temporal_task_max_attempts,
                 maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
         )
-        if err is not None:
-            return None, err
-        
+        # if err is not None:
+        #     return None, err        
         log.debug(f"taskList len = {len(taskList)}")
         return taskList, None
 
@@ -97,9 +97,9 @@ async def RunTasks(taskList):
     return results
 
 async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str, branch: str):
-    client = (await TemporalClient.get_instance())
-    log.debug(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
     try:
+        client = (await TemporalClient.get_instance())
+        log.debug(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
         result = (await client.execute_workflow(
             TemplateWorkflow.run, TemplateWorkflowArgs(requestId=request_id, WorkflowFileName=flowFileName, repoName=repoName, branch=branch),
             id=(flowFileName + "_" + request_id), 
@@ -108,9 +108,15 @@ async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str
         ))
         log.debug(f"run_TemplateWorkFlow: result- {result}")
         return result
-    except Exception as e:
-        log.error(f"run_TemplateWorkFlow Exception: {e}")
-        return None, e
+    except WorkflowFailureError as err:
+        if isinstance(err.cause, ApplicationError):
+            log.debug(f"Workflow failed with application error: {err.cause.cause}")
+        elif isinstance(err.cause, ActivityError):
+            log.debug(f"Workflow failed with a non-application error: {err.cause.cause}")
+        else:
+            log.debug(f"Workflow failed with error: {err}")
+        raise err
+
       
 async def run_step(stepConfig):
     """This function will create an API object based on the configType"""
