@@ -174,3 +174,20 @@ def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[O
         error = CustomError(code=900, message=str(e))
         log.error(f"Error fetching template files: {str(error)}")
         return None, error
+
+def get_value_from_dict_path(nested_dict, path):
+    keys_list = path.split('.')
+    temp = nested_dict
+    for key in keys_list:
+        if not isinstance(temp, dict):
+            return None
+        temp = temp.get(key, None)
+        if temp is None:
+            return None
+    return temp
+
+def get_value_from_dict_path_or_env(nested_dict, path, env_var_name):
+    value = get_value_from_dict_path(nested_dict, path)
+    if value is None:
+        value = env_var_name
+    return value
