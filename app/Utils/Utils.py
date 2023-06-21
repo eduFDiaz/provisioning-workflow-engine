@@ -15,7 +15,7 @@ from typing import Tuple, Any, Optional, List
 from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from github import Github
-    from github.GithubException import UnknownObjectException
+    from Models.Errors.CustomGithubError import CustomGithubError
 
 import os
 
@@ -134,32 +134,7 @@ def save_path_recursively(repo, path, local_dir, branch):
             local_path = os.path.join(local_dir, content.name)
             download_file(content, local_path)
 
-errorMetadata = {
-    421 : { "description" : "repo not found" },
-    422 : { "description" : "branch not found" },
-    423 : { "description" : "file not found" },
-    900 : { "description" : "Generic error" },
-}    
-
-from dataclasses import dataclass
-
-@dataclass
-class CustomError:
-    code: int = 900
-    description: str = ''
-    message: str = ''
-    def __post_init__(self):
-        self.description = errorMetadata[self.code]['description']
-    def __str__(self):
-        return f"Error code: {self.code}, description: {self.description}, message: {self.message}"
-    def toJSON(self):
-        return {
-            "code": self.code,
-            "description": self.description,
-            "message": self.message
-        }
-
-def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[Optional[Any], Optional[CustomError]]:
+def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[Optional[Any], Optional[CustomGithubError]]:
     try:
         log.debug(f"Getting list of steps from file {wfFileName}, path={path}")
         g = Github(settings.repo_access_token)
@@ -171,13 +146,9 @@ def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[O
         log.debug(f"local_dir: {local_dir}")
         save_path_recursively(repo, repoPath, local_dir, branch)
         return "template files fetched successfully", None
-    except UnknownObjectException as e:
-        # generate error objects with codes and descriptions, this metadata will be maintained in a different file
-        error = CustomError(code=421, message=str(e))
-        log.error(f"Error fetching template files: {str(error)}")
-        raise ValueError(error.toJSON())
     except Exception as e:
-        error = CustomError(code=900, message=str(e))
+        params = {'repoName': repoName, 'branch': branch, 'wfFileName': wfFileName, 'repo_access_token': settings.repo_access_token}
+        error = CustomGithubError(payload=e, args=params)
         log.error(f"Error fetching template files: {str(error)}")
         raise ValueError(error.toJSON())
 
