@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     temporal_workflow_execution_timeout: float
     
     cassandra_host: str
-    cassandra_port : str = 9042
+    cassandra_port : str
     cassandra_user: str
     cassandra_password: str
     

@@ -28,7 +28,6 @@ from temporalio.exceptions import ApplicationError, FailureError, ActivityError,
 from temporalio.client import WorkflowFailureError
 
 
-
 @workflow.defn
 class TemplateWorkflow:
     def __init__(self) -> None:
@@ -37,32 +36,25 @@ class TemplateWorkflow:
     async def run(self, args: TemplateWorkflowArgs):
         log.debug(f"workflow: {args.WorkflowFileName}, correlation-id: {args.requestId}")
 
-        cloneTemplateResult, err = await workflow.execute_activity(
+        cloneTemplateResult = await workflow.execute_activity(
                 clone_template, args=[args.repoName, args.branch, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
                 retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
                     backoff_coefficient=settings.temporal_task_backoff_coefficient,
                     maximum_attempts=settings.temporal_task_max_attempts,
                     maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
             )
-        # if err is not None:
-        #     # returning the error as part of the tuple will not make the actual workflow fail
-        #     # the calling method should also check the error and return it
-        #     # as a result, the workflow will complete "successfully" but this is not the case
-        #     # question is: how to return the error and make the workflow fail at the same time?
-        #     return None, err
         
-        log.debug(f"cloneResult: {cloneTemplateResult} - {err}")
-        taskList, err = await workflow.execute_activity(
+        log.debug(f"cloneResult: {cloneTemplateResult}")
+        taskList = await workflow.execute_activity(
             read_template, args=[args.WorkflowFileName, args.requestId], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
             retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
                 backoff_coefficient=settings.temporal_task_backoff_coefficient,
                 maximum_attempts=settings.temporal_task_max_attempts,
                 maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
         )
-        # if err is not None:
-        #     return None, err        
+        
         log.debug(f"taskList len = {len(taskList)}")
-        return taskList, None
+        return taskList
 
 @workflow.defn
 class TemplateChildWorkflow:
@@ -183,7 +175,7 @@ async def run_step(stepConfig):
         raise ValueError(f"Unsupported configType: {step_type}")
 
 
-async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any], Optional[Exception]]:
+async def get_steps_configs(file: str, correlationID: str):
     log.debug(f"get_steps_configs")
     # milestonesResult will be a map of milestone names to a list of steps
     milestonesResult = OrderedDict()
@@ -199,10 +191,7 @@ async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any
     log.debug(f"global_params: {global_params}")
     
     for milestone in dict['steps']:
-        steps, error = get_list_of_steps(milestone['file'], correlationID)
-        if error:
-            log.error(f"Error getting list of steps")
-            return None, error
+        steps = get_list_of_steps(milestone['file'], correlationID)
     
         # we only want to return a subset of the keys from the configs, this may change in the future
         keys_to_keep = ['name', 'description', 'milestoneStepName', 'milestoneName', 'configType', 'workflow_name']
@@ -226,4 +215,4 @@ async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any
     for key, value in milestonesResult.items():
         log.debug(f"key: {key}, value: {value}")
 
-    return milestonesResult, None
+    return milestonesResult

@@ -152,7 +152,7 @@ async def execute_workflow(request_id: Optional[str] = Header(None),
             
             try:
                 # run_TemplateWorkFlow will run synchronously (clone_template, read_template)
-                result, err = await (run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))
+                result = await (run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))
                 taskList = result
             except WorkflowFailureError as err:
                 if isinstance(err.cause, ApplicationError):
@@ -220,11 +220,8 @@ async def get_notification_by_correlationID(requestID: str):
 async def fetch_steps(workflowFileName: str, requestID: str):   
     try:
         log.info(f"fetch_steps {workflowFileName}, requestID - {requestID}")
-        res, err = (await get_steps_configs(workflowFileName, requestID))
-        if err:
-            return JSONResponse(content=err, status_code=500)
-        else:
-            return JSONResponse(content=res, status_code=200)
+        res = (await get_steps_configs(workflowFileName, requestID))
+        return JSONResponse(content=res, status_code=200)
     except Exception as e:
         log.error(f"Error: {e}")
-        return HTMLResponse(content=f"Error: {e}", status_code=500)
+        return JSONResponse(content=e, status_code=500)

@@ -1322,37 +1322,32 @@ async def startup():
 
 if __name__ == "__main__":
     print("Running sandbox.py")
-    # loop = asyncio.get_event_loop()
-    # loop.run_until_complete(startup())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(startup())
     
     # taskList = {}
     # # run_TemplateWorkFlow will run synchronously
 
     # try:
-    
-    #     taskList, err = loop.run_until_complete(run_TemplateWorkFlow(flowFileName="l3vpn-provisioning/vpn_provisioning.yml",request_id="0c32b683-683a-4de4-a7f3-44318a14acbc", repoName="network-workflowss", branch="feature-issues-18"))
-
-    #     if err is not None:
-    #         # return error response in real app
-    #         log.error(f"error after calling run_TemplateWorkFlow - {err}")
-    #         exit(1)
-    # except WorkflowFailureError as err:
-    #     if isinstance(err.cause, ApplicationError):
-    #         log.debug(f"Workflow failed with application error: {err.cause.cause}")
-    #     elif isinstance(err.cause, ActivityError):
-    #         log.debug(f"Workflow failed with a non-application error: {err.cause.cause}")
-    #     else:
-    #         log.debug(f"Workflow failed with error: {err}")
+    #     taskList = loop.run_until_complete(run_TemplateWorkFlow(flowFileName="l3vpn-provisioning/vpn_provisioning.yml",request_id="0c32b683-683a-4de4-a7f3-44318a14acbc", repoName="network-workflows", branch="feature-issues-18"))
+    # except Exception as error:
+    #     log.error(error)
     #     exit(1)
 
-    # # if there are no errors will call RunTasks for the taskList result of cloning and reading the templates
+    # if there are no errors will call RunTasks for the taskList result of cloning and reading the templates
     # log.debug(f"taskList len - {len(taskList)}")
     # runTasksResult = loop.run_until_complete(RunTasks(taskList))
     # log.debug(f"runTasksResult - {runTasksResult}")
+    # try:
+    #     fetch_template_files(wfFileName="l3vpn-provisioning/vpn_provisioning.yml", repoName="network-workflows", branch="feature-issues-18")
+    # except Exception as error:
+    #     log.error(error)
+    #     exit(1)
 
-    try:
-        fetch_template_files(wfFileName="l3vpn-provisioning/vpn_provisioning.yml", repoName="network-workflows", branch="feature-issues-18")
-    except Exception as error:
-        log.error(error)
-        exit(1)
+    taskList = loop.run_until_complete(read_template("l3vpn-provisioning/vpn_provisioning.yml", "0c32b683-683a-4de4-a7f3-44318a14acbd"))
+    log.debug(f"taskList len - {len(taskList)}")
+    log.debug(f"pe config {taskList[:1]}")
+    runTasksResult = loop.run_until_complete(RunTasks(taskList[:1]))
+    log.debug(f"runTasksResult - {runTasksResult}")
+    
     

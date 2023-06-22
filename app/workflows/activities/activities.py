@@ -61,20 +61,16 @@ def sendNotifications(func):
 # @sendNotifications
 async def clone_template(repoName: str, branch: str, wfFileName: str):
     log.debug(f"Step clone_template - {repoName} - {branch} - {wfFileName}")
-    result, err = fetch_template_files(repoName, branch, wfFileName)
-    if err is not None:
-        return None, err
-    return result, None
+    result = fetch_template_files(repoName, branch, wfFileName)
+    return result
 
 @activity.defn(name="read_template")
 # @sendNotifications
 async def read_template(wfFileName: str, requestId: str):
     log.debug(f"Step read_template {wfFileName} {requestId}")
-    steps, err = get_list_of_steps(wfFileName, requestId)
-    if err is not None:
-        return None, err
+    steps = get_list_of_steps(wfFileName, requestId)
     _ = [log.debug(f"read_template steps - {stepConfig}") for stepConfig in list(steps)]
-    return steps, None
+    return steps
 
 
 @activity.defn(name="exec_rest_step")
