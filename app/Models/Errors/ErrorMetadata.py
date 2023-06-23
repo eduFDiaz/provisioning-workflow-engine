@@ -23,4 +23,13 @@ errorMetadata = {
         "REST_STEP_ERROR_504" : { "description" : "gateway timeout" , "message" : "service not reachable host:{host} port:{port}" },
         "REST_STEP_ERROR_506" : { "description" : "gateway timeout" , "message" : "service timed out when requesting {url}" },
         "REST_STEP_ERROR_999" : { "description" : "unhandled error" , "message" : "unhandled error" },
+        "CLI_STEP_ERROR_421" : { "description" : "connecting to host" , "message" : "server: {hostname} identity's cannot be verified" },
+        "CLI_STEP_ERROR_422" : { "description" : "authentication error" , "message" : "authentication failed! Provider username: {username}, password: {password}" },
+        "CLI_STEP_ERROR_423" : { "description" : "channel error" , "message" : "host: {hostname} unexpectedly closed the connection, issued command: {command}" },
+        "CLI_STEP_ERROR_424" : { "description" : "authentication type error" , "message" : "authentication type not supported by the host: {hostname}"},
+        "CLI_STEP_ERROR_425" : { "description" : "password required error" , "message" : "authentication requires password, password provided: {password}" },
+        "CLI_STEP_ERROR_426" : { "description" : "proxy command error" , "message" : "ssh over proxy failed" },
+        "CLI_STEP_ERROR_427" : { "description" : "ssh connection error", "message" : "ssh connection failed, hostname: {hostname}, username: {username}, password: {password}" },
+        "CLI_STEP_ERROR_428" : { "description" : "address info error", "message" : "Name or service: {hostname} not known" },
+        "CLI_STEP_ERROR_999" : { "description" : "unhandled error" , "message" : "unhandled error" },
 }
