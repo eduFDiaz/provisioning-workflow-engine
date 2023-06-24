@@ -9,6 +9,7 @@ from jsonpath_ng.ext import parser
 import xmltodict
 
 from typing import Dict
+from Models.Errors.CustomNetconfStepError import CustomNetconfError, NETCONF_ERRORS
 
 class NetConfStep(Process):
     """This class will execute a list of commands on a remote host through NETCONF"""
@@ -20,7 +21,7 @@ class NetConfStep(Process):
         self.password = api_credentials[self.configType]['password']
         self.request = self.config['request']
         if self.request['type'] not in ['FETCH', 'EDIT']:
-            raise ValueError(f"Invalid request type: {self.request['type']}")
+            raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.UNSUPPORTED_REQUEST_TYPE, args={'request_type': self.request['type']}).toJSON())
         self.type = self.request['type']
     def render_jinja_template(self):
         log.debug("netconfStep render_jinja_template")
@@ -43,7 +44,7 @@ class NetConfStep(Process):
                     
                     if param is None:
                         log.error(f"NetConfStep validate_fetch_response error: param {value} not found in global_params")
-                        return False
+                        raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_PARAM_NOT_INITIALIZED, args={'param': value}).toJSON())
                     
                     path = key
                     expression = parser.parse(path)
@@ -53,15 +54,15 @@ class NetConfStep(Process):
                     
                     if result is None or len(result) == 0:
                         log.error(f"NetConfStep validate_fetch_response error: {path} not found in response")
-                        return False
+                        raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_PARAM_PATH_NOT_FOUND, args={'path': path}).toJSON())
                     if (param != result[0]):
                         log.error(f"NetConfStep validate_fetch_response error: {param} != {result[0]}") 
-                        return False
+                        raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_PARAM_NOT_EQUAL, args={'param': param, 'result': result[0]}).toJSON())
                 except Exception as e:
                         log.error(f"NetConfStep validate_fetch_response Exception: {e}")
-                        return False
+                        raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_EXCEPTION, args={'exception': e}).toJSON())
         
-        log.info("Code reached end of validate_fetch_response, no params to validate")
+        log.info("Code reached end of validate_fetch_response, no params to validate or all params validated successfully")
         return True
     def validate_edit_response(self, output_dic: Dict) -> bool:
         """This method will validate the netconf edit response"""
@@ -72,7 +73,7 @@ class NetConfStep(Process):
                 return True
         except KeyError as e:
             log.error(f"NetConfStep validate_process error: response was not </ok>: KeyError {e}")
-            return False
+            raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.VALIDATE_EDIT_RESPONSE_ERROR, args={'response', xmltodict.unparse(output_dic)}).toJSON())
     def validate_process(self, output: str) -> bool:
         """This method will validate the netconf response for FETCH and EDIT requests"""
         log.debug(f"NetConfStep validate_process output\n{output}")
@@ -87,7 +88,7 @@ class NetConfStep(Process):
             if (output_dic.get('rpc-reply') != None and 
                     output_dic.get('rpc-reply').get('data') == None):
                 log.error("NetConfStep validate_process error: response is empty")
-                return False
+                raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_EMPTY, args={'response', xmltodict.unparse(output_dic)}).toJSON())
             else:
                 # proceed to validate attributes in the response
                 return self.validate_fetch_response(output_json)
@@ -112,7 +113,7 @@ class NetConfStep(Process):
                     result = [match.value for match in expression.find(data)]
 
                     if len(result) == 0:
-                        raise ValueError(f"No matching value for {value}")
+                        raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.EXTRACT_VARIABLES_NO_MATCHING_VALUE, args={'path': value, 'response': data_dict}).toJSON())
 
                     if len(result) == 1:
                         result = result[0]
@@ -123,7 +124,7 @@ class NetConfStep(Process):
                     log.debug(f"RestStep extract_variables global_params: {self.global_params}")
                 except Exception as e:
                         log.error(f"RestStep extract_variables error: {e}")
-                        return False
+                        raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.EXTRACT_VARIABLES_EXCEPTION, args={'exception': e}).toJSON())
         else:
             return True
         return True
@@ -155,7 +156,7 @@ class NetConfStep(Process):
             else:
                 log.debug(f"NetConfStep process_step FETCH validProcess = {validProcess}")
                 log.debug(f"NetConfStep process_step FETCH extractVariables = {extractVariables}")
-                raise ValueError(f"NetConfStep process_step FETCH error: validProcess = {validProcess} extractVariables = {extractVariables}")
+                raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.PROCESS_STEP_FETCH_ERROR, args={'validProcess': validProcess, 'extractVariables': extractVariables}).toJSON())
         elif self.type == 'EDIT':
             result = client.edit_config(self.payload)
             
@@ -165,4 +166,4 @@ class NetConfStep(Process):
                 return 0
             else:
                 log.debug(f"NetConfStep process_step EDIT validProcess = {validProcess}")
-                raise ValueError(f"NetConfStep process_step EDIT error: validProcess = {validProcess}")
+                raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.PROCESS_STEP_EDIT_ERROR, args={'validProcess': validProcess}).toJSON())

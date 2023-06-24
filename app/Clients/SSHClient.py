@@ -11,7 +11,10 @@ class SSHClient:
         self.username = username
         self.password = password
         # masking the password and username for the exception handling
-        self.exceptionArgs = {"hostname":self.hostname, "username": str(self.username[:3] + '*' * (len(self.username) - 3)), "password":str(self.password[:3] + '*' * (len(self.password) - 3))}
+        self.exceptionArgs = { "hostname":self.hostname,
+                               "username": str(self.username[:3] + '*' * (len(self.username) - 3)),
+                               "password":str(self.password[:3] + '*' * (len(self.password) - 3))
+                            }
         log.debug(f"SSHClient self.exceptionArgs: {self.exceptionArgs}")
         try:
             self.ssh = paramiko.SSHClient()
