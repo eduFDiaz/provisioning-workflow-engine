@@ -1344,8 +1344,12 @@ if __name__ == "__main__":
     #     log.error(error)
     #     exit(1)
 
-    taskList = loop.run_until_complete(read_template("l3vpn-provisioning/vpn_provisioning.yml", "0c32b683-683a-4de4-a7f3-44318a14acbe"))
-    log.debug(f"taskList len - {len(taskList)}")
-    log.debug(f"pe config {taskList}")
-    runTasksResult = loop.run_until_complete(RunTasks(taskList))
-    log.debug(f"runTasksResult - {runTasksResult}")
+    try:
+        taskList = loop.run_until_complete(read_template("l3vpn-provisioning/vpn_provisioning.yml", "0c32b683-683a-4de4-a7f3-44318a14acbe"))
+        log.debug(f"taskList len - {len(taskList)}")
+        log.debug(f"pe config {taskList}")
+        runTasksResult = loop.run_until_complete(RunTasks(taskList))
+        log.debug(f"runTasksResult - {runTasksResult}")
+    except Exception as e:
+        log.error(e)
+        exit(1)

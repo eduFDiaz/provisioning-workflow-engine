@@ -16,15 +16,22 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from github import Github
     from Models.Errors.CustomGithubError import CustomGithubError
+    from Models.Errors.CustomReadStepsTemplateError import CustomReadStepsTemplateError
+    
 
 import os
 
-def read_step_yaml(file_path) -> collections.OrderedDict:
+from jinja2 import TemplateSyntaxError, UndefinedError
+
+def read_step_yaml(file_path: str) -> collections.OrderedDict:
     """This function will read a YAML file and return an OrderedDict
     will be used to read configs and steps files"""
     log.debug(f"Reading read_step_yaml YAML file: {file_path}")
-    with open(file_path, 'r') as f:
-        return yaml.safe_load(f)
+    try:
+        with open(file_path, 'r') as f:
+            return yaml.safe_load(f)
+    except Exception as e:
+        raise ValueError(CustomReadStepsTemplateError(payload=e, args={ 'file_path' : file_path.replace(path,'') }).toJSON())   
 
 def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) -> List[Any]:
     """This method will recursively read steps on the root  workflow YAML file, as well as child workflows.
@@ -84,7 +91,7 @@ def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) ->
             steps.append(step)
         return steps
     except Exception as e:
-        raise ValueError(f"Error reading workflow file: {file_path}. error: {str(e)}")
+        raise ValueError(CustomReadStepsTemplateError(payload=e, args={ 'file_path' : file_path.replace(path,'') }).toJSON())
     
 def get_list_of_steps(file: str, correlationID: str) -> List[Any]:
     log.debug(f"Getting list of steps from file {file}, path={path}, correlationID:{correlationID}")

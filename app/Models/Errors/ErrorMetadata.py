@@ -3,6 +3,17 @@ errorMetadata = {
         "GITHUB_ERROR_404" : { "description" : "resource not found" , "message" : "repo {repoName} not found" },
         "GITHUB_ERROR_405" : { "description" : "resource not found" , "message" : "branch {branch} not found" },
         "GITHUB_ERROR_999" : { "description" : "unhandled error" , "message" : "unhandled error" },
+        
+        "READ_STEPS_TEMPLATE_ERRORS_401" : { "description" : "step file read error" , "message" : "step file: {file_path} not found" },
+        "READ_STEPS_TEMPLATE_ERRORS_402" : { "description" : "step file read error" , "message" : "provided path: {file_path} is a directory" },
+        "READ_STEPS_TEMPLATE_ERRORS_403" : { "description" : "step file read error" , "message" : "permission denied for file: {file_path}" },
+        "READ_STEPS_TEMPLATE_ERRORS_404" : { "description" : "step file read error" , "message" : "file: {file_path} content is not a string or a bytes-like object that can be parsed" },
+        "READ_STEPS_TEMPLATE_ERRORS_405" : { "description" : "step file read error" , "message" : "file: {file_path} contains non-UTF-8 encoded data that cannot be decoded" },
+        "READ_STEPS_TEMPLATE_ERRORS_406" : { "description" : "step file read error" , "message" : "file: {file_path} YML invalid syntax, error: {syntaxError}" },
+        "READ_STEPS_TEMPLATE_ERRORS_407" : { "description" : "jinja template syntax error" , "message" : "file: {file_path} jinja2 invalid syntax, error: {syntaxError}" },
+        "READ_STEPS_TEMPLATE_ERRORS_408" : { "description" : "jinja template syntax error" , "message" : "file: {file_path} jinja2 param value not provided please add it to *.values.yml, error: {syntaxError}" },
+        "READ_STEPS_TEMPLATE_ERRORS_999" : { "description" : "unhandled error" , "message" : "unhandled error: {error}" },
+        
         "REST_STEP_ERROR_302" : { "description" : "too many redirects" , "message" : "too many redirects when requesting resource: {url}" },
         "REST_STEP_ERROR_405" : { "description" : "unsupported HTTP method" , "message" : "method: {method} not allowed, try GET or POST" },
         "REST_STEP_ERROR_422" : { "description" : "unprocessable entity" , "message" : "response code: {actualStatusCode} != expected code: {expectedStatusCode}" },
