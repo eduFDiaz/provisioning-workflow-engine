@@ -23,26 +23,26 @@ class CustomGithubError(CustomErrorBase):
         
         match data.message:
             case "Bad credentials":
-                self.code = data.status
-                self.description = errorMetadata[f"GITHUB_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"GITHUB_ERROR_{str(self.code)}"]["message"]
+                self.code = f"GITHUB_ERROR_{str(data.status)}"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
 
         match data.documentation_url:
             case "https://docs.github.com/rest/reference/repos#get-a-repository":
-                self.code = data.status
-                self.description = errorMetadata[f"GITHUB_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"GITHUB_ERROR_{str(self.code)}"]["message"].format(param=self.args['repoName'])
+                self.code = f"GITHUB_ERROR_{str(data.status)}"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
         
         if data.message.__contains__(f"No commit found for the ref {self.args['branch']}"):
-            self.code = 405
-            self.description = errorMetadata[f"GITHUB_ERROR_{str(self.code)}"]["description"]
-            self.message = errorMetadata[f"GITHUB_ERROR_{str(self.code)}"]["message"].format(param=self.args['branch'])
+            self.code = "GITHUB_ERROR_405"
+            self.description = errorMetadata[self.code]["description"]
+            self.message = errorMetadata[self.code]["message"].format_map(self.args)
             return
 
         log.debug(f"returning unhandled error not catched by implementation")
-        self.code = 999
-        self.description = errorMetadata[f"GITHUB_ERROR_UNHANDLED"]["description"]
-        self.message = errorMetadata[f"GITHUB_ERROR_UNHANDLED"]["message"]
+        self.code = "GITHUB_ERROR_999"
+        self.description = errorMetadata[self.code]["description"]
+        self.message = errorMetadata[self.code]["message"].format_map(self.args)
         return

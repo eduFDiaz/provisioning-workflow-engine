@@ -6,7 +6,7 @@ from typing import Any, Dict
 class CustomErrorBase:
     payload: Any
     args: Dict[str, Any]
-    code: int = 900
+    code: str = "900"
     description: str = ''
     message: str = ''
     def __post_init__(self):

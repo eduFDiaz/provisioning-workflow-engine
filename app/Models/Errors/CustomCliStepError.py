@@ -27,44 +27,44 @@ class CustomCliStepError(CustomErrorBase):
 
         match self.payload:
             case CLI_ERRORS.BAD_HOST_KEY_ERROR:
-                self.code = 421
-                self.description = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "CLI_STEP_ERROR_421"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case CLI_ERRORS.AUTHENTICATION_ERROR:
-                self.code = 422
-                self.description = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "CLI_STEP_ERROR_422"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case CLI_ERRORS.CHANNEL_ERROR:
-                self.code = 423
-                self.description = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "CLI_STEP_ERROR_423"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case CLI_ERRORS.BAD_AUTHENTICATION_TYPE_ERROR:
-                self.code = 424
-                self.description = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "CLI_STEP_ERROR_424"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case CLI_ERRORS.PASSWORD_REQUIRED_ERROR:
-                self.code = 425
-                self.description = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "CLI_STEP_ERROR_425"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case CLI_ERRORS.PROXY_COMMAND_FAILURE_ERROR:
-                self.code = 426
-                self.description = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "CLI_STEP_ERROR_426"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case CLI_ERRORS.SSH_ERROR:
-                self.code = 427
-                self.description = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "CLI_STEP_ERROR_427"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case CLI_ERRORS.ADDRESS_ERROR:
-                self.code = 428
-                self.description = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "CLI_STEP_ERROR_428"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
 
         if isinstance(self.payload,BadHostKeyException):
@@ -110,7 +110,7 @@ class CustomCliStepError(CustomErrorBase):
         if isinstance(self.payload,Exception):
             # most generic exception in case the error is not catched by the implementation
             log.debug(f"returning unhandled error not catched by implementation")
-            self.code = 999
-            self.description = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["description"]
-            self.message = errorMetadata[f"CLI_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+            self.code = "CLI_STEP_ERROR_999"
+            self.description = errorMetadata[self.code]["description"]
+            self.message = errorMetadata[self.code]["message"].format_map(self.args)
             return

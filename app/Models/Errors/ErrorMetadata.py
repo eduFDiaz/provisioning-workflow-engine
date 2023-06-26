@@ -1,7 +1,7 @@
 errorMetadata = {
-        "GITHUB_ERROR_404" : { "description" : "resource not found" , "message" : "repo {param} not found" },
-        "GITHUB_ERROR_405" : { "description" : "resource not found" , "message" : "branch {param} not found" },
         "GITHUB_ERROR_401" : { "description" : "connecting Github" , "message" : "access token not valid" },
+        "GITHUB_ERROR_404" : { "description" : "resource not found" , "message" : "repo {repoName} not found" },
+        "GITHUB_ERROR_405" : { "description" : "resource not found" , "message" : "branch {branch} not found" },
         "GITHUB_ERROR_999" : { "description" : "unhandled error" , "message" : "unhandled error" },
         "REST_STEP_ERROR_302" : { "description" : "too many redirects" , "message" : "too many redirects when requesting resource: {url}" },
         "REST_STEP_ERROR_405" : { "description" : "unsupported HTTP method" , "message" : "method: {method} not allowed, try GET or POST" },
@@ -49,5 +49,5 @@ errorMetadata = {
         "NETCONF_STEP_ERROR_483" : { "description" : "timeout error" , "message" : "connection timed out" },
         "NETCONF_STEP_ERROR_484" : { "description" : "command execution failed" , "message" : "command execution with payload: {config} please check the request payload in the step definition .yml file" },
         "NETCONF_STEP_ERROR_485" : { "description" : "privilege error" , "message" : "please check the user: {username} has priviledges to execute the request with payload: {config}" },
-        "NETCONF_STEP_ERROR_99" : { "description" : "unhandled error" , "message" : "unhandled error" },
+        "NETCONF_STEP_ERROR_999" : { "description" : "unhandled error" , "message" : "unhandled error" },
 }
