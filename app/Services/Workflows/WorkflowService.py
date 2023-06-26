@@ -1,6 +1,6 @@
 import yaml
 
-from Utils.Utils import read_step_yaml, get_list_of_steps
+from Utils.Utils import read_step_yaml, get_list_of_steps, get_value_from_dict_path_or_env
 
 
 from config import logger as log
@@ -24,7 +24,9 @@ from temporalio.common import RetryPolicy
 from temporalio import workflow
 from temporalio.workflow import ParentClosePolicy
 
-from temporalio.exceptions import ApplicationError
+from temporalio.exceptions import ApplicationError, FailureError, ActivityError, TemporalError
+from temporalio.client import WorkflowFailureError
+
 
 @workflow.defn
 class TemplateWorkflow:
@@ -33,34 +35,26 @@ class TemplateWorkflow:
     @workflow.run
     async def run(self, args: TemplateWorkflowArgs):
         log.debug(f"workflow: {args.WorkflowFileName}, correlation-id: {args.requestId}")
-        cloneTemplateResult, err = await workflow.execute_activity(
-            clone_template, args=[args.repoName, args.branch, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
-            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
-                backoff_coefficient=settings.temporal_task_backoff_coefficient,
-                maximum_attempts=settings.temporal_task_max_attempts,
-                maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
-        )
 
-        if err is not None:
-            # returning the error as part of the tuple will not make the actual workflow fail
-            # the calling method should also check the error and return it
-            # as a result, the workflow will complete "successfully" but this is not the case
-            # question is: how to return the error and make the workflow fail at the same time?
-            return None, err
+        cloneTemplateResult = await workflow.execute_activity(
+                clone_template, args=[args.repoName, args.branch, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
+                retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
+                    backoff_coefficient=settings.temporal_task_backoff_coefficient,
+                    maximum_attempts=settings.temporal_task_max_attempts,
+                    maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
+            )
         
         log.debug(f"cloneResult: {cloneTemplateResult}")
-        taskList, err = await workflow.execute_activity(
+        taskList = await workflow.execute_activity(
             read_template, args=[args.WorkflowFileName, args.requestId], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
             retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
                 backoff_coefficient=settings.temporal_task_backoff_coefficient,
                 maximum_attempts=settings.temporal_task_max_attempts,
                 maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
         )
-        if err is not None:
-            return None, err
         
         log.debug(f"taskList len = {len(taskList)}")
-        return taskList, None
+        return taskList
 
 @workflow.defn
 class TemplateChildWorkflow:
@@ -95,9 +89,9 @@ async def RunTasks(taskList):
     return results
 
 async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str, branch: str):
-    client = (await TemporalClient.get_instance())
-    log.debug(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
     try:
+        client = (await TemporalClient.get_instance())
+        log.debug(f"Executing Workflow: {flowFileName}, correlation-id: {request_id}")
         result = (await client.execute_workflow(
             TemplateWorkflow.run, TemplateWorkflowArgs(requestId=request_id, WorkflowFileName=flowFileName, repoName=repoName, branch=branch),
             id=(flowFileName + "_" + request_id), 
@@ -106,9 +100,15 @@ async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str
         ))
         log.debug(f"run_TemplateWorkFlow: result- {result}")
         return result
-    except Exception as e:
-        log.error(f"run_TemplateWorkFlow Exception: {e}")
-        return None, e
+    except WorkflowFailureError as err:
+        if isinstance(err.cause, ApplicationError):
+            log.debug(f"Workflow failed with application error: {err.cause.cause}")
+        elif isinstance(err.cause, ActivityError):
+            log.debug(f"Workflow failed with a non-application error: {err.cause.cause}")
+        else:
+            log.debug(f"Workflow failed with error: {err}")
+        raise err
+
       
 async def run_step(stepConfig):
     """This function will create an API object based on the configType"""
@@ -116,44 +116,57 @@ async def run_step(stepConfig):
     step_type = stepConfig.get('configType')
     log.debug(f"Creating API object for configType: {step_type}")
     # client = (await TemporalClient.get_instance())
+
+    init_interval = get_value_from_dict_path_or_env(stepConfig, 'metadata.retry_policy.init_interval', settings.temporal_task_init_interval)
+    backoff_coefficient = get_value_from_dict_path_or_env(stepConfig, 'metadata.retry_policy.backoff_coefficient', settings.temporal_task_backoff_coefficient)
+    max_interval = get_value_from_dict_path_or_env(stepConfig, 'metadata.retry_policy.max_interval', settings.temporal_task_max_interval)
+    max_attempts = get_value_from_dict_path_or_env(stepConfig, 'metadata.retry_policy.max_attempts', settings.temporal_task_max_attempts)
+    start_to_close_timeout = get_value_from_dict_path_or_env(stepConfig, 'metadata.retry_policy.start_to_close_timeout', settings.temporal_task_start_to_close_timeout)
+
+    log.info(f"name - {stepConfig['name']} - retry policy, init interval {init_interval}")
+    log.info(f"name - {stepConfig['name']} - retry policy, backoff coefficient {backoff_coefficient}")
+    log.info(f"name - {stepConfig['name']} - retry policy, max interval {max_interval}")
+    log.info(f"name - {stepConfig['name']} - retry policy, max attempts {max_attempts}")
+    log.info(f"name - {stepConfig['name']} - retry policy, start to close timeout {start_to_close_timeout}")
+    
     if step_type == 'REST':
         result = await workflow.execute_activity(
-            exec_rest_step, stepConfig, start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
-            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
-                backoff_coefficient=settings.temporal_task_backoff_coefficient,
-                maximum_attempts=settings.temporal_task_max_attempts,
-                maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
+            exec_rest_step, stepConfig, start_to_close_timeout=timedelta(seconds=start_to_close_timeout),
+            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=init_interval),
+                backoff_coefficient=backoff_coefficient,
+                maximum_attempts=max_attempts,
+                maximum_interval=timedelta(seconds=max_interval))
         )
         
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
     elif step_type == 'CLI':
         result = await workflow.execute_activity(
-            exec_cli_step, stepConfig, start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
-            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
-                backoff_coefficient=settings.temporal_task_backoff_coefficient,
-                maximum_attempts=settings.temporal_task_max_attempts,
-                maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
+            exec_cli_step, stepConfig, start_to_close_timeout=timedelta(seconds=start_to_close_timeout),
+            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=init_interval),
+                backoff_coefficient=backoff_coefficient,
+                maximum_attempts=max_attempts,
+                maximum_interval=timedelta(seconds=max_interval))
         )
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
     elif step_type == 'NETCONF':
         result = await workflow.execute_activity(
-            exec_netconf_step, stepConfig, start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
-            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
-                backoff_coefficient=settings.temporal_task_backoff_coefficient,
-                maximum_attempts=settings.temporal_task_max_attempts,
-                maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
+            exec_netconf_step, stepConfig, start_to_close_timeout=timedelta(seconds=start_to_close_timeout),
+            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=init_interval),
+                backoff_coefficient=backoff_coefficient,
+                maximum_attempts=max_attempts,
+                maximum_interval=timedelta(seconds=max_interval))
         )
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
     elif step_type == 'GRPC':
         result = await workflow.execute_activity(
-            exec_grpc_step, stepConfig, start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
-            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
-                backoff_coefficient=settings.temporal_task_backoff_coefficient,
-                maximum_attempts=settings.temporal_task_max_attempts,
-                maximum_interval=timedelta(seconds=settings.temporal_task_max_interval))
+            exec_grpc_step, stepConfig, start_to_close_timeout=timedelta(seconds=start_to_close_timeout),
+            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=init_interval),
+                backoff_coefficient=backoff_coefficient,
+                maximum_attempts=max_attempts,
+                maximum_interval=timedelta(seconds=max_interval))
         )
         log.debug(f"Result: {result}")
         return (result, stepConfig['name'])
@@ -162,7 +175,7 @@ async def run_step(stepConfig):
         raise ValueError(f"Unsupported configType: {step_type}")
 
 
-async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any], Optional[Exception]]:
+async def get_steps_configs(file: str, correlationID: str):
     log.debug(f"get_steps_configs")
     # milestonesResult will be a map of milestone names to a list of steps
     milestonesResult = OrderedDict()
@@ -178,10 +191,7 @@ async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any
     log.debug(f"global_params: {global_params}")
     
     for milestone in dict['steps']:
-        steps, error = get_list_of_steps(milestone['file'], correlationID)
-        if error:
-            log.error(f"Error getting list of steps")
-            return None, error
+        steps = get_list_of_steps(milestone['file'], correlationID)
     
         # we only want to return a subset of the keys from the configs, this may change in the future
         keys_to_keep = ['name', 'description', 'milestoneStepName', 'milestoneName', 'configType', 'workflow_name']
@@ -205,4 +215,4 @@ async def get_steps_configs(file: str, correlationID: str) -> Tuple[Optional[Any
     for key, value in milestonesResult.items():
         log.debug(f"key: {key}, value: {value}")
 
-    return milestonesResult, None
+    return milestonesResult

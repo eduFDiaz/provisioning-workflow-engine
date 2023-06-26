@@ -15,7 +15,7 @@ from typing import Tuple, Any, Optional, List
 from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from github import Github
-    from github.GithubException import UnknownObjectException
+    from Models.Errors.CustomGithubError import CustomGithubError
 
 import os
 
@@ -26,7 +26,7 @@ def read_step_yaml(file_path) -> collections.OrderedDict:
     with open(file_path, 'r') as f:
         return yaml.safe_load(f)
 
-def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) -> Tuple[Optional[List[Any]], Optional[Exception]]:
+def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) -> List[Any]:
     """This method will recursively read steps on the root  workflow YAML file, as well as child workflows.
     It will return a list of steps, or an error if one occurs.
     """
@@ -69,9 +69,7 @@ def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) ->
                 
             if step.get('type') == 'workflow':
                 step['steps'] = []
-                step['steps'], err = read_workflow_steps(f"{path}/{step.get('file')}", step['steps'], correlationID)
-                # if err:
-                #     return None, err
+                step['steps'] = read_workflow_steps(f"{path}/{step.get('file')}", step['steps'], correlationID)
             else:
                 step['type'] = "activity"
                 step['config'] = read_step_yaml(f"{path}/{step['file']}")
@@ -84,23 +82,19 @@ def read_workflow_steps(file_path: str, steps: List[Any], correlationID: str) ->
                 
             log.debug(f"Adding step: {step}")
             steps.append(step)
-        return steps, None
+        return steps
     except Exception as e:
-        return None, e
+        raise ValueError(f"Error reading workflow file: {file_path}. error: {str(e)}")
     
-def get_list_of_steps(file: str, correlationID: str) -> Tuple[Optional[Any], Optional[Exception]]:
+def get_list_of_steps(file: str, correlationID: str) -> List[Any]:
     log.debug(f"Getting list of steps from file {file}, path={path}, correlationID:{correlationID}")
     
     steps = []
     
-    steps, error = read_workflow_steps(f"{path}/{file}", steps, correlationID)
+    steps = read_workflow_steps(f"{path}/{file}", steps, correlationID)
     log.debug(f"steps:\n {steps}")
-        
-    if error:
-        log.error(f"Error reading workflow file: {path}/{file}. error: {str(error)}")
-        return None, error
 
-    return steps, None
+    return steps
     # stepConfigs = []
     # for item in steps:
     #      if item.get('type') == 'workflow':
@@ -115,7 +109,7 @@ def get_list_of_steps(file: str, correlationID: str) -> Tuple[Optional[Any], Opt
 
     # _ = [log.debug(stepConfig) for stepConfig in list(stepConfigs)]
     
-    # return stepConfigs, None
+    # return stepConfigs
 
 def download_file(file_content, local_path):
     with open(local_path, 'wb') as f:
@@ -134,26 +128,7 @@ def save_path_recursively(repo, path, local_dir, branch):
             local_path = os.path.join(local_dir, content.name)
             download_file(content, local_path)
 
-errorMetadata = {
-    421 : { "description" : "repo not found" },
-    422 : { "description" : "branch not found" },
-    423 : { "description" : "file not found" },
-    900 : { "description" : "Generic error" },
-}    
-
-from dataclasses import dataclass
-
-@dataclass
-class CustomError:
-    code: int = 900
-    description: str = ''
-    message: str = ''
-    def __post_init__(self):
-        self.description = errorMetadata[self.code]['description']
-    def __str__(self):
-        return f"Error code: {self.code}, description: {self.description}, message: {self.message}"
-
-def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[Optional[Any], Optional[CustomError]]:
+def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Optional[Any]:
     try:
         log.debug(f"Getting list of steps from file {wfFileName}, path={path}")
         g = Github(settings.repo_access_token)
@@ -164,13 +139,26 @@ def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Tuple[O
         local_dir = f"{path}/{repoPath}"
         log.debug(f"local_dir: {local_dir}")
         save_path_recursively(repo, repoPath, local_dir, branch)
-        return "template files fetched successfully", None
-    except UnknownObjectException as e:
-        # generate error objects with codes and descriptions, this metadata will be maintained in a different file
-        error = CustomError(code=421, message=str(e))
-        log.error(f"Error fetching template files: {str(error)}")
-        return None, error
+        return "template files fetched successfully"
     except Exception as e:
-        error = CustomError(code=900, message=str(e))
+        params = {'repoName': repoName, 'branch': branch, 'wfFileName': wfFileName, 'repo_access_token': settings.repo_access_token}
+        error = CustomGithubError(payload=e, args=params)
         log.error(f"Error fetching template files: {str(error)}")
-        return None, error
+        raise ValueError(error.toJSON())
+
+def get_value_from_dict_path(nested_dict, path):
+    keys_list = path.split('.')
+    temp = nested_dict
+    for key in keys_list:
+        if not isinstance(temp, dict):
+            return None
+        temp = temp.get(key, None)
+        if temp is None:
+            return None
+    return temp
+
+def get_value_from_dict_path_or_env(nested_dict, path, env_var_name):
+    value = get_value_from_dict_path(nested_dict, path)
+    if value is None:
+        value = env_var_name
+    return value

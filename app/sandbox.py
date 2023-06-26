@@ -18,7 +18,8 @@ from temporalClient import TemporalClient
 from config import settings
 from config import logger as log
 
-from temporalio.exceptions import FailureError, ApplicationError
+from temporalio.exceptions import ApplicationError, ActivityError
+from temporalio.client import WorkflowFailureError
 
 # import logging
 
@@ -1324,16 +1325,27 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(startup())
     
-    taskList = {}
-    # run_TemplateWorkFlow will run synchronously
-    taskList, err = loop.run_until_complete(run_TemplateWorkFlow(flowFileName="l3vpn-provisioning/vpn_provisioning.yml",request_id="0c32b683-683a-4de4-a7f3-44318a14acbc", repoName="network-workflows", branch="feature-issues-18"))
-    if err is not None:
-        # return error response in real app
-        log.error("error after calling run_TemplateWorkFlow",err)
-        exit(1)
+    # taskList = {}
+    # # run_TemplateWorkFlow will run synchronously
+
+    # try:
+    #     taskList = loop.run_until_complete(run_TemplateWorkFlow(flowFileName="l3vpn-provisioning/vpn_provisioning.yml",request_id="0c32b683-683a-4de4-a7f3-44318a14acbc", repoName="network-workflows", branch="feature-issues-18"))
+    # except Exception as error:
+    #     log.error(error)
+    #     exit(1)
 
     # if there are no errors will call RunTasks for the taskList result of cloning and reading the templates
-    print(f"taskList len - {len(taskList)}")
+    # log.debug(f"taskList len - {len(taskList)}")
+    # runTasksResult = loop.run_until_complete(RunTasks(taskList))
+    # log.debug(f"runTasksResult - {runTasksResult}")
+    # try:
+    #     fetch_template_files(wfFileName="l3vpn-provisioning/vpn_provisioning.yml", repoName="network-workflows", branch="feature-issues-18")
+    # except Exception as error:
+    #     log.error(error)
+    #     exit(1)
+
+    taskList = loop.run_until_complete(read_template("l3vpn-provisioning/vpn_provisioning.yml", "0c32b683-683a-4de4-a7f3-44318a14acbe"))
+    log.debug(f"taskList len - {len(taskList)}")
+    log.debug(f"pe config {taskList}")
     runTasksResult = loop.run_until_complete(RunTasks(taskList))
-    print(f"runTasksResult - {runTasksResult}")
-    
+    log.debug(f"runTasksResult - {runTasksResult}")

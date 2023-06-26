@@ -2,7 +2,7 @@ import paramiko
 import time
 
 from config import logger as log, settings
-from socket import error as socket_error
+from Models.Errors.CustomCliStepError import CustomCliStepError
 
 class SSHClient:
     """SSH Client for the CliStep class"""
@@ -10,33 +10,20 @@ class SSHClient:
         self.hostname = hostname
         self.username = username
         self.password = password
-        self.ssh = paramiko.SSHClient()
-        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        # masking the password and username for the exception handling
+        self.exceptionArgs = { "hostname":self.hostname,
+                               "username": str(self.username[:3] + '*' * (len(self.username) - 3)),
+                               "password":str(self.password[:3] + '*' * (len(self.password) - 3))
+                            }
+        log.debug(f"SSHClient self.exceptionArgs: {self.exceptionArgs}")
         try:
+            self.ssh = paramiko.SSHClient()
+            self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             self.ssh.connect(hostname, username=username, password=password, 
                 timeout=settings.ssh_timeout, banner_timeout=settings.ssh_banner_timeout, 
                 auth_timeout=settings.ssh_auth_timeout, look_for_keys=False)
-        except paramiko.BadHostKeyException as error:
-            log.error("BadHostKeyException")
-            log.error(error)
-        except paramiko.AuthenticationException as error:
-            log.error("AuthenticationException")
-            log.error(error)
-        # except paramiko.UnableToAuthenticate as error:
-        #     print ("UnableToAuthenticate")
-        #     print (error)
-        # except socket_error as error:
-        #     print ("socket_error")
-        #     print (error)
-        # except paramiko.NoValidConnectionsError as error:
-        #     print ("NoValidConnectionsError")
-        #     print (error)
-        except paramiko.SSHException as error:
-            log.error("SSHException")
-            log.error(error)
         except Exception as error:
-            log.error("Exception")
-            log.error(error)
+            raise ValueError(CustomCliStepError(payload=error,args=self.exceptionArgs).toJSON())
         
         self.channel = self.ssh.invoke_shell()
     
@@ -44,9 +31,13 @@ class SSHClient:
         log.info(f"closing the SSHClient")
 
     def execute_command(self, command, timeout=2):
-        self.channel.send(command + '\n')
-        output = ''
-        while self.channel.recv_ready()==False:
-            time.sleep(timeout)
-        output += self.channel.recv(65535).decode()
-        return output
+        try:
+            self.channel.send(command + '\n')
+            output = ''
+            while self.channel.recv_ready()==False:
+                time.sleep(timeout)
+            output += self.channel.recv(65535).decode()
+            return output
+        except Exception as error:
+            self.exceptionArgs['command'] = command
+            raise ValueError(CustomCliStepError(payload=error,args=self.exceptionArgs).toJSON())
