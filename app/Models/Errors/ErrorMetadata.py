@@ -1,3 +1,18 @@
+from pydantic import BaseModel
+import json
+import uuid
+
+class ErrorModel(BaseModel):
+        correlationID: uuid.UUID
+        timeStamp: str
+        error: str
+
+        def toJSON(self):
+                json_dict = self.dict()
+                json_dict['correlationID'] = str(json_dict['correlationID'])
+                return json.dumps(json_dict, default=lambda o: o.__dict__, 
+                        sort_keys=True, indent=4)
+
 errorMetadata = {
         "GITHUB_ERROR_401" : { "description" : "connecting Github" , "message" : "access token not valid" },
         "GITHUB_ERROR_404" : { "description" : "resource not found" , "message" : "repo {repoName} not found" },

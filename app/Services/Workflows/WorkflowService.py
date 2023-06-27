@@ -27,6 +27,13 @@ from temporalio.workflow import ParentClosePolicy
 from temporalio.exceptions import ApplicationError, FailureError, ActivityError, TemporalError
 from temporalio.client import WorkflowFailureError
 
+from temporalio import workflow
+with workflow.unsafe.imports_passed_through():
+    from Clients.CassandraConnection import CassandraConnection
+    from dao.ErrorDao import ErrorDao
+    from Models.Errors.ErrorMetadata import ErrorModel
+    from datetime import datetime
+
 
 @workflow.defn
 class TemplateWorkflow:
@@ -107,6 +114,10 @@ async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str
             log.debug(f"Workflow failed with a non-application error: {err.cause.cause}")
         else:
             log.debug(f"Workflow failed with error: {err}")
+        connection = CassandraConnection()
+        session = connection.get_session()
+        error = ErrorModel(correlationID=request_id, timeStamp=datetime.utcnow().strftime(settings.notification_date_format),error=str(err))
+        ErrorDao(session).add_or_update_error(error)
         raise err
 
       
