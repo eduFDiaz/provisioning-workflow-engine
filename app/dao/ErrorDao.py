@@ -20,8 +20,8 @@ class ErrorDao:
             WHERE "correlationID"=%s
         """, fetch_size=100)
         errors = self.session.execute(stmt, [requestID])
-        #sort errors by timeStamps
-        errors = sorted(errors, key=lambda error: error.timeStamp)
+        #sort errors by timeStamps reverse order
+        errors = sorted(errors, key=lambda error: error.timeStamp, reverse=True)
         return [ErrorModel(**error._asdict()) for error in errors]
     
     def delete_errors_by_correlationID(self, requestID):

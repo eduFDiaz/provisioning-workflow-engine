@@ -33,6 +33,10 @@ with workflow.unsafe.imports_passed_through():
     from dao.ErrorDao import ErrorDao
     from Models.Errors.ErrorMetadata import ErrorModel
     from datetime import datetime
+    from dao.NotificationDao import NotificationDao
+    import uuid
+    from Models.NotificationModel import NotificationModel
+    from fastapi.responses import JSONResponse
 
 
 @workflow.defn
@@ -227,3 +231,55 @@ async def get_steps_configs(file: str, correlationID: str):
         log.debug(f"key: {key}, value: {value}")
 
     return milestonesResult
+
+async def workflowStatus(request_id: str, workflowFileName: str) -> JSONResponse:
+    """ This method will return the workflow status for a given requestID 
+        and the error message if the workflow failed
+    """
+    connection = CassandraConnection()
+    session = connection.get_session()
+    notification_dao = NotificationDao(session)
+    
+    log.debug(f"fetching milestones for requestID: {request_id}")
+    milestones = notification_dao.get_notifications_by_correlationID(uuid.UUID(request_id))
+
+    log.info(f"milestones: {milestones} for requestID: {request_id}")
+    if len(milestones) == 0:
+        log.debug("trivial case, no milestones found in db for this requestID, the workflow has not started yet")
+        return JSONResponse(content={"status": "not-started"}, status_code=200)
+    
+    milestonesInProgress = [NotificationModel for milestone in milestones if milestone.status == "in-progress"]  
+    milestonesFailed = [NotificationModel for milestone in milestones if milestone.status == "failed"]
+    milestonesCompleted = [NotificationModel for milestone in milestones if milestone.status == "completed"]
+    milestonesNotStarted = [NotificationModel for milestone in milestones if milestone.status == "not-started"]
+
+    # log all the milestones by status
+    log.info(f"milestonesInProgress: {milestonesInProgress} - {len(milestonesInProgress)}")
+    log.info(f"milestonesFailed: {milestonesFailed} - {len(milestonesFailed)}")
+    log.info(f"milestonesCompleted: {milestonesCompleted} - {len(milestonesCompleted)}")
+    log.info(f"milestonesNotStarted: {milestonesNotStarted} - {len(milestonesNotStarted)}")
+
+    if len(milestonesInProgress) > 0:
+        log.debug("some milestones are in progress")
+        return JSONResponse(content={"status": "in-progress"}, status_code=200)
+
+    if len(milestonesFailed) > 0:
+        log.debug("some milestones have failed")
+        error_dao = ErrorDao(session)
+        errorsbyRequestID = error_dao.get_errors_by_correlationID(uuid.UUID(request_id))
+        return JSONResponse(content={"status": "failed", "error": errorsbyRequestID[0].toJSON()}, status_code=200)
+    
+    milestones = (await get_steps_configs(workflowFileName, request_id))
+    # sum len of each list of steps for each milestone
+    totalSteps = sum([len(steps) for steps in milestones.values()])
+    log.debug(f"totalSteps: {totalSteps}")
+
+    if len(milestonesCompleted) < totalSteps:
+        log.debug("some milestones have not started")
+        return JSONResponse(content={"status": "in-progress"}, status_code=200)
+
+    if len(milestonesCompleted) == totalSteps:
+        log.debug("all milestones have completed")
+        return JSONResponse(content={"status": "completed"}, status_code=200)
+    
+    raise ValueError("unexpected state, execution flow should not reach this point")

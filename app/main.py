@@ -3,7 +3,7 @@ import asyncio
 import uuid
 from datetime import timedelta
 
-from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow, RunTasks, run_TemplateWorkFlow
+from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow, RunTasks, run_TemplateWorkFlow, workflowStatus
 from Models.NotificationModel import NotificationModel
 
 from config import logger as log
@@ -36,6 +36,8 @@ import threading
 
 from temporalio.exceptions import ApplicationError, ActivityError
 from temporalio.client import WorkflowFailureError
+
+from dao.ErrorDao import ErrorDao
 
 users_db = {
     "admin": {
@@ -174,6 +176,14 @@ async def execute_workflow(request_id: Optional[str] = Header(None),
     except Exception as e:
         log.error(f"Error: {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
+
+@app.get("/workflow_status/",
+         summary="this API will return the status of the workflow", 
+         description="status: in-progress, completed, not-started or failed, along with the last error in case of failed")
+async def workflow_status(request_id: str = Header(...),
+                          workflowFileName: str = Header(...)) -> JSONResponse:
+    log.debug(f"GET API: workflow_status request_id: {request_id}")
+    return (await workflowStatus(request_id=request_id, workflowFileName=workflowFileName))
     
 def authorize(security: HTTPBasicCredentials = Depends(security)):
     if security.username in users_db:
@@ -225,3 +235,16 @@ async def fetch_steps(workflowFileName: str, requestID: str):
     except Exception as e:
         log.error(f"Error: {e}")
         return JSONResponse(content=e, status_code=500)
+
+@app.get("/errors/")
+async def get_errors_by_requestID(requestID: str):
+    log.info(f"get_errors_by_requestID: {requestID}")
+    connection = CassandraConnection()
+    session = connection.get_session()
+    error_dao = ErrorDao(session)
+    errorsbyRequestID = error_dao.get_errors_by_correlationID(uuid.UUID(requestID))
+    log.info(f"errorsbyRequestID: {errorsbyRequestID}")
+    if len(errorsbyRequestID) == 0:
+        return JSONResponse(content=[], status_code=202)
+    if len(errorsbyRequestID) != 0:
+        return errorsbyRequestID
