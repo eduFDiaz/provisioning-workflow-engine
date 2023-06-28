@@ -35,89 +35,89 @@ class CustomNetconfError(CustomErrorBase):
 
         match self.payload:
             case NETCONF_ERRORS.UNSUPPORTED_REQUEST_TYPE:
-                self.code = 405
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_405"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_PARAM_NOT_INITIALIZED:
-                self.code = 406
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_406"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_PARAM_PATH_NOT_FOUND:
-                self.code = 407
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_407"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_PARAM_NOT_EQUAL:
-                self.code = 408
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)   
+                self.code = "NETCONF_STEP_ERROR_408"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)   
                 return
             case NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_EXCEPTION:
-                self.code = 409
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_409"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.VALIDATE_EDIT_RESPONSE_ERROR:
-                self.code = 410
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_410"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.VALIDATE_FETCH_RESPONSE_EMPTY:
-                self.code = 411
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_411"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.EXTRACT_VARIABLES_NO_MATCHING_VALUE:
-                self.code = 412
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_412"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.EXTRACT_VARIABLES_EXCEPTION:
-                self.code = 413
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_413"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.PROCESS_STEP_FETCH_ERROR:
-                self.code = 414
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_414"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.PROCESS_STEP_EDIT_ERROR:
-                self.code = 415
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)   
+                self.code = "NETCONF_STEP_ERROR_415"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)   
                 return
             case NETCONF_ERRORS.SCRAPLI_AUTHENTICATION_FAILED_HOSTNAME_RESOLUTION_ERROR:
-                self.code = 480
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_480"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.SCRAPLI_AUTHENTICATION_FAILED_CREDENTIALS_ERROR:
-                self.code = 481
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_481"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.SCRAPLI_CONNECTION_ERROR:
-                self.code = 482
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_482"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.SCRAPLI_TIMEOUT:
-                self.code = 483
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_483"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.SCRAPLI_COMMAND_FAILURE:
-                self.code = 484
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_484"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case NETCONF_ERRORS.SCRAPLI_PRIVILEGE_ERROR:
-                self.code = 485
-                self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "NETCONF_STEP_ERROR_485"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
 
         if isinstance(self.payload, ScrapliAuthenticationFailed):
@@ -153,7 +153,7 @@ class CustomNetconfError(CustomErrorBase):
         if isinstance(self.payload,Exception):
             # most generic exception in case the error is not catched by the implementation
             log.debug(f"returning unhandled error not catched by implementation")
-            self.code = 999
-            self.description = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["description"]
-            self.message = errorMetadata[f"NETCONF_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+            self.code = "NETCONF_STEP_ERROR_999"
+            self.description = errorMetadata[self.code]["description"]
+            self.message = errorMetadata[self.code]["message"].format_map(self.args)
             return

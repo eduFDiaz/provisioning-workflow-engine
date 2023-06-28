@@ -11,6 +11,8 @@ with workflow.unsafe.imports_passed_through():
     from Clients.KafkaProducer import send_in_progress_notification, send_complete_notification, send_error_notification, prepare_notification
     from Clients.CassandraConnection import CassandraConnection
     from dao.NotificationDao import NotificationDao
+    from dao.ErrorDao import ErrorDao
+    from Models.Errors.ErrorMetadata import ErrorModel
     from Utils.Utils import get_list_of_steps, fetch_template_files
     
 # consumer_app_host = None
@@ -52,6 +54,9 @@ def sendNotifications(func):
         except Exception as e:
             log.error(f"execute step exception {e}")
             notification = await send_error_notification(notification)
+            # save error to cassandra workflows.Errors table
+            error = ErrorModel(correlationID=notification.correlationID, timeStamp=notification.endTime,error=str(e))
+            ErrorDao(session).add_or_update_error(error)
             raise e
         return result
     

@@ -13,6 +13,10 @@ args = parser.parse_args()
 # Load .env file
 load_dotenv(dotenv_path=args.env_file)
 
+from Clients.CassandraConnection import CassandraConnection
+from Models.Errors.ErrorMetadata import ErrorModel
+from dao.ErrorDao import ErrorDao
+
 from temporalClient import TemporalClient
 
 from config import settings
@@ -44,7 +48,7 @@ from temporal_worker import start_temporal_worker
 
 # import config
 
-from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow
+from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow, workflowStatus
 from Utils.Utils import fetch_template_files
 from Services.Workflows.WorkflowService import get_steps_configs, RunTasks, run_TemplateWorkFlow
 from workflows.ExecuteStepsFlow import ExecuteRestTask, ExecuteCliTask, ExecuteNetConfTask, ExecuteGrpcTask
@@ -1344,8 +1348,19 @@ if __name__ == "__main__":
     #     log.error(error)
     #     exit(1)
 
-    taskList = loop.run_until_complete(read_template("l3vpn-provisioning/vpn_provisioning.yml", "0c32b683-683a-4de4-a7f3-44318a14acbe"))
-    log.debug(f"taskList len - {len(taskList)}")
-    log.debug(f"pe config {taskList}")
-    runTasksResult = loop.run_until_complete(RunTasks(taskList))
-    log.debug(f"runTasksResult - {runTasksResult}")
+    # taskList = loop.run_until_complete(read_template("l3vpn-provisioning/vpn_provisioning.yml", "d3926a0a-85b9-4758-98d8-42bfb3023904"))
+    # log.debug(f"taskList len - {len(taskList)}")
+    # log.debug(f"pe config {taskList}")
+    # runTasksResult = loop.run_until_complete(RunTasks(taskList))
+    # log.debug(f"runTasksResult - {runTasksResult}")
+
+    response = loop.run_until_complete(workflowStatus(request_id="d3926a0a-85b9-4758-98d8-42bfb3023904", workflowFileName="l3vpn-provisioning/vpn_provisioning.yml"))
+    #log response body and status
+    log.debug(f"response - {response.body} , status - {response.status_code}")
+
+    # connection = CassandraConnection()
+    # session = connection.get_session()
+    # error_dao = ErrorDao(session)
+    # error = ErrorModel(correlationID="d3926a0a-85b9-4758-98d8-42bfb3023904", timeStamp="eeeee",error="test error")
+    # error_dao.add_or_update_error(error)
+

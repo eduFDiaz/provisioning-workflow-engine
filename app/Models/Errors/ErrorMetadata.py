@@ -1,8 +1,34 @@
+from pydantic import BaseModel
+import json
+import uuid
+
+class ErrorModel(BaseModel):
+        correlationID: uuid.UUID
+        timeStamp: str
+        error: str
+
+        def toJSON(self):
+                json_dict = self.dict()
+                json_dict['correlationID'] = str(json_dict['correlationID'])
+                return json.dumps(json_dict, default=lambda o: o.__dict__, 
+                        sort_keys=True, indent=4)
+
 errorMetadata = {
-        "GITHUB_ERROR_404" : { "description" : "resource not found" , "message" : "repo {param} not found" },
-        "GITHUB_ERROR_405" : { "description" : "resource not found" , "message" : "branch {param} not found" },
         "GITHUB_ERROR_401" : { "description" : "connecting Github" , "message" : "access token not valid" },
+        "GITHUB_ERROR_404" : { "description" : "resource not found" , "message" : "repo {repoName} not found" },
+        "GITHUB_ERROR_405" : { "description" : "resource not found" , "message" : "branch {branch} not found" },
         "GITHUB_ERROR_999" : { "description" : "unhandled error" , "message" : "unhandled error" },
+        
+        "READ_STEPS_TEMPLATE_ERRORS_401" : { "description" : "step file read error" , "message" : "step file: {file_path} not found" },
+        "READ_STEPS_TEMPLATE_ERRORS_402" : { "description" : "step file read error" , "message" : "provided path: {file_path} is a directory" },
+        "READ_STEPS_TEMPLATE_ERRORS_403" : { "description" : "step file read error" , "message" : "permission denied for file: {file_path}" },
+        "READ_STEPS_TEMPLATE_ERRORS_404" : { "description" : "step file read error" , "message" : "file: {file_path} content is not a string or a bytes-like object that can be parsed" },
+        "READ_STEPS_TEMPLATE_ERRORS_405" : { "description" : "step file read error" , "message" : "file: {file_path} contains non-UTF-8 encoded data that cannot be decoded" },
+        "READ_STEPS_TEMPLATE_ERRORS_406" : { "description" : "step file read error" , "message" : "file: {file_path} YML invalid syntax, error: {syntaxError}" },
+        "READ_STEPS_TEMPLATE_ERRORS_407" : { "description" : "jinja template syntax error" , "message" : "file: {file_path} jinja2 invalid syntax, error: {syntaxError}" },
+        "READ_STEPS_TEMPLATE_ERRORS_408" : { "description" : "jinja template syntax error" , "message" : "file: {file_path} jinja2 param value not provided please add it to *.values.yml, error: {syntaxError}" },
+        "READ_STEPS_TEMPLATE_ERRORS_999" : { "description" : "unhandled error" , "message" : "unhandled error: {error}" },
+        
         "REST_STEP_ERROR_302" : { "description" : "too many redirects" , "message" : "too many redirects when requesting resource: {url}" },
         "REST_STEP_ERROR_405" : { "description" : "unsupported HTTP method" , "message" : "method: {method} not allowed, try GET or POST" },
         "REST_STEP_ERROR_422" : { "description" : "unprocessable entity" , "message" : "response code: {actualStatusCode} != expected code: {expectedStatusCode}" },
@@ -49,5 +75,5 @@ errorMetadata = {
         "NETCONF_STEP_ERROR_483" : { "description" : "timeout error" , "message" : "connection timed out" },
         "NETCONF_STEP_ERROR_484" : { "description" : "command execution failed" , "message" : "command execution with payload: {config} please check the request payload in the step definition .yml file" },
         "NETCONF_STEP_ERROR_485" : { "description" : "privilege error" , "message" : "please check the user: {username} has priviledges to execute the request with payload: {config}" },
-        "NETCONF_STEP_ERROR_99" : { "description" : "unhandled error" , "message" : "unhandled error" },
+        "NETCONF_STEP_ERROR_999" : { "description" : "unhandled error" , "message" : "unhandled error" },
 }

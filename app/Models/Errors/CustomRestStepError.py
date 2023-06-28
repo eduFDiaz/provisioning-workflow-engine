@@ -37,98 +37,98 @@ class CustomRestStepError(CustomErrorBase):
 
         match self.payload:
             case REST_ERRORS.UNSUPPORTED_METHOD:
-                self.code = 405
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_405"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.STATUS_CODE_MISMATCH:
-                self.code = 422
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_422"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.PARAM_VALUE_MISMATCH:
-                self.code = 423
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_423"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.EXTRACT_VALUE_ERROR:
-                self.code = 424
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_424"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.CONNECTION_ERROR:
-                self.code = 504
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_504"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
             case REST_ERRORS.REQUEST_TIMEOUT_ERROR:
-                self.code = 506
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_506"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.TOO_MANY_REDIRECTS_ERROR:
-                self.code = 302
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_302"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.URL_REQUIRED_ERROR:
-                self.code = 426
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_426"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.MISSING_SCHEMA_ERROR:
-                self.code = 427
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_427"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.INVALID_SCHEMA_ERROR:
-                self.code = 428
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_428"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.INVALID_URL_ERROR:
-                self.code = 429
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_429"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.INVALID_HEADER_ERROR:
-                self.code = 430
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_430"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.CHUNKED_ENCODING_ERROR:
-                self.code = 431
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_431"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.CONTENT_DECODING_ERROR:
-                self.code = 432
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_432"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.RETRY_ERROR:
-                self.code = 434
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_434"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.INVALID_PROXY_URL_ERROR:
-                self.code = 436
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_436"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.PROXY_ERROR:
-                self.code = 437
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_437"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.SSL_ERROR:
-                self.code = 438
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_438"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
             case REST_ERRORS.EXTRACT_VALUE_UNHANDLED_ERROR:
-                self.code = 999
-                self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-                self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+                self.code = "REST_STEP_ERROR_999"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return
 
         if isinstance(self.payload,reqExceptions.ConnectionError):
@@ -204,9 +204,9 @@ class CustomRestStepError(CustomErrorBase):
         if isinstance(self.payload,Exception):
             # most generic exception in case the error is not catched by the implementation
             log.debug(f"returning unhandled error not catched by implementation")
-            self.code = 999
-            self.description = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["description"]
-            self.message = errorMetadata[f"REST_STEP_ERROR_{str(self.code)}"]["message"].format_map(self.args)
+            self.code = "REST_STEP_ERROR_999"
+            self.description = errorMetadata[self.code]["description"]
+            self.message = errorMetadata[self.code]["message"].format_map(self.args)
             return
 
         
