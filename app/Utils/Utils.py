@@ -148,7 +148,7 @@ def fetch_template_files(repoName: str, branch: str, wfFileName: str) -> Optiona
         save_path_recursively(repo, repoPath, local_dir, branch)
         return "template files fetched successfully"
     except Exception as e:
-        params = {'repoName': repoName, 'branch': branch, 'wfFileName': wfFileName, 'repo_access_token': settings.repo_access_token}
+        params = {'repoName': repoName, 'branch': branch, 'wfFileName': wfFileName, 'repo_access_token': str(settings.repo_access_token[:15] + '*' * (len(settings.repo_access_token) - 15))}
         error = CustomGithubError(payload=e, args=params)
         log.error(f"Error fetching template files: {str(error)}")
         raise ValueError(error.toJSON())

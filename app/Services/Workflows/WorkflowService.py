@@ -48,7 +48,7 @@ class TemplateWorkflow:
         log.debug(f"workflow: {args.WorkflowFileName}, correlation-id: {args.requestId}")
 
         cloneTemplateResult = await workflow.execute_activity(
-                clone_template, args=[args.repoName, args.branch, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
+                clone_template, args=[args.requestId, args.repoName, args.branch, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
                 retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
                     backoff_coefficient=settings.temporal_task_backoff_coefficient,
                     maximum_attempts=settings.temporal_task_max_attempts,
@@ -57,7 +57,7 @@ class TemplateWorkflow:
         
         log.debug(f"cloneResult: {cloneTemplateResult}")
         taskList = await workflow.execute_activity(
-            read_template, args=[args.WorkflowFileName, args.requestId], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
+            read_template, args=[args.requestId, args.WorkflowFileName], start_to_close_timeout=timedelta(seconds=settings.temporal_task_start_to_close_timeout),
             retry_policy=RetryPolicy(initial_interval=timedelta(seconds=settings.temporal_task_init_interval),
                 backoff_coefficient=settings.temporal_task_backoff_coefficient,
                 maximum_attempts=settings.temporal_task_max_attempts,
@@ -118,10 +118,6 @@ async def run_TemplateWorkFlow(flowFileName: str, request_id: str, repoName: str
             log.debug(f"Workflow failed with a non-application error: {err.cause.cause}")
         else:
             log.debug(f"Workflow failed with error: {err}")
-        connection = CassandraConnection()
-        session = connection.get_session()
-        error = ErrorModel(correlationID=request_id, timeStamp=datetime.utcnow().strftime(settings.notification_date_format),error=str(err))
-        ErrorDao(session).add_or_update_error(error)
         raise err
 
       
@@ -283,3 +279,13 @@ async def workflowStatus(request_id: str, workflowFileName: str) -> JSONResponse
         return JSONResponse(content={"status": "completed"}, status_code=200)
     
     raise ValueError("unexpected state, execution flow should not reach this point")
+
+async def get_last_error(request_id: str) -> ErrorModel:
+    """ This method will return the last error for a given requestID 
+    """
+    connection = CassandraConnection()
+    session = connection.get_session()
+    error_dao = ErrorDao(session)
+    error = error_dao.get_last_error_by_correlationID(uuid.UUID(request_id))
+    log.debug(f"last error: {error}")
+    return error

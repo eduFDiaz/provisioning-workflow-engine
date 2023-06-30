@@ -12,12 +12,20 @@ class ErrorModel(BaseModel):
                 json_dict['correlationID'] = str(json_dict['correlationID'])
                 return json.dumps(json_dict, default=lambda o: o.__dict__, 
                         sort_keys=True, indent=4)
+        def __hash__(self):
+                return hash((self.correlationID, self.timeStamp, self.error))
+
+        def __eq__(self, other):
+                if not isinstance(other, ErrorModel):
+                        return NotImplemented
+                return (self.correlationID, self.timeStamp, self.error) == (other.correlationID, other.timeStamp, other.error)
 
 errorMetadata = {
-        "GITHUB_ERROR_401" : { "description" : "connecting Github" , "message" : "access token not valid" },
+        "GITHUB_ERROR_401" : { "description" : "connecting Github" , "message" : "access token provided uis not valid {repo_access_token}" },
         "GITHUB_ERROR_404" : { "description" : "resource not found" , "message" : "repo {repoName} not found" },
         "GITHUB_ERROR_405" : { "description" : "resource not found" , "message" : "branch {branch} not found" },
-        "GITHUB_ERROR_999" : { "description" : "unhandled error" , "message" : "unhandled error" },
+        "GITHUB_ERROR_406" : { "description" : "resource not found" , "message" : "request to fetch repo timed out" },
+        "GITHUB_ERROR_999" : { "description" : "unhandled error" , "message" : "unhandled error: {exceptionClassName} - {error}" },
         
         "READ_STEPS_TEMPLATE_ERRORS_401" : { "description" : "step file read error" , "message" : "step file: {file_path} not found" },
         "READ_STEPS_TEMPLATE_ERRORS_402" : { "description" : "step file read error" , "message" : "provided path: {file_path} is a directory" },

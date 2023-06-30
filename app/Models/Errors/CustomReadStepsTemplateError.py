@@ -126,8 +126,9 @@ class CustomReadStepsTemplateError(CustomErrorBase):
             return
         if isinstance(self.payload, Exception):
             log.debug(f"returning unhandled error not catched by implementation")
-            self.args["error"] = self.payload
-            error = CustomReadStepsTemplateError(READ_STEPS_TEMPLATE_ERRORS.READ_STEPS_TEMPLATE_UNHANDLED_ERROR, args=self.args)
-            self.code, self.description, self.message = error.code, error.description, error.message
+            self.code = "READ_STEPS_TEMPLATE_ERRORS_999"
+            self.description = errorMetadata[self.code]["description"]
+            self.message = errorMetadata[self.code]["message"].format_map(self.args)
             return
+
 
