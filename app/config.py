@@ -52,22 +52,3 @@ logging.basicConfig(level=logging.DEBUG, format=FORMAT, datefmt='%H:%M:%S', file
 # Create an instance of the logger
 logging.getLogger('github').setLevel(logging.ERROR)
 logger = logging.getLogger()
-
-api_credentials = {
-    'REST': {
-        'username': 'admin',
-        'password': 'C1sco12345'
-    },
-    'CLI': {
-        'username': 'admin',
-        'password': 'C1sco12345'
-    },
-    'NETCONF': {
-        'username': 'admin',
-        'password': 'C1sco12345'
-    },
-    'GRPC': {
-        'username': 'grpc_user',
-        'password': 'grpc_pass'
-    }
-}

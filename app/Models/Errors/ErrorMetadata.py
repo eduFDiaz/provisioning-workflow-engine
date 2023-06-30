@@ -35,6 +35,9 @@ errorMetadata = {
         "READ_STEPS_TEMPLATE_ERRORS_406" : { "description" : "step file read error" , "message" : "file: {file_path} YML invalid syntax, error: {syntaxError}" },
         "READ_STEPS_TEMPLATE_ERRORS_407" : { "description" : "jinja template syntax error" , "message" : "file: {file_path} jinja2 invalid syntax, error: {syntaxError}" },
         "READ_STEPS_TEMPLATE_ERRORS_408" : { "description" : "jinja template syntax error" , "message" : "file: {file_path} jinja2 param value not provided please add it to *.values.yml, error: {syntaxError}" },
+        "READ_STEPS_TEMPLATE_ERRORS_409" : { "description" : "jinja template syntax error" , "message" : "credentials section not defined in yml file for step: {stepName}" },
+        "READ_STEPS_TEMPLATE_ERRORS_410" : { "description" : "jinja template syntax error" , "message" : "Missing username or password in credentials section for step: {stepName}" },
+        "READ_STEPS_TEMPLATE_ERRORS_411" : { "description" : "jinja template syntax error" , "message" : "Unsupported type for jinj2 template, supported types are string and dictionaries, please check *.values for step: {stepName}" },
         "READ_STEPS_TEMPLATE_ERRORS_999" : { "description" : "unhandled error" , "message" : "unhandled error: {error}" },
         
         "REST_STEP_ERROR_302" : { "description" : "too many redirects" , "message" : "too many redirects when requesting resource: {url}" },
