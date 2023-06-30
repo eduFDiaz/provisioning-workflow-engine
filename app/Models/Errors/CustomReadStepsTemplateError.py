@@ -24,6 +24,9 @@ class READ_STEPS_TEMPLATE_ERRORS(Enum):
     STEP_FILE_YAML_ERROR = "STEP_FILE_YAML_ERROR"
     STEP_FILE_JINJA2_SYNTAX_ERROR = "STEP_FILE_JINJA2_SYNTAX_ERROR"
     STEP_FILE_JINJA2_UNDEFINED_PARAM_ERROR = "STEP_FILE_JINJA2_UNDEFINED_PARAM_ERROR"
+    STEP_CREDENTIALS_NOT_DEFINED_ERROR = "STEP_CREDENTIALS_NOT_DEFINED_ERROR"
+    STEP_USERNAME_OR_PASSWORD_NOT_DEFINED_ERROR = "STEP_USERNAME_OR_PASSWORD_NOT_DEFINED_ERROR"
+    STEP_JINJA2_UNSOPPORTED_OBJECT_ERROR = "STEP_JINJA2_UNSOPPORTED_OBJECT_ERROR"
     READ_STEPS_TEMPLATE_UNHANDLED_ERROR = "READ_STEPS_TEMPLATE_UNHANDLED_ERROR"
 
 @dataclass
@@ -72,6 +75,21 @@ class CustomReadStepsTemplateError(CustomErrorBase):
                 return
             case READ_STEPS_TEMPLATE_ERRORS.STEP_FILE_JINJA2_UNDEFINED_PARAM_ERROR:
                 self.code = "READ_STEPS_TEMPLATE_ERRORS_408"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
+                return
+            case READ_STEPS_TEMPLATE_ERRORS.STEP_CREDENTIALS_NOT_DEFINED_ERROR:
+                self.code = "READ_STEPS_TEMPLATE_ERRORS_409"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
+                return
+            case READ_STEPS_TEMPLATE_ERRORS.STEP_USERNAME_OR_PASSWORD_NOT_DEFINED_ERROR:
+                self.code = "READ_STEPS_TEMPLATE_ERRORS_410"
+                self.description = errorMetadata[self.code]["description"]
+                self.message = errorMetadata[self.code]["message"].format_map(self.args)
+                return
+            case READ_STEPS_TEMPLATE_ERRORS.STEP_JINJA2_UNSOPPORTED_OBJECT_ERROR:
+                self.code = "READ_STEPS_TEMPLATE_ERRORS_411"
                 self.description = errorMetadata[self.code]["description"]
                 self.message = errorMetadata[self.code]["message"].format_map(self.args)
                 return

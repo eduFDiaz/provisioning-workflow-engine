@@ -2,7 +2,7 @@ from typing import Dict
 from Clients.NetConfClient import NetConfClient
 from Models.Base import Process
 from config import logger as log
-from config import api_credentials
+# from config import api_credentials
 
 import json
 from jsonpath_ng.ext import parser
@@ -17,8 +17,8 @@ class NetConfStep(Process):
         super().__init__(config)
         self.hostname = self.config['hostname']
         self.port = self.config['port']
-        self.username = api_credentials[self.configType]['username']
-        self.password = api_credentials[self.configType]['password']
+        # self.username = api_credentials[self.configType]['username']
+        # self.password = api_credentials[self.configType]['password']
         self.request = self.config['request']
         if self.request['type'] not in ['FETCH', 'EDIT']:
             raise ValueError(CustomNetconfError(payload=NETCONF_ERRORS.UNSUPPORTED_REQUEST_TYPE, args={'request_type': self.request['type']}).toJSON())
