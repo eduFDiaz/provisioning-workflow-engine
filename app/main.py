@@ -3,7 +3,7 @@ import asyncio
 import uuid
 from datetime import timedelta
 
-from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow, RunTasks, run_TemplateWorkFlow, workflowStatus
+from Services.Workflows.WorkflowService import get_steps_configs, TemplateWorkflowArgs, TemplateWorkflow, TemplateChildWorkflow, RunTasks, run_TemplateWorkFlow, workflowStatus, get_last_error
 from Models.NotificationModel import NotificationModel
 
 from config import logger as log
@@ -157,15 +157,9 @@ async def execute_workflow(request_id: Optional[str] = Header(None),
                 result = await (run_TemplateWorkFlow(flowFileName, request_id, repoName, branch))
                 taskList = result
             except WorkflowFailureError as err:
-                if isinstance(err.cause, ApplicationError):
-                    log.debug(f"Workflow failed with application error: {err.cause.cause}")
-                elif isinstance(err.cause, ActivityError):
-                    log.debug(f"Workflow failed with a non-application error: {err.cause.cause}")
-                    log.error(f"Exception error - {err.cause.cause}")
-                    log.error(f"Exception cloning and reading templates files for requestID: {request_id}")
-                    return JSONResponse(content={"error": str(err.cause.cause)}, status_code=500)
-                else:
-                    log.debug(f"Workflow failed with error: {err}")
+                log.debug(f"Workflow failed with error: {err}")
+                error = await get_last_error(request_id=request_id)
+                return JSONResponse(str(error.error), status_code=500)
 
             # if code reaches here, it means that cloning and reading templates was successful
             loop = asyncio.get_event_loop()

@@ -14,6 +14,8 @@ with workflow.unsafe.imports_passed_through():
     from dao.ErrorDao import ErrorDao
     from Models.Errors.ErrorMetadata import ErrorModel
     from Utils.Utils import get_list_of_steps, fetch_template_files
+    from datetime import datetime
+    from config import settings
     
 # consumer_app_host = None
 # if is_running_in_docker:
@@ -62,16 +64,34 @@ def sendNotifications(func):
     
     return wrapper
 
+def persistErrors(func):
+    """Decorator to persist errors to cassandra workflows.Errors table
+    """
+    async def wrapper(*args, **kwargs):
+        try:
+            result = await func(*args, **kwargs)
+        except Exception as e:
+            log.error(f"execute step exception {e}")
+            # save error to cassandra workflows.Errors table
+            connection = CassandraConnection()
+            session = connection.get_session()
+            error = ErrorModel(correlationID=args[0], timeStamp=datetime.utcnow().strftime(settings.notification_date_format),error=str(e))
+            ErrorDao(session).add_or_update_error(error)
+            raise e
+        return result
+    
+    return wrapper
+
 @activity.defn(name="clone_template")
-# @sendNotifications
-async def clone_template(repoName: str, branch: str, wfFileName: str):
-    log.debug(f"Step clone_template - {repoName} - {branch} - {wfFileName}")
+@persistErrors
+async def clone_template(requestID: str, repoName: str, branch: str, wfFileName: str):
+    log.debug(f"Step clone_template - {repoName} - {branch} - {wfFileName} - {requestID}")
     result = fetch_template_files(repoName, branch, wfFileName)
     return result
 
 @activity.defn(name="read_template")
-# @sendNotifications
-async def read_template(wfFileName: str, requestId: str):
+@persistErrors
+async def read_template(requestId: str, wfFileName: str):
     log.debug(f"Step read_template {wfFileName} {requestId}")
     steps = get_list_of_steps(wfFileName, requestId)
     _ = [log.debug(f"read_template steps - {stepConfig}") for stepConfig in list(steps)]

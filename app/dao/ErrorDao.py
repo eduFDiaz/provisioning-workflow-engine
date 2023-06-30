@@ -24,6 +24,18 @@ class ErrorDao:
         errors = sorted(errors, key=lambda error: error.timeStamp, reverse=True)
         return [ErrorModel(**error._asdict()) for error in errors]
     
+    def get_last_error_by_correlationID(self, requestID) -> ErrorModel:
+        """ This method returns the last error for a given requestID."""
+        stmt = SimpleStatement("""
+            SELECT * 
+            FROM workflows.Errors 
+            WHERE "correlationID"=%s
+        """, fetch_size=100)
+        errors = self.session.execute(stmt, [requestID])
+        #sort errors by timeStamps reverse order
+        errors = sorted(errors, key=lambda error: error.timeStamp, reverse=True)
+        return ErrorModel(**errors[0]._asdict())
+    
     def delete_errors_by_correlationID(self, requestID):
         """ This method deletes all errors for a given requestID."""
         stmt = SimpleStatement("""
