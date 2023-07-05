@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { MilestoneHttpService } from '../milestone-http-service.service';
+import { HttpService } from '../milestone-http-service.service';
 import { Milestone } from '../Models/Milestone';
 import { Observable, forkJoin } from 'rxjs';
 import { MilestoneWsService } from '../milestone-ws-service.service';
@@ -26,7 +26,8 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   messagesSubscription!: Subscription;
   startTowerStatus = "not-started";
   CompleteTowerStatus = "not-started";
-  constructor(private http: MilestoneHttpService,
+  showModal = false;
+  constructor(private http: HttpService,
               private ws: MilestoneWsService,
               private cd: ChangeDetectorRef,
               private session: SessionService) { }
@@ -230,6 +231,14 @@ export class MilestoneGroupComponent implements OnInit, OnDestroy, AfterViewInit
   sendMessage(): void {
     console.log('Sending a message');
     this.ws.send('Hello from Angular!');
+  }
+
+  openModal() {
+    this.showModal = true;
+  }
+
+  toggleModal() {
+    this.showModal = !this.showModal;
   }
 }
 

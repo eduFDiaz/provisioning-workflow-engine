@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { MilestoneHttpService } from './milestone-http-service.service';
+import { HttpService } from './milestone-http-service.service';
 
 describe('MilestoneServiceService', () => {
-  let service: MilestoneHttpService;
+  let service: HttpService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(MilestoneHttpService);
+    service = TestBed.inject(HttpService);
   });
 
   it('should be created', () => {
