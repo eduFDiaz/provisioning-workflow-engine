@@ -1,7 +1,13 @@
 <div *ngIf="workflowsArray.length > 0; else loadingTemplate" class="container">
   <div class="header">
     <h3 class="title">Workflow: {{workflowFileName}}</h3>
-    <button (click)="startWorkflow()" class="btn btn-sm">Start flow</button>
+    <span>
+      <button (click)="startWorkflow()" class="btn btn-sm">Start flow</button>
+      <button (click)="openModal()" class="btn btn-sm btn-warning-outline">Show errors</button>
+    </span>
+  </div>
+  <div *ngIf="showModal">
+    <app-error-modal (toggle)="toggleModal()"></app-error-modal>
   </div>
   <div class="flex-container">
     <ul class="clr-timeline clr-timeline-vertical">

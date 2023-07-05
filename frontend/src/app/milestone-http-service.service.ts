@@ -6,7 +6,7 @@ import { of } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class MilestoneHttpService {
+export class HttpService {
   httpClient: HttpClient;
   mockMilestones: Milestone[];
 
@@ -109,5 +109,10 @@ export class MilestoneHttpService {
     console.log("httpHeaders: ", httpHeaders);
     
     return this.httpClient.post(`http://localhost:8000/execute_workflow`, {}, { headers: httpHeaders });
+  }
+
+  getErrors(requestID: string){
+    // this method will call the errors API to get the errors for a given requestID
+    return this.httpClient.get(`http://localhost:8000/errors/?requestID=${requestID}`);
   }
 }

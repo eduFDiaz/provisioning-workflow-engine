@@ -10,13 +10,15 @@ import { ClarityModule } from "@clr/angular";
 import { MilestoneComponent } from './milestone/milestone.component';
 import { StepTitleDirective } from './step-title.directive';
 import { CookieService } from 'ngx-cookie-service';
+import { ErrorModalComponent } from './error-modal/error-modal.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     MilestoneComponent,
     MilestoneGroupComponent,
-    StepTitleDirective
+    StepTitleDirective,
+    ErrorModalComponent
   ],
   imports: [
     BrowserModule,
