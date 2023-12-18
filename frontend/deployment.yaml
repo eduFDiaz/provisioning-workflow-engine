@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "wf-engine"
+  labels:
+    name: "wf-engine"
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: workflow-tracker
+  name: workflow-tracker
+  namespace: wf-engine
+spec:
+  ports:
+  - port: 80
+    targetPort: 4200
+  selector:
+    app: workflow-tracker
+  type: LoadBalancer
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-tracker-deployment
+  namespace: wf-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workflow-tracker
+  template:
+    metadata:
+      labels:
+        app: workflow-tracker
+    spec:
+      containers:
+      - image: palsa/workflow-tracker
+        name: workflow-tracker
+        ports:
+        - containerPort: 4200

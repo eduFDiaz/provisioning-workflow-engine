@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "wf-engine"
+  labels:
+    name: "wf-engine"
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: workflow-engine
+  name: workflow-engine
+  namespace: wf-engine
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+  selector:
+    app: workflow-engine
+  type: LoadBalancer
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workflow-engine-config-map
+  namespace: wf-engine
+data:
+  dev.conf: |
+     kafka_server=kafka-service.kafka.svc.cluster.local
+     kafka_port=9092
+     kafka_groupId=workflow-engine
+     kafka_topic=workflow-engine-topic
+
+     temporal_server=temporal-frontend.workflow.svc.cluster.local:7233
+     temporal_namespace=wf-engine
+     temporal_queuename=workflow-engine
+
+     temporal_task_init_interval=3
+     temporal_task_backoff_coefficient=2.0
+     temporal_task_max_attempts=5
+     temporal_task_max_interval=10
+     temporal_task_start_to_close_timeout=60
+     temporal_workflow_execution_timeout=300
+
+     cassandra_host=temporal-cassandra.workflow.svc.cluster.local
+     cassandra_port=9042
+     cassandra_user=user
+     cassandra_password=password
+
+     consumer_app_host=consumer_app
+     consumer_app_port=4040
+
+     repo_access_token=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
+     log_fileName=./WORKFLOW_MS.log
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-engine-deployment
+  namespace: wf-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workflow-engine
+  template:
+    metadata:
+      labels:
+        app: workflow-engine
+    spec:
+      containers:
+      - image: palsa/workflow-engine
+        name: workflow-engine
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - mountPath: /app/config
+          name: workflow-engine-config
+      volumes:
+      - name: workflow-engine-config
+        configMap:
+          name: workflow-engine-config-map
+          items:
+          - key: "dev.conf"
+            path: "dev.conf"
+
+
